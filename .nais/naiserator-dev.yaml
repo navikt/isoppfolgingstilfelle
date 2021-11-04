@@ -1,0 +1,45 @@
+apiVersion: "nais.io/v1alpha1"
+kind: "Application"
+metadata:
+  name: isoppfolgingstilfelle
+  namespace: teamsykefravr
+  labels:
+    team: teamsykefravr
+spec:
+  image: {{ image }}
+  port: 8080
+  replicas:
+    min: 1
+    max: 2
+    cpuThresholdPercentage: 70
+  startup:
+    path: /internal/is_ready
+    periodSeconds: 5
+    timeout: 5
+    failureThreshold: 30
+  liveness:
+    path: /internal/is_alive
+    periodSeconds: 5
+    timeout: 5
+    failureThreshold: 3
+  readiness:
+    path: /internal/is_ready
+    periodSeconds: 5
+    timeout: 5
+    failureThreshold: 3
+  leaderElection: true
+  prometheus:
+    enabled: true
+    path: /internal/metrics
+  resources:
+    limits:
+      cpu: 600m
+      memory: 512Mi
+    requests:
+      cpu: 500m
+      memory: 384Mi
+  ingresses:
+    - "https://isoppfolgingstilfelle.dev.intern.nav.no"
+  env:
+    - name: KTOR_ENV
+      value: "production"
