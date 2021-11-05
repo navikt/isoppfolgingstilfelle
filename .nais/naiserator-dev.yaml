@@ -40,6 +40,12 @@ spec:
       memory: 384Mi
   ingresses:
     - "https://isoppfolgingstilfelle.dev.intern.nav.no"
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_12
+        databases:
+          - name: isoppfolgingstilfelle-db
+        diskAutoresize: true
   env:
     - name: KTOR_ENV
       value: "production"

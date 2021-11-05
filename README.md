@@ -9,12 +9,14 @@ Isoppfolgingstilfelle contains pieces of a Oppfolgingstilfelle and calculates re
 * Gradle
 * Kotlin
 * Ktor
+* Postgres
 
 ##### Test Libraries:
 
 * Kluent
 * Mockk
 * Spek
+
 #### Requirements
 
 * JDK 17
