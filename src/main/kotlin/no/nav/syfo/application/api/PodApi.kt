@@ -14,17 +14,27 @@ fun Routing.registerPodApi(
 ) {
     get(podLivenessPath) {
         if (applicationState.alive) {
-            call.respondText("I'm alive! :)")
+            call.respondText(
+                text = "I'm alive! :)",
+            )
         } else {
-            call.respondText("I'm dead x_x", status = HttpStatusCode.InternalServerError)
+            call.respondText(
+                status = HttpStatusCode.InternalServerError,
+                text = "I'm dead x_x",
+            )
         }
     }
     get(podReadinessPath) {
         val isReady = applicationState.ready
         if (isReady) {
-            call.respondText("I'm ready! :)")
+            call.respondText(
+                text = "I'm ready! :)",
+            )
         } else {
-            call.respondText("Please wait! I'm not ready :(", status = HttpStatusCode.InternalServerError)
+            call.respondText(
+                status = HttpStatusCode.InternalServerError,
+                text = "Please wait! I'm not ready :(",
+            )
         }
     }
 }
