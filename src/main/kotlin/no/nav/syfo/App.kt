@@ -8,6 +8,8 @@ import io.ktor.server.netty.*
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.Environment
 import no.nav.syfo.application.api.apiModule
+import no.nav.syfo.application.database.applicationDatabase
+import no.nav.syfo.application.database.databaseModule
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
@@ -26,8 +28,12 @@ fun main() {
         }
 
         module {
+            databaseModule(
+                environment = environment,
+            )
             apiModule(
                 applicationState = applicationState,
+                database = applicationDatabase,
             )
         }
     }

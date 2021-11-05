@@ -8,18 +8,21 @@ import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldNotBeEqualTo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import testhelper.TestDatabase
 
 object PodApiSpek : Spek({
 
     describe("Successful liveness and readiness checks") {
         with(TestApplicationEngine()) {
             start()
+            val database = TestDatabase()
             application.routing {
                 registerPodApi(
-                    ApplicationState(
+                    applicationState = ApplicationState(
                         alive = true,
                         ready = true,
                     ),
+                    database = database,
                 )
             }
 
@@ -42,12 +45,14 @@ object PodApiSpek : Spek({
     describe("Unsuccessful liveness and readiness checks") {
         with(TestApplicationEngine()) {
             start()
+            val database = TestDatabase()
             application.routing {
                 registerPodApi(
-                    ApplicationState(
+                    applicationState = ApplicationState(
                         alive = false,
                         ready = false,
                     ),
+                    database = database,
                 )
             }
 
