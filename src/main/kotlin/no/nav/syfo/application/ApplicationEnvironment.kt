@@ -5,6 +5,11 @@ import io.ktor.application.*
 const val NAIS_DATABASE_ENV_PREFIX = "NAIS_DATABASE_ISOPPFOLGINGSTILFELLE_ISOPPFOLGINGSTILFELLE_DB"
 
 data class Environment(
+    val azureAppClientId: String = getEnvVar("AZURE_APP_CLIENT_ID"),
+    val azureAppClientSecret: String = getEnvVar("AZURE_APP_CLIENT_SECRET"),
+    val azureAppWellKnownUrl: String = getEnvVar("AZURE_APP_WELL_KNOWN_URL"),
+    val azureOpenidConfigTokenEndpoint: String = getEnvVar("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
+
     val isoppfolgingstilfelleDbHost: String = getEnvVar("${NAIS_DATABASE_ENV_PREFIX}_HOST"),
     val isoppfolgingstilfelleDbPort: String = getEnvVar("${NAIS_DATABASE_ENV_PREFIX}_PORT"),
     val isoppfolgingstilfelleDbName: String = getEnvVar("${NAIS_DATABASE_ENV_PREFIX}_DATABASE"),

@@ -10,6 +10,7 @@ import no.nav.syfo.application.Environment
 import no.nav.syfo.application.api.apiModule
 import no.nav.syfo.application.database.applicationDatabase
 import no.nav.syfo.application.database.databaseModule
+import no.nav.syfo.client.wellknown.getWellKnown
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
@@ -18,6 +19,9 @@ const val applicationPort = 8080
 fun main() {
     val applicationState = ApplicationState()
     val environment = Environment()
+    val wellKnownInternalAzureAD = getWellKnown(
+        wellKnownUrl = environment.azureAppWellKnownUrl,
+    )
 
     val applicationEngineEnvironment = applicationEngineEnvironment {
         log = LoggerFactory.getLogger("ktor.application")
@@ -34,6 +38,8 @@ fun main() {
             apiModule(
                 applicationState = applicationState,
                 database = applicationDatabase,
+                environment = environment,
+                wellKnownInternalAzureAD = wellKnownInternalAzureAD,
             )
         }
     }
