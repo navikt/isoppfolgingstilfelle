@@ -46,6 +46,19 @@ spec:
         databases:
           - name: isoppfolgingstilfelle-db
         diskAutoresize: true
+  accessPolicy:
+    inbound:
+      rules:
+        - application: syfomodiaperson
+          namespace: teamsykefravr
+          cluster: prod-fss
+  azure:
+    application:
+      enabled: true
+      tenant: nav.no
+      claims:
+        extra:
+          - "NAVident"
   env:
     - name: KTOR_ENV
       value: "production"
