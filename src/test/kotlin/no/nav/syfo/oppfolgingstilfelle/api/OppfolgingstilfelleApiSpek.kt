@@ -11,6 +11,7 @@ import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import testhelper.*
 import testhelper.UserConstants.ARBEIDSTAKER_PERSONIDENTNUMBER
+import testhelper.UserConstants.VIRKSOMHETSNUMMER_DEFAULT
 
 class OppfolgingstilfelleApiSpek : Spek({
     val objectMapper: ObjectMapper = configuredJacksonMapper()
@@ -50,7 +51,8 @@ class OppfolgingstilfelleApiSpek : Spek({
 
                             val oppfolgingstilfelleDTO = oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.first()
 
-                            oppfolgingstilfelleDTO.virksomhetsnummerList.size shouldBeEqualTo 0
+                            oppfolgingstilfelleDTO.virksomhetsnummerList.size shouldBeEqualTo 1
+                            oppfolgingstilfelleDTO.virksomhetsnummerList.first() shouldBeEqualTo VIRKSOMHETSNUMMER_DEFAULT.value
                         }
                     }
                 }
