@@ -1,6 +1,7 @@
 package no.nav.syfo.application.api
 
 import io.ktor.application.*
+import io.ktor.client.features.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.jackson.*
@@ -40,11 +41,24 @@ fun Application.installContentNegotiation() {
 fun Application.installStatusPages() {
     install(StatusPages) {
         exception<Throwable> { cause ->
-            call.respond(HttpStatusCode.InternalServerError, cause.message ?: "Unknown error")
+            val responseStatus: HttpStatusCode = when (cause) {
+                is ResponseException -> {
+                    cause.response.status
+                }
+                is IllegalArgumentException -> {
+                    HttpStatusCode.BadRequest
+                }
+                else -> {
+                    HttpStatusCode.InternalServerError
+                }
+            }
+
             val callId = getCallId()
             val consumerClientId = getConsumerClientId()
             log.error("Caught exception, callId=$callId, consumerClientId=$consumerClientId", cause)
-            throw cause
+
+            val message = cause.message ?: "Unknown error"
+            call.respond(responseStatus, message)
         }
     }
 }

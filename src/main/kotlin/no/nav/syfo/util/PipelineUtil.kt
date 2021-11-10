@@ -19,3 +19,7 @@ fun PipelineContext<out Unit, ApplicationCall>.getConsumerClientId(): String? =
     getBearerHeader()?.let {
         JWT.decode(it).claims[JWT_CLAIM_AZP]?.asString()
     }
+
+fun PipelineContext<out Unit, ApplicationCall>.personIdentHeader(): String? {
+    return this.call.request.headers[NAV_PERSONIDENT_HEADER]
+}
