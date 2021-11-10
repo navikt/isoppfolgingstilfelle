@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.*
 import io.ktor.server.testing.*
-import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfelleDTO
+import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfellePersonDTO
 import no.nav.syfo.util.*
 import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
@@ -25,7 +25,7 @@ class OppfolgingstilfelleApiSpek : Spek({
         )
 
         describe(OppfolgingstilfelleApiSpek::class.java.simpleName) {
-            describe("Get OppfolgingstilfelleDTOList for PersonIdent") {
+            describe("Get OppfolgingstilfellePersonDTO for PersonIdent") {
                 val url = "$oppfolgingstilfelleApiV1Path$oppfolgingstilfelleApiPersonIdentPath"
                 val validToken = generateJWT(
                     audience = externalMockEnvironment.environment.azureAppClientId,
@@ -34,7 +34,7 @@ class OppfolgingstilfelleApiSpek : Spek({
 
                 describe("Happy path") {
 
-                    it("should return list of NarmestelederRelasjon if request is successful") {
+                    it("should return list of OppfolgingstilfelleDTO if request is successful") {
                         with(
                             handleRequest(HttpMethod.Get, url) {
                                 addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
@@ -43,14 +43,14 @@ class OppfolgingstilfelleApiSpek : Spek({
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.OK
 
-                            val oppfolgingstilfelleDTOList: List<OppfolgingstilfelleDTO> =
+                            val oppfolgingstilfellePersonDTO: OppfolgingstilfellePersonDTO =
                                 objectMapper.readValue(response.content!!)
 
-                            oppfolgingstilfelleDTOList.size shouldBeEqualTo 1
+                            oppfolgingstilfellePersonDTO.personIdent shouldBeEqualTo ARBEIDSTAKER_PERSONIDENTNUMBER.value
 
-                            val oppfolgingstilfelle = oppfolgingstilfelleDTOList.first()
-                            oppfolgingstilfelle.personIdent shouldBeEqualTo ARBEIDSTAKER_PERSONIDENTNUMBER.value
-                            oppfolgingstilfelle.virksomhetsnummerList.size shouldBeEqualTo 0
+                            val oppfolgingstilfelleDTO = oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.first()
+
+                            oppfolgingstilfelleDTO.virksomhetsnummerList.size shouldBeEqualTo 0
                         }
                     }
                 }

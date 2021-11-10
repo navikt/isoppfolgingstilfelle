@@ -1,17 +1,13 @@
 package no.nav.syfo.oppfolgingstilfelle
 
-import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingstilfelle.domain.Oppfolgingstilfelle
-import java.time.LocalDateTime
+import java.time.LocalDate
 
 class OppfolgingstilfelleService {
-    fun oppfolgingstilfelleList(
-        personIdentNumber: PersonIdentNumber,
-    ) = listOf(
+    fun oppfolgingstilfelleList() = listOf(
         Oppfolgingstilfelle(
-            personIdentNumber = personIdentNumber,
-            start = LocalDateTime.now().minusDays(1),
-            end = LocalDateTime.now().plusDays(1),
+            start = LocalDate.now().minusDays(1),
+            end = LocalDate.now().plusDays(1),
             virksomhetsnummerList = emptyList(),
         ),
     )

@@ -5,7 +5,8 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
-import no.nav.syfo.oppfolgingstilfelle.domain.toOppfolgingstilfelleDTOList
+import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfellePersonDTO
+import no.nav.syfo.oppfolgingstilfelle.domain.toOppfolgingstilfellePersonDTO
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 import no.nav.syfo.util.personIdentHeader
 
@@ -22,11 +23,12 @@ fun Route.registerOppfolgingstilfelleApi(
             }
                 ?: throw IllegalArgumentException("Could not retrieve OppfolgingstilfelleDTO: No $NAV_PERSONIDENT_HEADER supplied in request header")
 
-            val oppfolgingstilfelleDTOList = oppfolgingstilfelleService.oppfolgingstilfelleList(
-                personIdentNumber = personIdentNumber,
-            ).toOppfolgingstilfelleDTOList()
+            val oppfolgingstilfellePersonDTO: OppfolgingstilfellePersonDTO =
+                oppfolgingstilfelleService.oppfolgingstilfelleList().toOppfolgingstilfellePersonDTO(
+                    personIdentNumber = personIdentNumber,
+                )
 
-            call.respond(oppfolgingstilfelleDTOList)
+            call.respond(oppfolgingstilfellePersonDTO)
         }
     }
 }
