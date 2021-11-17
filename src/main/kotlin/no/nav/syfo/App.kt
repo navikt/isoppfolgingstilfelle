@@ -25,7 +25,9 @@ fun main() {
 
     val applicationEngineEnvironment = applicationEngineEnvironment {
         log = LoggerFactory.getLogger("ktor.application")
-        config = HoconApplicationConfig(ConfigFactory.load())
+        config = HoconApplicationConfig(
+            config = ConfigFactory.load(),
+        )
 
         connector {
             port = applicationPort
