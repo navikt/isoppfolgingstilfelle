@@ -41,7 +41,7 @@ class Database(
         dataSource(
             config.jdbcUrl,
             config.username,
-            config.password
+            config.password,
         )
         load().migrate().migrationsExecuted
     }
