@@ -7,6 +7,7 @@ import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfellePersonDTO
 import java.time.LocalDate
 
 data class Oppfolgingstilfelle(
+    val personIdentNumber: PersonIdentNumber,
     val start: LocalDate,
     val end: LocalDate,
     val virksomhetsnummerList: List<Virksomhetsnummer>,

@@ -24,7 +24,9 @@ fun Route.registerOppfolgingstilfelleApi(
                 ?: throw IllegalArgumentException("Could not retrieve OppfolgingstilfelleDTO: No $NAV_PERSONIDENT_HEADER supplied in request header")
 
             val oppfolgingstilfellePersonDTO: OppfolgingstilfellePersonDTO =
-                oppfolgingstilfelleService.oppfolgingstilfelleList().toOppfolgingstilfellePersonDTO(
+                oppfolgingstilfelleService.oppfolgingstilfelleList(
+                    personIdentNumber = personIdentNumber,
+                ).toOppfolgingstilfellePersonDTO(
                     personIdentNumber = personIdentNumber,
                 )
 
