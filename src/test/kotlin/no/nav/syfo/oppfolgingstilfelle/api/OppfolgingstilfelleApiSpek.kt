@@ -5,6 +5,9 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfellePersonDTO
+import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBit
+import no.nav.syfo.oppfolgingstilfelle.bit.Tag
+import no.nav.syfo.oppfolgingstilfelle.bit.database.createOppfolgingstilfelleBit
 import no.nav.syfo.util.*
 import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
@@ -12,6 +15,8 @@ import org.spekframework.spek2.style.specification.describe
 import testhelper.*
 import testhelper.UserConstants.ARBEIDSTAKER_PERSONIDENTNUMBER
 import testhelper.UserConstants.VIRKSOMHETSNUMMER_DEFAULT
+import java.time.OffsetDateTime
+import java.util.*
 
 class OppfolgingstilfelleApiSpek : Spek({
     val objectMapper: ObjectMapper = configuredJacksonMapper()
@@ -20,9 +25,25 @@ class OppfolgingstilfelleApiSpek : Spek({
         start()
 
         val externalMockEnvironment = ExternalMockEnvironment.instance
+        val database = externalMockEnvironment.database
 
         application.testApiModule(
             externalMockEnvironment = externalMockEnvironment,
+        )
+
+        val oppfolgingstilfelleBit = OppfolgingstilfelleBit(
+            uuid = UUID.randomUUID(),
+            personIdentNumber = ARBEIDSTAKER_PERSONIDENTNUMBER,
+            virksomhetsnummer = VIRKSOMHETSNUMMER_DEFAULT.value,
+            createdAt = OffsetDateTime.now(),
+            inntruffet = OffsetDateTime.now().minusDays(1),
+            fom = OffsetDateTime.now().minusDays(1),
+            tom = OffsetDateTime.now().plusDays(1),
+            tagList = listOf(
+                Tag.SYKEPENGESOKNAD,
+                Tag.SENDT,
+            ),
+            ressursId = UUID.randomUUID().toString(),
         )
 
         describe(OppfolgingstilfelleApiSpek::class.java.simpleName) {
@@ -36,6 +57,13 @@ class OppfolgingstilfelleApiSpek : Spek({
                 describe("Happy path") {
 
                     it("should return list of OppfolgingstilfelleDTO if request is successful") {
+                        database.connection.use {
+                            it.createOppfolgingstilfelleBit(
+                                commit = true,
+                                oppfolgingstilfelleBit = oppfolgingstilfelleBit,
+                            )
+                        }
+
                         with(
                             handleRequest(HttpMethod.Get, url) {
                                 addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
@@ -47,12 +75,15 @@ class OppfolgingstilfelleApiSpek : Spek({
                             val oppfolgingstilfellePersonDTO: OppfolgingstilfellePersonDTO =
                                 objectMapper.readValue(response.content!!)
 
-                            oppfolgingstilfellePersonDTO.personIdent shouldBeEqualTo ARBEIDSTAKER_PERSONIDENTNUMBER.value
+                            oppfolgingstilfellePersonDTO.personIdent shouldBeEqualTo oppfolgingstilfelleBit.personIdentNumber.value
 
                             val oppfolgingstilfelleDTO = oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.first()
 
                             oppfolgingstilfelleDTO.virksomhetsnummerList.size shouldBeEqualTo 1
-                            oppfolgingstilfelleDTO.virksomhetsnummerList.first() shouldBeEqualTo VIRKSOMHETSNUMMER_DEFAULT.value
+                            oppfolgingstilfelleDTO.virksomhetsnummerList.first() shouldBeEqualTo oppfolgingstilfelleBit.virksomhetsnummer
+
+                            oppfolgingstilfelleDTO.start shouldBeEqualTo oppfolgingstilfelleBit.fom.toLocalDateOslo()
+                            oppfolgingstilfelleDTO.end shouldBeEqualTo oppfolgingstilfelleBit.tom.toLocalDateOslo()
                         }
                     }
                 }
