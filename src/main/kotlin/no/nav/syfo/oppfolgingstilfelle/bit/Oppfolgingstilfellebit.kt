@@ -2,6 +2,7 @@ package no.nav.syfo.oppfolgingstilfelle.bit
 
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBit.Companion.TAG_PRIORITY
+import no.nav.syfo.oppfolgingstilfelle.bit.kafka.KafkaSyketilfellebit
 import no.nav.syfo.oppfolgingstilfelle.domain.OppfolgingstilfelleDag
 import no.nav.syfo.util.*
 import java.time.*
@@ -138,3 +139,17 @@ fun List<OppfolgingstilfelleBit>.findPriorityOppfolgingstilfelleBitOrNull(): Opp
 fun OppfolgingstilfelleBit.tagsToString() = this.tagList.joinToString(",")
 
 fun String.toTagList(): List<Tag> = split(',').map(String::trim).map(Tag::valueOf)
+
+fun KafkaSyketilfellebit.toOppfolgingstilfelleBit(): OppfolgingstilfelleBit {
+    return OppfolgingstilfelleBit(
+        uuid = UUID.fromString(this.id),
+        personIdentNumber = PersonIdentNumber(this.fnr),
+        virksomhetsnummer = this.orgnummer,
+        createdAt = OffsetDateTime.now(),
+        inntruffet = this.inntruffet,
+        tagList = this.tags.map { tag -> Tag.valueOf(tag) },
+        ressursId = this.ressursId,
+        fom = this.fom,
+        tom = this.tom,
+    )
+}

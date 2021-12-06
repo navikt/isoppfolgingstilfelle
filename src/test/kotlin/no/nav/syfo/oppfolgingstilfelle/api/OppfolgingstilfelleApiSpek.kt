@@ -4,19 +4,22 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.*
 import io.ktor.server.testing.*
+import io.mockk.*
 import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfellePersonDTO
 import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.bit.Tag
-import no.nav.syfo.oppfolgingstilfelle.bit.database.createOppfolgingstilfelleBit
+import no.nav.syfo.oppfolgingstilfelle.bit.kafka.*
 import no.nav.syfo.util.*
 import org.amshove.kluent.shouldBeEqualTo
+import org.apache.kafka.clients.consumer.*
+import org.apache.kafka.common.TopicPartition
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import testhelper.*
 import testhelper.UserConstants.ARBEIDSTAKER_PERSONIDENTNUMBER
 import testhelper.UserConstants.VIRKSOMHETSNUMMER_DEFAULT
-import java.time.LocalDate
-import java.time.OffsetDateTime
+import testhelper.generator.generateKafkaSyketilfellebit
+import java.time.*
 import java.util.*
 
 class OppfolgingstilfelleApiSpek : Spek({
@@ -47,6 +50,33 @@ class OppfolgingstilfelleApiSpek : Spek({
             ressursId = UUID.randomUUID().toString(),
         )
 
+        val partition = 0
+        val syketilfellebitTopicPartition = TopicPartition(
+            SYKETILFELLEBIT_TOPIC,
+            partition,
+        )
+
+        val kafkaSyketilfellebit = generateKafkaSyketilfellebit(
+            arbeidstakerPersonIdentNumber = ARBEIDSTAKER_PERSONIDENTNUMBER,
+        )
+        val kafkaSyketilfellebitRecord = ConsumerRecord(
+            SYKETILFELLEBIT_TOPIC,
+            partition,
+            1,
+            "key1",
+            kafkaSyketilfellebit,
+        )
+
+        val mockKafkaConsumerSyketilfelleBit = mockk<KafkaConsumer<String, KafkaSyketilfellebit>>()
+        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+            mapOf(
+                syketilfellebitTopicPartition to listOf(
+                    kafkaSyketilfellebitRecord,
+                )
+            )
+        )
+        every { mockKafkaConsumerSyketilfelleBit.commitSync() } returns Unit
+
         describe(OppfolgingstilfelleApiSpek::class.java.simpleName) {
             describe("Get OppfolgingstilfellePersonDTO for PersonIdent") {
                 val url = "$oppfolgingstilfelleApiV1Path$oppfolgingstilfelleApiPersonIdentPath"
@@ -58,11 +88,13 @@ class OppfolgingstilfelleApiSpek : Spek({
                 describe("Happy path") {
 
                     it("should return list of OppfolgingstilfelleDTO if request is successful") {
-                        database.connection.use {
-                            it.createOppfolgingstilfelleBit(
-                                commit = true,
-                                oppfolgingstilfelleBit = oppfolgingstilfelleBit,
-                            )
+                        pollAndProcessSyketilfelleBit(
+                            database = database,
+                            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                        )
+
+                        verify(exactly = 1) {
+                            mockKafkaConsumerSyketilfelleBit.commitSync()
                         }
 
                         with(

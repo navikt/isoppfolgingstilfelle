@@ -15,6 +15,16 @@ data class Environment(
     val isoppfolgingstilfelleDbName: String = getEnvVar("${NAIS_DATABASE_ENV_PREFIX}_DATABASE"),
     val isoppfolgingstilfelleDbUsername: String = getEnvVar("${NAIS_DATABASE_ENV_PREFIX}_USERNAME"),
     val isoppfolgingstilfelleDbPassword: String = getEnvVar("${NAIS_DATABASE_ENV_PREFIX}_PASSWORD"),
+
+    val kafka: ApplicationEnvironmentKafka = ApplicationEnvironmentKafka(
+        aivenBootstrapServers = getEnvVar("KAFKA_BROKERS"),
+        aivenCredstorePassword = getEnvVar("KAFKA_CREDSTORE_PASSWORD"),
+        aivenKeystoreLocation = getEnvVar("KAFKA_KEYSTORE_PATH"),
+        aivenSecurityProtocol = "SSL",
+        aivenTruststoreLocation = getEnvVar("KAFKA_TRUSTSTORE_PATH"),
+    ),
+
+    val kafkaSykeketilfellebitProcessingEnabled: Boolean = getEnvVar("TOGGLE_KAFKA_SYKETILFELLEBIT_PROCESSING_ENABLED").toBoolean()
 ) {
     fun jdbcUrl(): String {
         return "jdbc:postgresql://$isoppfolgingstilfelleDbHost:$isoppfolgingstilfelleDbPort/$isoppfolgingstilfelleDbName"

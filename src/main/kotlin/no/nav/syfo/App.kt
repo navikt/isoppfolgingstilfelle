@@ -11,6 +11,7 @@ import no.nav.syfo.application.api.apiModule
 import no.nav.syfo.application.database.applicationDatabase
 import no.nav.syfo.application.database.databaseModule
 import no.nav.syfo.client.wellknown.getWellKnown
+import no.nav.syfo.oppfolgingstilfelle.bit.kafka.launchKafkaTaskSyketilfelleBit
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
@@ -49,6 +50,13 @@ fun main() {
     applicationEngineEnvironment.monitor.subscribe(ApplicationStarted) { application ->
         applicationState.ready = true
         application.environment.log.info("Application is ready")
+        if (environment.kafkaSykeketilfellebitProcessingEnabled) {
+            launchKafkaTaskSyketilfelleBit(
+                applicationState = applicationState,
+                applicationEnvironmentKafka = environment.kafka,
+                database = applicationDatabase,
+            )
+        }
     }
 
     val server = embeddedServer(
