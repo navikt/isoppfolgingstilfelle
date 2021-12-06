@@ -4,8 +4,7 @@ import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBit.Companion.TAG_PRIORITY
 import no.nav.syfo.oppfolgingstilfelle.domain.OppfolgingstilfelleDag
 import no.nav.syfo.util.*
-import java.time.LocalDate
-import java.time.LocalDateTime
+import java.time.*
 import java.time.temporal.ChronoUnit
 import java.util.*
 
@@ -46,12 +45,12 @@ data class OppfolgingstilfelleBit(
     val uuid: UUID,
     val personIdentNumber: PersonIdentNumber,
     val virksomhetsnummer: String? = null,
-    val createdAt: LocalDateTime,
-    val inntruffet: LocalDateTime,
+    val createdAt: OffsetDateTime,
+    val inntruffet: OffsetDateTime,
     val tagList: List<Tag>,
     val ressursId: String,
-    val fom: LocalDateTime,
-    val tom: LocalDateTime,
+    val fom: OffsetDateTime,
+    val tom: OffsetDateTime,
 ) {
     companion object {
         val TAG_PRIORITY: List<ListContainsPredicate<Tag>> = listOf(
@@ -80,8 +79,8 @@ data class OppfolgingstilfelleBit(
 fun List<OppfolgingstilfelleBit>.toOppfolgingstilfelleDagList(): List<OppfolgingstilfelleDag> {
     require(this.isNotEmpty())
 
-    val firstFom = this.firstFom().toLocalDate()
-    val lastTom = this.lastTom().toLocalDate()
+    val firstFom = this.firstFom()
+    val lastTom = this.lastTom()
 
     val numberOfDaysInOppfolgingstilleTimeline = (0..ChronoUnit.DAYS.between(firstFom, lastTom))
 
@@ -93,20 +92,20 @@ fun List<OppfolgingstilfelleBit>.toOppfolgingstilfelleDagList(): List<Oppfolging
         }
 }
 
-fun List<OppfolgingstilfelleBit>.firstFom(): LocalDateTime =
+fun List<OppfolgingstilfelleBit>.firstFom(): OffsetDateTime =
     this.minByOrNull { it.fom }!!.fom
 
-fun List<OppfolgingstilfelleBit>.lastTom(): LocalDateTime =
+fun List<OppfolgingstilfelleBit>.lastTom(): OffsetDateTime =
     this.maxByOrNull { it.tom }!!.tom
 
 fun List<OppfolgingstilfelleBit>.pickOppfolgingstilfelleDag(
-    dag: LocalDate,
+    dag: OffsetDateTime,
 ): OppfolgingstilfelleDag {
     val bitListForDag = this.filter { bit ->
-        dag in (bit.fom.toLocalDate()..(bit.tom.toLocalDate()))
+        dag.toLocalDateOslo() in (bit.fom.toLocalDateOslo()..(bit.tom.toLocalDateOslo()))
     }
     return bitListForDag
-        .groupBy { bit -> bit.inntruffet.toLocalDate() }
+        .groupBy { bit -> bit.inntruffet.toLocalDateOslo() }
         .toSortedMap()
         .mapValues { entryDagBitList: Map.Entry<LocalDate, List<OppfolgingstilfelleBit>> ->
             entryDagBitList.value.findPriorityOppfolgingstilfelleBitOrNull()

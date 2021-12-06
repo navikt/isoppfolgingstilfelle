@@ -7,7 +7,7 @@ import no.nav.syfo.oppfolgingstilfelle.bit.Tag.SYKEPENGESOKNAD
 import no.nav.syfo.oppfolgingstilfelle.bit.toOppfolgingstilfelleDagList
 import no.nav.syfo.oppfolgingstilfelle.domain.Oppfolgingstilfelle
 import no.nav.syfo.oppfolgingstilfelle.domain.groupOppfolgingstilfelleList
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.*
 
 class OppfolgingstilfelleService {
@@ -25,10 +25,10 @@ class OppfolgingstilfelleService {
             uuid = UUID.randomUUID(),
             personIdentNumber = personIdentNumber,
             virksomhetsnummer = "987654321",
-            createdAt = LocalDateTime.now(),
-            inntruffet = LocalDateTime.now().minusDays(1),
-            fom = LocalDateTime.now().minusDays(1),
-            tom = LocalDateTime.now().plusDays(1),
+            createdAt = OffsetDateTime.now(),
+            inntruffet = OffsetDateTime.now().minusDays(1),
+            fom = OffsetDateTime.now().minusDays(1),
+            tom = OffsetDateTime.now().plusDays(1),
             tagList = listOf(
                 SYKEPENGESOKNAD,
                 SENDT,
