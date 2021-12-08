@@ -5,10 +5,10 @@ group = "no.nav.syfo"
 version = "1.0.0"
 
 object Versions {
-    const val flyway = "8.2.0"
+    const val flyway = "8.2.1"
     const val hikari = "5.0.0"
     const val jackson = "2.13.0"
-    const val ktor = "1.6.6"
+    const val ktor = "1.6.7"
     const val kluent = "1.68"
     const val logback = "1.2.7"
     const val logstashEncoder = "7.0.1"
