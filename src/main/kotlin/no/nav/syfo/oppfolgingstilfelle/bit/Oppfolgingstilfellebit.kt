@@ -134,3 +134,7 @@ fun List<OppfolgingstilfelleBit>.findPriorityOppfolgingstilfelleBitOrNull(): Opp
     }
     return null
 }
+
+fun OppfolgingstilfelleBit.tagsToString() = this.tagList.joinToString(",")
+
+fun String.toTagList(): List<Tag> = split(',').map(String::trim).map(Tag::valueOf)

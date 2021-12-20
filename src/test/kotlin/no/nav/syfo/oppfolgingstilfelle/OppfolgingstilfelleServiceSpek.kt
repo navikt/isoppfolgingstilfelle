@@ -1,6 +1,8 @@
 package no.nav.syfo.oppfolgingstilfelle
 
+import io.mockk.mockk
 import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBit
+import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
 import no.nav.syfo.oppfolgingstilfelle.bit.Tag.*
 import no.nav.syfo.util.defaultZoneOffset
 import no.nav.syfo.util.toLocalDateOslo
@@ -13,7 +15,10 @@ import java.time.*
 class OppfolgingstilfelleServiceSpek : Spek({
     describe(OppfolgingstilfelleServiceSpek::class.java.simpleName) {
 
-        val oppfolgingstilfelleService = OppfolgingstilfelleService()
+        val oppfolgingstilfelleBitService: OppfolgingstilfelleBitService = mockk()
+        val oppfolgingstilfelleService = OppfolgingstilfelleService(
+            oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
+        )
 
         val mondayLocal = LocalDate.of(2018, 11, 26)
         val monday = mondayLocal.atStartOfDay().toInstant(defaultZoneOffset).atOffset(defaultZoneOffset)
