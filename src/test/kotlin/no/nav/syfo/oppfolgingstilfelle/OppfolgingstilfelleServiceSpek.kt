@@ -5,7 +5,6 @@ import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
 import no.nav.syfo.oppfolgingstilfelle.bit.Tag.*
 import no.nav.syfo.util.defaultZoneOffset
-import no.nav.syfo.util.toLocalDateOslo
 import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -25,7 +24,7 @@ class OppfolgingstilfelleServiceSpek : Spek({
         val defaultBit: OppfolgingstilfelleBit = generateOppfolgingstilfelleBit().copy(
             createdAt = monday,
             inntruffet = monday,
-            fom = monday,
+            fom = monday.toLocalDate(),
         )
 
         describe("Generate OppfolgingstilfelleList from OppfolgingsBitList") {
@@ -42,15 +41,15 @@ class OppfolgingstilfelleServiceSpek : Spek({
                         createdAt = OffsetDateTime.now(),
                         inntruffet = OffsetDateTime.now(),
                         tagList = listOf(SYKEPENGESOKNAD, SENDT),
-                        fom = OffsetDateTime.now().minusDays(16),
-                        tom = OffsetDateTime.now().minusDays(16),
+                        fom = LocalDate.now().minusDays(16),
+                        tom = LocalDate.now().minusDays(16),
                     ),
                     defaultBit.copy(
                         createdAt = OffsetDateTime.now(),
                         inntruffet = OffsetDateTime.now(),
                         tagList = listOf(SYKEPENGESOKNAD, SENDT),
-                        fom = OffsetDateTime.now(),
-                        tom = OffsetDateTime.now(),
+                        fom = LocalDate.now(),
+                        tom = LocalDate.now(),
                     ),
                 )
 
@@ -60,8 +59,8 @@ class OppfolgingstilfelleServiceSpek : Spek({
                 oppfolgingstilfelleList.size shouldBeEqualTo 1
 
                 val tilfelleDuration = Period.between(
-                    oppfolgingstilfelleList.first().start.toLocalDateOslo(),
-                    oppfolgingstilfelleList.first().end.toLocalDateOslo(),
+                    oppfolgingstilfelleList.first().start,
+                    oppfolgingstilfelleList.first().end,
                 ).days
                 tilfelleDuration shouldBeEqualTo 16
             }
@@ -72,29 +71,29 @@ class OppfolgingstilfelleServiceSpek : Spek({
                         createdAt = OffsetDateTime.now(),
                         inntruffet = OffsetDateTime.now(),
                         tagList = listOf(SYKEPENGESOKNAD, SENDT),
-                        fom = OffsetDateTime.now().minusDays(20),
-                        tom = OffsetDateTime.now().minusDays(20),
+                        fom = LocalDate.now().minusDays(20),
+                        tom = LocalDate.now().minusDays(20),
                     ),
                     defaultBit.copy(
                         createdAt = OffsetDateTime.now(),
                         inntruffet = OffsetDateTime.now(),
                         tagList = listOf(SYKEPENGESOKNAD, SENDT, FERIE),
-                        fom = OffsetDateTime.now().minusDays(19),
-                        tom = OffsetDateTime.now().minusDays(10),
+                        fom = LocalDate.now().minusDays(19),
+                        tom = LocalDate.now().minusDays(10),
                     ),
                     defaultBit.copy(
                         createdAt = OffsetDateTime.now(),
                         inntruffet = OffsetDateTime.now(),
                         tagList = listOf(SYKEPENGESOKNAD, SENDT, PERMISJON),
-                        fom = OffsetDateTime.now().minusDays(9),
-                        tom = OffsetDateTime.now().minusDays(1),
+                        fom = LocalDate.now().minusDays(9),
+                        tom = LocalDate.now().minusDays(1),
                     ),
                     defaultBit.copy(
                         createdAt = OffsetDateTime.now(),
                         inntruffet = OffsetDateTime.now(),
                         tagList = listOf(SYKEPENGESOKNAD, SENDT),
-                        fom = OffsetDateTime.now(),
-                        tom = OffsetDateTime.now(),
+                        fom = LocalDate.now(),
+                        tom = LocalDate.now(),
                     ),
                 )
 
@@ -104,8 +103,8 @@ class OppfolgingstilfelleServiceSpek : Spek({
                 oppfolgingstilfelleList.size shouldBeEqualTo 1
 
                 val tilfelleDuration = Period.between(
-                    oppfolgingstilfelleList.first().start.toLocalDateOslo(),
-                    oppfolgingstilfelleList.first().end.toLocalDateOslo(),
+                    oppfolgingstilfelleList.first().start,
+                    oppfolgingstilfelleList.first().end,
                 ).days
                 tilfelleDuration shouldBeEqualTo 20
             }
@@ -116,22 +115,22 @@ class OppfolgingstilfelleServiceSpek : Spek({
                         createdAt = OffsetDateTime.now(),
                         inntruffet = OffsetDateTime.now(),
                         tagList = listOf(SYKEPENGESOKNAD, SENDT),
-                        fom = OffsetDateTime.now().minusDays(16),
-                        tom = OffsetDateTime.now().minusDays(16),
+                        fom = LocalDate.now().minusDays(16),
+                        tom = LocalDate.now().minusDays(16),
                     ),
                     defaultBit.copy(
                         createdAt = OffsetDateTime.now(),
                         inntruffet = OffsetDateTime.now(),
                         tagList = listOf(SYKEPENGESOKNAD, SENDT, ARBEID_GJENNOPPTATT),
-                        fom = OffsetDateTime.now().minusDays(15),
-                        tom = OffsetDateTime.now().minusDays(1),
+                        fom = LocalDate.now().minusDays(15),
+                        tom = LocalDate.now().minusDays(1),
                     ),
                     defaultBit.copy(
                         createdAt = OffsetDateTime.now(),
                         inntruffet = OffsetDateTime.now(),
                         tagList = listOf(SYKEPENGESOKNAD, SENDT),
-                        fom = OffsetDateTime.now(),
-                        tom = OffsetDateTime.now(),
+                        fom = LocalDate.now(),
+                        tom = LocalDate.now(),
                     ),
                 )
 
@@ -141,8 +140,8 @@ class OppfolgingstilfelleServiceSpek : Spek({
                 oppfolgingstilfelleList.size shouldBeEqualTo 1
 
                 val tilfelleDuration = Period.between(
-                    oppfolgingstilfelleList.first().start.toLocalDateOslo(),
-                    oppfolgingstilfelleList.first().end.toLocalDateOslo(),
+                    oppfolgingstilfelleList.first().start,
+                    oppfolgingstilfelleList.first().end,
                 ).days
                 tilfelleDuration shouldBeEqualTo 16
             }
@@ -153,15 +152,15 @@ class OppfolgingstilfelleServiceSpek : Spek({
                         createdAt = OffsetDateTime.now(),
                         inntruffet = OffsetDateTime.now(),
                         tagList = listOf(SYKEPENGESOKNAD, SENDT),
-                        fom = OffsetDateTime.now().minusDays(17),
-                        tom = OffsetDateTime.now().minusDays(17),
+                        fom = LocalDate.now().minusDays(17),
+                        tom = LocalDate.now().minusDays(17),
                     ),
                     defaultBit.copy(
                         createdAt = OffsetDateTime.now(),
                         inntruffet = OffsetDateTime.now(),
                         tagList = listOf(SYKEPENGESOKNAD, SENDT),
-                        fom = OffsetDateTime.now(),
-                        tom = OffsetDateTime.now().plusDays(1),
+                        fom = LocalDate.now(),
+                        tom = LocalDate.now().plusDays(1),
                     ),
                 )
 
@@ -171,14 +170,14 @@ class OppfolgingstilfelleServiceSpek : Spek({
                 oppfolgingstilfelleList.size shouldBeEqualTo 2
 
                 val firstTilfelleDuration = Period.between(
-                    oppfolgingstilfelleList.first().start.toLocalDateOslo(),
-                    oppfolgingstilfelleList.first().end.toLocalDateOslo(),
+                    oppfolgingstilfelleList.first().start,
+                    oppfolgingstilfelleList.first().end,
                 ).days
                 firstTilfelleDuration shouldBeEqualTo 0
 
                 val secondTilfelleDuration = Period.between(
-                    oppfolgingstilfelleList.last().start.toLocalDateOslo(),
-                    oppfolgingstilfelleList.last().end.toLocalDateOslo(),
+                    oppfolgingstilfelleList.last().start,
+                    oppfolgingstilfelleList.last().end,
                 ).days
                 secondTilfelleDuration shouldBeEqualTo 1
             }
@@ -189,22 +188,22 @@ class OppfolgingstilfelleServiceSpek : Spek({
                         createdAt = OffsetDateTime.now(),
                         inntruffet = OffsetDateTime.now(),
                         tagList = listOf(SYKEPENGESOKNAD, SENDT),
-                        fom = OffsetDateTime.now().minusDays(17),
-                        tom = OffsetDateTime.now().minusDays(17),
+                        fom = LocalDate.now().minusDays(17),
+                        tom = LocalDate.now().minusDays(17),
                     ),
                     defaultBit.copy(
                         createdAt = OffsetDateTime.now(),
                         inntruffet = OffsetDateTime.now(),
                         tagList = listOf(SYKEPENGESOKNAD, SENDT, ARBEID_GJENNOPPTATT),
-                        fom = OffsetDateTime.now().minusDays(16),
-                        tom = OffsetDateTime.now().minusDays(1),
+                        fom = LocalDate.now().minusDays(16),
+                        tom = LocalDate.now().minusDays(1),
                     ),
                     defaultBit.copy(
                         createdAt = OffsetDateTime.now(),
                         inntruffet = OffsetDateTime.now(),
                         tagList = listOf(SYKEPENGESOKNAD, SENDT),
-                        fom = OffsetDateTime.now(),
-                        tom = OffsetDateTime.now(),
+                        fom = LocalDate.now(),
+                        tom = LocalDate.now(),
                     ),
                 )
 
@@ -214,14 +213,14 @@ class OppfolgingstilfelleServiceSpek : Spek({
                 oppfolgingstilfelleList.size shouldBeEqualTo 2
 
                 val firstTilfelleDuration = Period.between(
-                    oppfolgingstilfelleList.first().start.toLocalDateOslo(),
-                    oppfolgingstilfelleList.first().end.toLocalDateOslo(),
+                    oppfolgingstilfelleList.first().start,
+                    oppfolgingstilfelleList.first().end,
                 ).days
                 firstTilfelleDuration shouldBeEqualTo 0
 
                 val secondTilfelleDuration = Period.between(
-                    oppfolgingstilfelleList.last().start.toLocalDateOslo(),
-                    oppfolgingstilfelleList.last().end.toLocalDateOslo(),
+                    oppfolgingstilfelleList.last().start,
+                    oppfolgingstilfelleList.last().end,
                 ).days
                 secondTilfelleDuration shouldBeEqualTo 0
             }
@@ -232,29 +231,29 @@ class OppfolgingstilfelleServiceSpek : Spek({
                         createdAt = OffsetDateTime.now(),
                         inntruffet = OffsetDateTime.now(),
                         tagList = listOf(SYKEPENGESOKNAD, SENDT),
-                        fom = OffsetDateTime.now().minusDays(20),
-                        tom = OffsetDateTime.now().minusDays(20),
+                        fom = LocalDate.now().minusDays(20),
+                        tom = LocalDate.now().minusDays(20),
                     ),
                     defaultBit.copy(
                         createdAt = OffsetDateTime.now(),
                         inntruffet = OffsetDateTime.now(),
                         tagList = listOf(SYKEPENGESOKNAD, SENDT, FERIE),
-                        fom = OffsetDateTime.now().minusDays(18),
-                        tom = OffsetDateTime.now().minusDays(10),
+                        fom = LocalDate.now().minusDays(18),
+                        tom = LocalDate.now().minusDays(10),
                     ),
                     defaultBit.copy(
                         createdAt = OffsetDateTime.now(),
                         inntruffet = OffsetDateTime.now(),
                         tagList = listOf(SYKEPENGESOKNAD, SENDT, PERMISJON),
-                        fom = OffsetDateTime.now().minusDays(9),
-                        tom = OffsetDateTime.now().minusDays(1),
+                        fom = LocalDate.now().minusDays(9),
+                        tom = LocalDate.now().minusDays(1),
                     ),
                     defaultBit.copy(
                         createdAt = OffsetDateTime.now(),
                         inntruffet = OffsetDateTime.now(),
                         tagList = listOf(SYKEPENGESOKNAD, SENDT),
-                        fom = OffsetDateTime.now(),
-                        tom = OffsetDateTime.now(),
+                        fom = LocalDate.now(),
+                        tom = LocalDate.now(),
                     ),
                 )
 
@@ -264,14 +263,14 @@ class OppfolgingstilfelleServiceSpek : Spek({
                 oppfolgingstilfelleList.size shouldBeEqualTo 2
 
                 val firstTilfelleDuration = Period.between(
-                    oppfolgingstilfelleList.first().start.toLocalDateOslo(),
-                    oppfolgingstilfelleList.first().end.toLocalDateOslo(),
+                    oppfolgingstilfelleList.first().start,
+                    oppfolgingstilfelleList.first().end,
                 ).days
                 firstTilfelleDuration shouldBeEqualTo 0
 
                 val secondTilfelleDuration = Period.between(
-                    oppfolgingstilfelleList.last().start.toLocalDateOslo(),
-                    oppfolgingstilfelleList.last().end.toLocalDateOslo(),
+                    oppfolgingstilfelleList.last().start,
+                    oppfolgingstilfelleList.last().end,
                 ).days
                 secondTilfelleDuration shouldBeEqualTo 0
             }

@@ -49,8 +49,8 @@ data class OppfolgingstilfelleBit(
     val inntruffet: OffsetDateTime,
     val tagList: List<Tag>,
     val ressursId: String,
-    val fom: OffsetDateTime,
-    val tom: OffsetDateTime,
+    val fom: LocalDate,
+    val tom: LocalDate,
 ) {
     companion object {
         val TAG_PRIORITY: List<ListContainsPredicate<Tag>> = listOf(
@@ -92,17 +92,17 @@ fun List<OppfolgingstilfelleBit>.toOppfolgingstilfelleDagList(): List<Oppfolging
         }
 }
 
-fun List<OppfolgingstilfelleBit>.firstFom(): OffsetDateTime =
+fun List<OppfolgingstilfelleBit>.firstFom(): LocalDate =
     this.minByOrNull { it.fom }!!.fom
 
-fun List<OppfolgingstilfelleBit>.lastTom(): OffsetDateTime =
+fun List<OppfolgingstilfelleBit>.lastTom(): LocalDate =
     this.maxByOrNull { it.tom }!!.tom
 
 fun List<OppfolgingstilfelleBit>.pickOppfolgingstilfelleDag(
-    dag: OffsetDateTime,
+    dag: LocalDate,
 ): OppfolgingstilfelleDag {
     val bitListForDag = this.filter { bit ->
-        dag.toLocalDateOslo() in (bit.fom.toLocalDateOslo()..(bit.tom.toLocalDateOslo()))
+        dag in (bit.fom..(bit.tom))
     }
     return bitListForDag
         .groupBy { bit -> bit.inntruffet.toLocalDateOslo() }

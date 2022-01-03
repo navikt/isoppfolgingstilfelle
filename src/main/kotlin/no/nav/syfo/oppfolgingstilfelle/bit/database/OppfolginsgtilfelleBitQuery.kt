@@ -7,6 +7,7 @@ import no.nav.syfo.oppfolgingstilfelle.bit.*
 import no.nav.syfo.oppfolgingstilfelle.bit.database.domain.POppfolgingstilfelleBit
 import no.nav.syfo.util.toOffsetDateTimeUTC
 import java.sql.*
+import java.sql.Date
 import java.util.*
 
 const val queryCreateOppfolgingstilfellebit =
@@ -38,8 +39,8 @@ fun Connection.createOppfolgingstilfelleBit(
         it.setString(5, oppfolgingstilfelleBit.ressursId)
         it.setString(6, oppfolgingstilfelleBit.tagsToString())
         it.setString(7, oppfolgingstilfelleBit.virksomhetsnummer)
-        it.setTimestamp(8, Timestamp.from(oppfolgingstilfelleBit.fom.toInstant()))
-        it.setTimestamp(9, Timestamp.from(oppfolgingstilfelleBit.tom.toInstant()))
+        it.setDate(8, Date.valueOf(oppfolgingstilfelleBit.fom))
+        it.setDate(9, Date.valueOf(oppfolgingstilfelleBit.tom))
         it.executeQuery().toList { getInt("id") }
     }
 
@@ -83,6 +84,6 @@ fun ResultSet.toPOppfolgingstilfelleBit(): POppfolgingstilfelleBit =
         inntruffet = getTimestamp("inntruffet").toOffsetDateTimeUTC(),
         tagList = getString("tags").toTagList(),
         ressursId = getString("ressurs_id"),
-        fom = getTimestamp("fom").toOffsetDateTimeUTC(),
-        tom = getTimestamp("tom").toOffsetDateTimeUTC(),
+        fom = getDate("fom").toLocalDate(),
+        tom = getDate("tom").toLocalDate(),
     )
