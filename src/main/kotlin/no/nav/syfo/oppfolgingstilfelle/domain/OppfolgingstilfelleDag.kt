@@ -5,10 +5,10 @@ import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.bit.Tag
 import no.nav.syfo.util.and
 import no.nav.syfo.util.or
-import java.time.OffsetDateTime
+import java.time.LocalDate
 
 class OppfolgingstilfelleDag(
-    val dag: OffsetDateTime,
+    val dag: LocalDate,
     val priorityOppfolgingstilfelleBit: OppfolgingstilfelleBit?,
 )
 

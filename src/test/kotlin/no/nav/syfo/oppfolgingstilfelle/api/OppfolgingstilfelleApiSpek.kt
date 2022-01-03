@@ -15,6 +15,7 @@ import org.spekframework.spek2.style.specification.describe
 import testhelper.*
 import testhelper.UserConstants.ARBEIDSTAKER_PERSONIDENTNUMBER
 import testhelper.UserConstants.VIRKSOMHETSNUMMER_DEFAULT
+import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -37,8 +38,8 @@ class OppfolgingstilfelleApiSpek : Spek({
             virksomhetsnummer = VIRKSOMHETSNUMMER_DEFAULT.value,
             createdAt = OffsetDateTime.now(),
             inntruffet = OffsetDateTime.now().minusDays(1),
-            fom = OffsetDateTime.now().minusDays(1),
-            tom = OffsetDateTime.now().plusDays(1),
+            fom = LocalDate.now().minusDays(1),
+            tom = LocalDate.now().plusDays(1),
             tagList = listOf(
                 Tag.SYKEPENGESOKNAD,
                 Tag.SENDT,
@@ -82,8 +83,8 @@ class OppfolgingstilfelleApiSpek : Spek({
                             oppfolgingstilfelleDTO.virksomhetsnummerList.size shouldBeEqualTo 1
                             oppfolgingstilfelleDTO.virksomhetsnummerList.first() shouldBeEqualTo oppfolgingstilfelleBit.virksomhetsnummer
 
-                            oppfolgingstilfelleDTO.start shouldBeEqualTo oppfolgingstilfelleBit.fom.toLocalDateOslo()
-                            oppfolgingstilfelleDTO.end shouldBeEqualTo oppfolgingstilfelleBit.tom.toLocalDateOslo()
+                            oppfolgingstilfelleDTO.start shouldBeEqualTo oppfolgingstilfelleBit.fom
+                            oppfolgingstilfelleDTO.end shouldBeEqualTo oppfolgingstilfelleBit.tom
                         }
                     }
                 }

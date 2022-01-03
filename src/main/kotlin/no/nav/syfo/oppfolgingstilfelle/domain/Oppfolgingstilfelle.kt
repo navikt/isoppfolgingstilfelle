@@ -4,13 +4,12 @@ import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.domain.Virksomhetsnummer
 import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfelleDTO
 import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfellePersonDTO
-import no.nav.syfo.util.toLocalDateOslo
-import java.time.OffsetDateTime
+import java.time.LocalDate
 
 data class Oppfolgingstilfelle(
     val personIdentNumber: PersonIdentNumber,
-    val start: OffsetDateTime,
-    val end: OffsetDateTime,
+    val start: LocalDate,
+    val end: LocalDate,
     val virksomhetsnummerList: List<Virksomhetsnummer>,
 )
 
@@ -24,8 +23,8 @@ fun List<Oppfolgingstilfelle>.toOppfolgingstilfellePersonDTO(
 private fun List<Oppfolgingstilfelle>.toOppfolgingstilfelleDTOList() =
     this.map { oppfolgingstilfelle ->
         OppfolgingstilfelleDTO(
-            start = oppfolgingstilfelle.start.toLocalDateOslo(),
-            end = oppfolgingstilfelle.end.toLocalDateOslo(),
+            start = oppfolgingstilfelle.start,
+            end = oppfolgingstilfelle.end,
             virksomhetsnummerList = oppfolgingstilfelle.virksomhetsnummerList.map { it.value },
         )
     }
