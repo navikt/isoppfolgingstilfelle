@@ -58,6 +58,10 @@ spec:
       claims:
         extra:
           - "NAVident"
+  kafka:
+    pool: nav-prod
   env:
     - name: KTOR_ENV
       value: "production"
+    - name: TOGGLE_KAFKA_SYKETILFELLEBIT_PROCESSING_ENABLED
+      value: "false"
