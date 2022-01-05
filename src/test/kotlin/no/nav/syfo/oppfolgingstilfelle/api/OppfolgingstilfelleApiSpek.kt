@@ -35,6 +35,10 @@ class OppfolgingstilfelleApiSpek : Spek({
             externalMockEnvironment = externalMockEnvironment,
         )
 
+        val kafkaSyketilfellebitService = KafkaSyketilfellebitService(
+            database = database,
+        )
+
         val oppfolgingstilfelleBit = OppfolgingstilfelleBit(
             uuid = UUID.randomUUID(),
             personIdentNumber = ARBEIDSTAKER_PERSONIDENTNUMBER,
@@ -66,12 +70,20 @@ class OppfolgingstilfelleApiSpek : Spek({
             "key1",
             kafkaSyketilfellebit,
         )
+        val kafkaSyketilfellebitRecordDuplicate = ConsumerRecord(
+            SYKETILFELLEBIT_TOPIC,
+            partition,
+            1,
+            "key1",
+            kafkaSyketilfellebit,
+        )
 
         val mockKafkaConsumerSyketilfelleBit = mockk<KafkaConsumer<String, KafkaSyketilfellebit>>()
         every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
             mapOf(
                 syketilfellebitTopicPartition to listOf(
                     kafkaSyketilfellebitRecord,
+                    kafkaSyketilfellebitRecordDuplicate,
                 )
             )
         )
@@ -88,8 +100,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                 describe("Happy path") {
 
                     it("should return list of OppfolgingstilfelleDTO if request is successful") {
-                        pollAndProcessSyketilfelleBit(
-                            database = database,
+                        kafkaSyketilfellebitService.pollAndProcessRecords(
                             kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
                         )
 
