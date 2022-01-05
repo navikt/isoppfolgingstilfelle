@@ -53,6 +53,22 @@ fun Connection.createOppfolgingstilfelleBit(
     }
 }
 
+const val queryGetOppfolgingstilfelleBitForUUID =
+    """
+    SELECT *
+    FROM TILFELLE_BIT
+    WHERE uuid = ?;
+    """
+
+fun Connection.getOppfolgingstilfelleBitForUUID(
+    uuid: UUID,
+): POppfolgingstilfelleBit? = this.prepareStatement(queryGetOppfolgingstilfelleBitForUUID).use {
+    it.setString(1, uuid.toString())
+    it.executeQuery().toList {
+        toPOppfolgingstilfelleBit()
+    }
+}.firstOrNull()
+
 const val queryGetOppfolgingstilfelleBitList =
     """
     SELECT *
