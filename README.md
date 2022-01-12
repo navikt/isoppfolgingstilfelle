@@ -39,3 +39,7 @@ Apply formatting: `./gradlew addKtlintFormatGitPreCommitHook`
 Pipeline is run with Github Action workflows.
 Commits to Master-branch is deployed automatically to dev-gcp and prod-gcp.
 Commits to non-master-branch is built without automatic deploy.
+
+This application consumes the following topic(s):
+
+* flex.syketilfellebiter
