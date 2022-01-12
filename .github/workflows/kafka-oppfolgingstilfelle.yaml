@@ -1,0 +1,38 @@
+name: kafka
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - '.github/workflows/kafka-oppfolgingstilfelle.yaml'
+      - '.nais/kafka/oppfolgingstilfelle.yaml'
+      - '.nais/kafka/dev.json'
+      - '.nais/kafka/prod.json'
+
+jobs:
+  deploy-kafka-oppfolgingstilfelle-dev:
+    name: Deploy Kafka topic Oppfolgingstilfelle to NAIS dev-gcp
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: nais/deploy/actions/deploy@v1
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: dev-gcp
+          RESOURCE: .nais/kafka/oppfolgingstilfelle.yaml
+          VARS: .nais/kafka/dev.json
+
+  deploy-kafka-oppfolgingstilfelle-prod:
+    name: Deploy Kafka topic Oppfolgingstilfelle to NAIS prod-gcp
+    needs: deploy-kafka-dev
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: nais/deploy/actions/deploy@v1
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: prod-gcp
+          RESOURCE: .nais/kafka/oppfolgingstilfelle.yaml
+          VARS: .nais/kafka/prod.json
+
