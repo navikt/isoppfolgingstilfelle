@@ -1,0 +1,27 @@
+apiVersion: kafka.nais.io/v1
+kind: Topic
+metadata:
+  annotations:
+    dcat.data.nav.no/title: "Oppfolgingstilfeller for alle sykmeldte arbeidstakere"
+    dcat.data.nav.no/description: >-
+      Topic inneholder full historikk med Oppfolgingstilfeller for alle sykmeldte arbeidstakere.
+  name: isoppfolgingstilfelle-oppfolgingstilfelle-arbeidstaker
+  namespace: teamsykefravr
+  labels:
+    team: teamsykefravr
+spec:
+  pool: {{ kafkaPool }}
+  config:
+    cleanupPolicy: delete
+    minimumInSyncReplicas: 1
+    partitions: 4
+    replication: 3
+    retentionBytes: -1  # -1 means unlimited
+    retentionHours: -1  # -1 means unlimited
+  acl:
+    - team: teamsykefravr
+      application: isoppfolgingstilfelle
+      access: readwrite
+    - team: teamsykefravr
+      application: syfooversiktsrv
+      access: read
