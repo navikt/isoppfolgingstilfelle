@@ -42,6 +42,7 @@ Commits to non-master-branch is built without automatic deploy.
 
 This application produces the following topic(s):
 
+* teamsykefravr.isoppfolgingstilfelle-dialogmotekandidat-stoppunkt
 * teamsykefravr.isoppfolgingstilfelle-oppfolgingstilfelle-arbeidstaker
 
 This application consumes the following topic(s):
