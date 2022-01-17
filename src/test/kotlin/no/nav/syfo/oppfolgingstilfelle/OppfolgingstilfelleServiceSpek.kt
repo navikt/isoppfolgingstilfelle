@@ -29,7 +29,7 @@ class OppfolgingstilfelleServiceSpek : Spek({
 
         describe("Generate OppfolgingstilfelleList from OppfolgingsBitList") {
             it("should return empty list of OppfolgingstilfelleBitList is empty") {
-                val result = oppfolgingstilfelleService.createOppfolgingstilfelleList(
+                val result = oppfolgingstilfelleService.createoppfolgingstilfelleList(
                     oppfolgingstilfelleBitList = emptyList(),
                 )
                 result shouldBeEqualTo emptyList()
@@ -53,7 +53,7 @@ class OppfolgingstilfelleServiceSpek : Spek({
                     ),
                 )
 
-                val oppfolgingstilfelleList = oppfolgingstilfelleService.createOppfolgingstilfelleList(
+                val oppfolgingstilfelleList = oppfolgingstilfelleService.createoppfolgingstilfelleList(
                     oppfolgingstilfelleBitList = oppfolgingstilfelleBitList,
                 )
                 oppfolgingstilfelleList.size shouldBeEqualTo 1
@@ -97,7 +97,7 @@ class OppfolgingstilfelleServiceSpek : Spek({
                     ),
                 )
 
-                val oppfolgingstilfelleList = oppfolgingstilfelleService.createOppfolgingstilfelleList(
+                val oppfolgingstilfelleList = oppfolgingstilfelleService.createoppfolgingstilfelleList(
                     oppfolgingstilfelleBitList = oppfolgingstilfelleBitList,
                 )
                 oppfolgingstilfelleList.size shouldBeEqualTo 1
@@ -134,7 +134,7 @@ class OppfolgingstilfelleServiceSpek : Spek({
                     ),
                 )
 
-                val oppfolgingstilfelleList = oppfolgingstilfelleService.createOppfolgingstilfelleList(
+                val oppfolgingstilfelleList = oppfolgingstilfelleService.createoppfolgingstilfelleList(
                     oppfolgingstilfelleBitList = oppfolgingstilfelleBitList,
                 )
                 oppfolgingstilfelleList.size shouldBeEqualTo 1
@@ -164,7 +164,7 @@ class OppfolgingstilfelleServiceSpek : Spek({
                     ),
                 )
 
-                val oppfolgingstilfelleList = oppfolgingstilfelleService.createOppfolgingstilfelleList(
+                val oppfolgingstilfelleList = oppfolgingstilfelleService.createoppfolgingstilfelleList(
                     oppfolgingstilfelleBitList = oppfolgingstilfelleBitList,
                 )
                 oppfolgingstilfelleList.size shouldBeEqualTo 2
@@ -207,7 +207,7 @@ class OppfolgingstilfelleServiceSpek : Spek({
                     ),
                 )
 
-                val oppfolgingstilfelleList = oppfolgingstilfelleService.createOppfolgingstilfelleList(
+                val oppfolgingstilfelleList = oppfolgingstilfelleService.createoppfolgingstilfelleList(
                     oppfolgingstilfelleBitList = oppfolgingstilfelleBitList,
                 )
                 oppfolgingstilfelleList.size shouldBeEqualTo 2
@@ -257,7 +257,7 @@ class OppfolgingstilfelleServiceSpek : Spek({
                     ),
                 )
 
-                val oppfolgingstilfelleList = oppfolgingstilfelleService.createOppfolgingstilfelleList(
+                val oppfolgingstilfelleList = oppfolgingstilfelleService.createoppfolgingstilfelleList(
                     oppfolgingstilfelleBitList = oppfolgingstilfelleBitList,
                 )
                 oppfolgingstilfelleList.size shouldBeEqualTo 2

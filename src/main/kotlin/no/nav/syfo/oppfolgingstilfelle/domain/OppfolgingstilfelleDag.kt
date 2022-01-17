@@ -38,9 +38,6 @@ fun List<OppfolgingstilfelleDag>.groupOppfolgingstilfelleList(): List<Oppfolging
         val noSykedagLast16days = notSykedagSinceLastSykedagCounter >= 16 && oppfolgingstilfelleSykedagList.isNotEmpty()
         if (noSykedagLast16days) {
             val newOppfolgingstilfelle = Oppfolgingstilfelle(
-                personIdentNumber = this.mapNotNull { dag ->
-                    dag.priorityOppfolgingstilfelleBit?.personIdentNumber
-                }.first(),
                 start = oppfolgingstilfelleSykedagList.first().dag,
                 end = oppfolgingstilfelleSykedagList.last().dag,
                 virksomhetsnummerList = emptyList(),
@@ -60,8 +57,6 @@ fun List<OppfolgingstilfelleDag>.groupOppfolgingstilfelleList(): List<Oppfolging
             Virksomhetsnummer(virksomhetsnummer)
         }
         val lastOppfolgingstilfelle = Oppfolgingstilfelle(
-            personIdentNumber = this.mapNotNull { dag -> dag.priorityOppfolgingstilfelleBit?.personIdentNumber }
-                .first(),
             start = oppfolgingstilfelleSykedagList.first().dag,
             end = oppfolgingstilfelleSykedagList.last().dag,
             virksomhetsnummerList = virksomhetsnummerList,

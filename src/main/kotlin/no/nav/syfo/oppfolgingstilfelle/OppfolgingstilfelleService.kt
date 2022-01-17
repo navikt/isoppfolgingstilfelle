@@ -2,22 +2,26 @@ package no.nav.syfo.oppfolgingstilfelle
 
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingstilfelle.bit.*
-import no.nav.syfo.oppfolgingstilfelle.domain.Oppfolgingstilfelle
-import no.nav.syfo.oppfolgingstilfelle.domain.groupOppfolgingstilfelleList
+import no.nav.syfo.oppfolgingstilfelle.domain.*
 
 class OppfolgingstilfelleService(
     val oppfolgingstilfelleBitService: OppfolgingstilfelleBitService,
 ) {
-    fun oppfolgingstilfelleList(
+    fun oppfolgingstilfellePerson(
         personIdentNumber: PersonIdentNumber,
-    ): List<Oppfolgingstilfelle> =
-        createOppfolgingstilfelleList(
+    ): OppfolgingstilfellePerson {
+        val oppfolgingstilfelleList = createoppfolgingstilfelleList(
             oppfolgingstilfelleBitList = oppfolgingstilfelleBitService.oppfolgingstilfelleBitList(
                 personIdentNumber = personIdentNumber,
             ),
         )
+        return OppfolgingstilfellePerson(
+            oppfolgingstilfelleList = oppfolgingstilfelleList,
+            personIdentNumber = personIdentNumber
+        )
+    }
 
-    fun createOppfolgingstilfelleList(
+    fun createoppfolgingstilfelleList(
         oppfolgingstilfelleBitList: List<OppfolgingstilfelleBit>,
     ): List<Oppfolgingstilfelle> {
         return if (oppfolgingstilfelleBitList.isEmpty()) {
