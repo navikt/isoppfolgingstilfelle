@@ -2,33 +2,28 @@ package no.nav.syfo.oppfolgingstilfelle
 
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.domain.PersonIdentNumber
-import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBit
-import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
+import no.nav.syfo.oppfolgingstilfelle.bit.*
 import no.nav.syfo.oppfolgingstilfelle.bit.database.createOppfolgingstilfelleBit
-import no.nav.syfo.oppfolgingstilfelle.bit.generateOppfolgingstilfelleList
-import no.nav.syfo.oppfolgingstilfelle.bit.toOppfolgingstilfelleArbeidstaker
 import no.nav.syfo.oppfolgingstilfelle.database.createOppfolgingstilfelleArbeidstaker
 import no.nav.syfo.oppfolgingstilfelle.database.getOppfolgingstilfelleArbeidstaker
-import no.nav.syfo.oppfolgingstilfelle.domain.OppfolgingstilfellePerson
+import no.nav.syfo.oppfolgingstilfelle.database.toOppfolgingstilfelleArbeidstaker
+import no.nav.syfo.oppfolgingstilfelle.domain.OppfolgingstilfelleArbeidstaker
 import java.sql.Connection
 
 class OppfolgingstilfelleService(
     val database: DatabaseInterface,
     val oppfolgingstilfelleBitService: OppfolgingstilfelleBitService,
 ) {
-    fun oppfolgingstilfellePerson(
-        personIdentNumber: PersonIdentNumber,
-    ): OppfolgingstilfellePerson {
+    fun oppfolgingstilfelleArbeidstaker(
+        arbeidstakerPersonIdent: PersonIdentNumber,
+    ): OppfolgingstilfelleArbeidstaker? {
         val oppfolgingstilfelleArbeidstaker =
-            database.getOppfolgingstilfelleArbeidstaker(arbeidstakerPersonIdent = personIdentNumber)
+            database.getOppfolgingstilfelleArbeidstaker(arbeidstakerPersonIdent = arbeidstakerPersonIdent)
 
-        return OppfolgingstilfellePerson(
-            oppfolgingstilfelleList = oppfolgingstilfelleArbeidstaker?.oppfolgingstilfeller ?: emptyList(),
-            personIdentNumber = personIdentNumber
-        )
+        return oppfolgingstilfelleArbeidstaker?.toOppfolgingstilfelleArbeidstaker()
     }
 
-    fun createOppfolgingstilfellePerson(
+    fun createOppfolgingstilfelleArbeidstaker(
         connection: Connection,
         oppfolgingstilfelleBit: OppfolgingstilfelleBit,
     ) {

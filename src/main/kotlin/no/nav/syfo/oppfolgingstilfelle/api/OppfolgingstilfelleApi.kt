@@ -5,8 +5,8 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
-import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfellePersonDTO
-import no.nav.syfo.oppfolgingstilfelle.domain.toOppfolgingstilfellePersonDTO
+import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfelleArbeidstakerDTO
+import no.nav.syfo.oppfolgingstilfelle.domain.toOppfolgingstilfelleArbeidstakerDTO
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 import no.nav.syfo.util.personIdentHeader
 
@@ -18,19 +18,17 @@ fun Route.registerOppfolgingstilfelleApi(
 ) {
     route(oppfolgingstilfelleApiV1Path) {
         get(oppfolgingstilfelleApiPersonIdentPath) {
-            val personIdentNumber = personIdentHeader()?.let { personIdent ->
+            val personIdent = personIdentHeader()?.let { personIdent ->
                 PersonIdentNumber(personIdent)
             }
                 ?: throw IllegalArgumentException("Could not retrieve OppfolgingstilfelleDTO: No $NAV_PERSONIDENT_HEADER supplied in request header")
 
-            val oppfolgingstilfellePersonDTO: OppfolgingstilfellePersonDTO =
-                oppfolgingstilfelleService.oppfolgingstilfellePerson(
-                    personIdentNumber = personIdentNumber,
-                ).toOppfolgingstilfellePersonDTO(
-                    personIdentNumber = personIdentNumber,
-                )
+            val oppfolgingstilfelleArbeidstakerDTO: OppfolgingstilfelleArbeidstakerDTO =
+                oppfolgingstilfelleService.oppfolgingstilfelleArbeidstaker(
+                    arbeidstakerPersonIdent = personIdent,
+                ).toOppfolgingstilfelleArbeidstakerDTO(arbeidstakerPersonIdent = personIdent)
 
-            call.respond(oppfolgingstilfellePersonDTO)
+            call.respond(oppfolgingstilfelleArbeidstakerDTO)
         }
     }
 }

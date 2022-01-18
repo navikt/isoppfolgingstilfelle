@@ -6,7 +6,7 @@ import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.mockk.*
 import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
-import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfellePersonDTO
+import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfelleArbeidstakerDTO
 import no.nav.syfo.oppfolgingstilfelle.bit.*
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.*
 import no.nav.syfo.util.*
@@ -99,7 +99,7 @@ class OppfolgingstilfelleApiSpek : Spek({
         every { mockKafkaConsumerSyketilfelleBit.commitSync() } returns Unit
 
         describe(OppfolgingstilfelleApiSpek::class.java.simpleName) {
-            describe("Get OppfolgingstilfellePersonDTO for PersonIdent") {
+            describe("Get OppfolgingstilfelleArbeidstakerDTO for PersonIdent") {
                 val url = "$oppfolgingstilfelleApiV1Path$oppfolgingstilfelleApiPersonIdentPath"
                 val validToken = generateJWT(
                     audience = externalMockEnvironment.environment.azureAppClientId,
@@ -125,12 +125,12 @@ class OppfolgingstilfelleApiSpek : Spek({
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.OK
 
-                            val oppfolgingstilfellePersonDTO: OppfolgingstilfellePersonDTO =
+                            val oppfolgingstilfelleArbeidstakerDTO: OppfolgingstilfelleArbeidstakerDTO =
                                 objectMapper.readValue(response.content!!)
 
-                            oppfolgingstilfellePersonDTO.personIdent shouldBeEqualTo oppfolgingstilfelleBit.personIdentNumber.value
+                            oppfolgingstilfelleArbeidstakerDTO.personIdent shouldBeEqualTo oppfolgingstilfelleBit.personIdentNumber.value
 
-                            val oppfolgingstilfelleDTO = oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.first()
+                            val oppfolgingstilfelleDTO = oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList.first()
 
                             oppfolgingstilfelleDTO.virksomhetsnummerList.size shouldBeEqualTo 1
                             oppfolgingstilfelleDTO.virksomhetsnummerList.first() shouldBeEqualTo oppfolgingstilfelleBit.virksomhetsnummer

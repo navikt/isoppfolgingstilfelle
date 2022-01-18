@@ -16,7 +16,7 @@ import java.util.*
 
 private val mapper = configuredJacksonMapper()
 
-const val queryCreateOppfolgingstilfellePerson =
+const val queryCreateOppfolgingstilfelleArbeidstaker =
     """
     INSERT INTO OPPFOLGINGSTILFELLE_ARBEIDSTAKER (
         id,
@@ -34,7 +34,7 @@ fun Connection.createOppfolgingstilfelleArbeidstaker(
     commit: Boolean,
     oppfolgingstilfelleArbeidstaker: OppfolgingstilfelleArbeidstaker,
 ) {
-    val idList = this.prepareStatement(queryCreateOppfolgingstilfellePerson).use {
+    val idList = this.prepareStatement(queryCreateOppfolgingstilfelleArbeidstaker).use {
         it.setString(1, oppfolgingstilfelleArbeidstaker.uuid.toString())
         it.setTimestamp(2, Timestamp.from(oppfolgingstilfelleArbeidstaker.createdAt.toInstant()))
         it.setString(3, oppfolgingstilfelleArbeidstaker.personIdentNumber.value)
