@@ -5,7 +5,7 @@ group = "no.nav.syfo"
 version = "1.0.0"
 
 object Versions {
-    const val flyway = "8.4.0"
+    const val flyway = "8.4.1"
     const val hikari = "5.0.1"
     const val jackson = "2.13.1"
     const val kafka = "2.8.1"
@@ -16,7 +16,7 @@ object Versions {
     const val logstashEncoder = "7.0.1"
     const val mockk = "1.12.2"
     const val nimbusJoseJwt = "9.15.2"
-    const val micrometerRegistry = "1.8.1"
+    const val micrometerRegistry = "1.8.2"
     const val postgres = "42.3.1"
     const val postgresEmbedded = "0.13.4"
     const val spek = "2.0.17"
