@@ -11,12 +11,12 @@ import no.nav.syfo.application.metric.api.registerMetricApi
 import no.nav.syfo.client.wellknown.WellKnown
 import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
 import no.nav.syfo.oppfolgingstilfelle.api.registerOppfolgingstilfelleApi
-import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
 
 fun Application.apiModule(
     applicationState: ApplicationState,
     database: DatabaseInterface,
     environment: Environment,
+    oppfolgingstilfelleService: OppfolgingstilfelleService,
     wellKnownInternalAzureAD: WellKnown,
 ) {
     installMetrics()
@@ -32,13 +32,6 @@ fun Application.apiModule(
         ),
     )
     installStatusPages()
-
-    val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(
-        database = database,
-    )
-    val oppfolgingstilfelleService = OppfolgingstilfelleService(
-        oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
-    )
 
     routing {
         registerPodApi(

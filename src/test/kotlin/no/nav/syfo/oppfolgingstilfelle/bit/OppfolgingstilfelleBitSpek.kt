@@ -1,24 +1,17 @@
-package no.nav.syfo.oppfolgingstilfelle
+package no.nav.syfo.oppfolgingstilfelle.bit
 
-import io.mockk.mockk
-import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBit
-import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
 import no.nav.syfo.oppfolgingstilfelle.bit.Tag.*
 import no.nav.syfo.util.defaultZoneOffset
 import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import testhelper.generator.generateOppfolgingstilfelleBit
-import java.time.*
+import java.time.LocalDate
+import java.time.OffsetDateTime
+import java.time.Period
 
-class OppfolgingstilfelleServiceSpek : Spek({
-    describe(OppfolgingstilfelleServiceSpek::class.java.simpleName) {
-
-        val oppfolgingstilfelleBitService: OppfolgingstilfelleBitService = mockk()
-        val oppfolgingstilfelleService = OppfolgingstilfelleService(
-            oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
-        )
-
+class OppfolgingstilfelleBitSpek : Spek({
+    describe(OppfolgingstilfelleBitSpek::class.java.simpleName) {
         val mondayLocal = LocalDate.of(2018, 11, 26)
         val monday = mondayLocal.atStartOfDay().toInstant(defaultZoneOffset).atOffset(defaultZoneOffset)
         val defaultBit: OppfolgingstilfelleBit = generateOppfolgingstilfelleBit().copy(
@@ -28,10 +21,8 @@ class OppfolgingstilfelleServiceSpek : Spek({
         )
 
         describe("Generate OppfolgingstilfelleList from OppfolgingsBitList") {
-            it("should return empty list of OppfolgingstilfelleBitList is empty") {
-                val result = oppfolgingstilfelleService.createoppfolgingstilfelleList(
-                    oppfolgingstilfelleBitList = emptyList(),
-                )
+            it("should return empty list if OppfolgingstilfelleBitList is empty") {
+                val result = emptyList<OppfolgingstilfelleBit>().generateOppfolgingstilfelleList()
                 result shouldBeEqualTo emptyList()
             }
 
@@ -53,9 +44,7 @@ class OppfolgingstilfelleServiceSpek : Spek({
                     ),
                 )
 
-                val oppfolgingstilfelleList = oppfolgingstilfelleService.createoppfolgingstilfelleList(
-                    oppfolgingstilfelleBitList = oppfolgingstilfelleBitList,
-                )
+                val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
                 oppfolgingstilfelleList.size shouldBeEqualTo 1
 
                 val tilfelleDuration = Period.between(
@@ -97,9 +86,7 @@ class OppfolgingstilfelleServiceSpek : Spek({
                     ),
                 )
 
-                val oppfolgingstilfelleList = oppfolgingstilfelleService.createoppfolgingstilfelleList(
-                    oppfolgingstilfelleBitList = oppfolgingstilfelleBitList,
-                )
+                val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
                 oppfolgingstilfelleList.size shouldBeEqualTo 1
 
                 val tilfelleDuration = Period.between(
@@ -134,9 +121,7 @@ class OppfolgingstilfelleServiceSpek : Spek({
                     ),
                 )
 
-                val oppfolgingstilfelleList = oppfolgingstilfelleService.createoppfolgingstilfelleList(
-                    oppfolgingstilfelleBitList = oppfolgingstilfelleBitList,
-                )
+                val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
                 oppfolgingstilfelleList.size shouldBeEqualTo 1
 
                 val tilfelleDuration = Period.between(
@@ -164,9 +149,7 @@ class OppfolgingstilfelleServiceSpek : Spek({
                     ),
                 )
 
-                val oppfolgingstilfelleList = oppfolgingstilfelleService.createoppfolgingstilfelleList(
-                    oppfolgingstilfelleBitList = oppfolgingstilfelleBitList,
-                )
+                val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
                 oppfolgingstilfelleList.size shouldBeEqualTo 2
 
                 val firstTilfelleDuration = Period.between(
@@ -207,9 +190,7 @@ class OppfolgingstilfelleServiceSpek : Spek({
                     ),
                 )
 
-                val oppfolgingstilfelleList = oppfolgingstilfelleService.createoppfolgingstilfelleList(
-                    oppfolgingstilfelleBitList = oppfolgingstilfelleBitList,
-                )
+                val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
                 oppfolgingstilfelleList.size shouldBeEqualTo 2
 
                 val firstTilfelleDuration = Period.between(
@@ -257,9 +238,7 @@ class OppfolgingstilfelleServiceSpek : Spek({
                     ),
                 )
 
-                val oppfolgingstilfelleList = oppfolgingstilfelleService.createoppfolgingstilfelleList(
-                    oppfolgingstilfelleBitList = oppfolgingstilfelleBitList,
-                )
+                val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
                 oppfolgingstilfelleList.size shouldBeEqualTo 2
 
                 val firstTilfelleDuration = Period.between(

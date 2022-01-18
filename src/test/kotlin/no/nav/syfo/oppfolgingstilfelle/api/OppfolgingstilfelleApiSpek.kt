@@ -5,9 +5,9 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.mockk.*
+import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
 import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfellePersonDTO
-import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBit
-import no.nav.syfo.oppfolgingstilfelle.bit.Tag
+import no.nav.syfo.oppfolgingstilfelle.bit.*
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.*
 import no.nav.syfo.util.*
 import org.amshove.kluent.shouldBeEqualTo
@@ -31,12 +31,21 @@ class OppfolgingstilfelleApiSpek : Spek({
         val externalMockEnvironment = ExternalMockEnvironment.instance
         val database = externalMockEnvironment.database
 
+        val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(
+            database = database,
+        )
+        val oppfolgingstilfelleService = OppfolgingstilfelleService(
+            database = database,
+            oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
+        )
+
         application.testApiModule(
             externalMockEnvironment = externalMockEnvironment,
         )
 
         val kafkaSyketilfellebitService = KafkaSyketilfellebitService(
             database = database,
+            oppfolgingstilfelleService = oppfolgingstilfelleService,
         )
 
         val oppfolgingstilfelleBit = OppfolgingstilfelleBit(

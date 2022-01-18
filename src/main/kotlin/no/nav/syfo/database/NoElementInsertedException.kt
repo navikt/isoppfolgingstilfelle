@@ -1,4 +1,4 @@
-package no.nav.syfo.oppfolgingstilfelle.database
+package no.nav.syfo.database
 
 import java.sql.SQLException
 
