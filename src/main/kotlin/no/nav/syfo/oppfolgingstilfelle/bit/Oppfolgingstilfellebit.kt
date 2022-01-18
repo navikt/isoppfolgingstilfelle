@@ -3,7 +3,7 @@ package no.nav.syfo.oppfolgingstilfelle.bit
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBit.Companion.TAG_PRIORITY
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.KafkaSyketilfellebit
-import no.nav.syfo.oppfolgingstilfelle.domain.OppfolgingstilfelleDag
+import no.nav.syfo.oppfolgingstilfelle.domain.*
 import no.nav.syfo.util.*
 import java.time.*
 import java.time.temporal.ChronoUnit
@@ -77,7 +77,16 @@ data class OppfolgingstilfelleBit(
     }
 }
 
-fun List<OppfolgingstilfelleBit>.toOppfolgingstilfelleDagList(): List<OppfolgingstilfelleDag> {
+fun List<OppfolgingstilfelleBit>.generateOppfolgingstilfelleList(): List<Oppfolgingstilfelle> {
+    return if (this.isEmpty()) {
+        emptyList()
+    } else {
+        this.toOppfolgingstilfelleDagList()
+            .groupOppfolgingstilfelleList()
+    }
+}
+
+private fun List<OppfolgingstilfelleBit>.toOppfolgingstilfelleDagList(): List<OppfolgingstilfelleDag> {
     require(this.isNotEmpty())
 
     val firstFom = this.firstFom()
@@ -153,3 +162,14 @@ fun KafkaSyketilfellebit.toOppfolgingstilfelleBit(): OppfolgingstilfelleBit {
         tom = this.tom,
     )
 }
+
+fun OppfolgingstilfelleBit.toOppfolgingstilfelleArbeidstaker(
+    oppfolgingstilfelleList: List<Oppfolgingstilfelle>,
+) = OppfolgingstilfelleArbeidstaker(
+    uuid = UUID.randomUUID(),
+    createdAt = OffsetDateTime.now(),
+    personIdentNumber = this.personIdentNumber,
+    oppfolgingstilfelleList = oppfolgingstilfelleList,
+    referanseTilfelleBitUuid = this.uuid,
+    referanseTilfelleBitInntruffet = this.inntruffet,
+)
