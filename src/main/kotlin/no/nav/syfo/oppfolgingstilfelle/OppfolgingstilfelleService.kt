@@ -8,11 +8,13 @@ import no.nav.syfo.oppfolgingstilfelle.database.createOppfolgingstilfelleArbeids
 import no.nav.syfo.oppfolgingstilfelle.database.getOppfolgingstilfelleArbeidstaker
 import no.nav.syfo.oppfolgingstilfelle.database.toOppfolgingstilfelleArbeidstaker
 import no.nav.syfo.oppfolgingstilfelle.domain.OppfolgingstilfelleArbeidstaker
+import no.nav.syfo.oppfolgingstilfelle.kafka.OppfolgingstilfelleProducer
 import java.sql.Connection
 
 class OppfolgingstilfelleService(
     val database: DatabaseInterface,
     val oppfolgingstilfelleBitService: OppfolgingstilfelleBitService,
+    val oppfolgingstilfelleProducer: OppfolgingstilfelleProducer,
 ) {
     fun oppfolgingstilfelleArbeidstaker(
         arbeidstakerPersonIdent: PersonIdentNumber,
@@ -43,6 +45,10 @@ class OppfolgingstilfelleService(
         )
         connection.createOppfolgingstilfelleArbeidstaker(
             commit = false,
+            oppfolgingstilfelleArbeidstaker = oppfolgingstilfelleArbeidstaker
+        )
+
+        oppfolgingstilfelleProducer.sendOppfolgingstilfelle(
             oppfolgingstilfelleArbeidstaker = oppfolgingstilfelleArbeidstaker
         )
     }
