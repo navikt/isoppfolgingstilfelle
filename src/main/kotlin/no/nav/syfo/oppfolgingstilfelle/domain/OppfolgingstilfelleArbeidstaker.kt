@@ -2,8 +2,10 @@ package no.nav.syfo.oppfolgingstilfelle.domain
 
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.domain.Virksomhetsnummer
-import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfelleDTO
 import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfelleArbeidstakerDTO
+import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfelleDTO
+import no.nav.syfo.oppfolgingstilfelle.kafka.KafkaOppfolgingstilfelle
+import no.nav.syfo.oppfolgingstilfelle.kafka.KafkaOppfolgingstilfelleArbeidstaker
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.*
@@ -38,3 +40,18 @@ private fun List<Oppfolgingstilfelle>.toOppfolgingstilfelleDTOList() =
             virksomhetsnummerList = oppfolgingstilfelle.virksomhetsnummerList.map { it.value },
         )
     }
+
+fun OppfolgingstilfelleArbeidstaker.toKafkaOppfolgingstilfelleArbeidstaker() = KafkaOppfolgingstilfelleArbeidstaker(
+    uuid = this.uuid,
+    createdAt = this.createdAt,
+    personIdentNumber = this.personIdentNumber.value,
+    oppfolgingstilfelleList = this.oppfolgingstilfelleList.map { oppfolgingstilfelle ->
+        KafkaOppfolgingstilfelle(
+            start = oppfolgingstilfelle.start,
+            end = oppfolgingstilfelle.end,
+            virksomhetsnummerList = oppfolgingstilfelle.virksomhetsnummerList.map { virksomhetsnummer -> virksomhetsnummer.value }
+        )
+    },
+    referanseTilfelleBitUuid = this.referanseTilfelleBitUuid,
+    referanseTilfelleBitInntruffet = this.referanseTilfelleBitInntruffet,
+)

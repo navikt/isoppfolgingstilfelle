@@ -7,19 +7,32 @@ import io.ktor.server.testing.*
 import io.mockk.*
 import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
 import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfelleArbeidstakerDTO
-import no.nav.syfo.oppfolgingstilfelle.bit.*
-import no.nav.syfo.oppfolgingstilfelle.bit.kafka.*
-import no.nav.syfo.util.*
+import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBit
+import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
+import no.nav.syfo.oppfolgingstilfelle.bit.Tag
+import no.nav.syfo.oppfolgingstilfelle.bit.kafka.KafkaSyketilfellebit
+import no.nav.syfo.oppfolgingstilfelle.bit.kafka.KafkaSyketilfellebitService
+import no.nav.syfo.oppfolgingstilfelle.bit.kafka.SYKETILFELLEBIT_TOPIC
+import no.nav.syfo.oppfolgingstilfelle.kafka.OppfolgingstilfelleProducer
+import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
+import no.nav.syfo.util.bearerHeader
+import no.nav.syfo.util.configuredJacksonMapper
 import org.amshove.kluent.shouldBeEqualTo
-import org.apache.kafka.clients.consumer.*
+import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.apache.kafka.clients.consumer.ConsumerRecords
+import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.TopicPartition
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import testhelper.*
+import testhelper.ExternalMockEnvironment
 import testhelper.UserConstants.ARBEIDSTAKER_PERSONIDENTNUMBER
 import testhelper.UserConstants.VIRKSOMHETSNUMMER_DEFAULT
+import testhelper.generateJWT
 import testhelper.generator.generateKafkaSyketilfellebit
-import java.time.*
+import testhelper.testApiModule
+import java.time.Duration
+import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.util.*
 
 class OppfolgingstilfelleApiSpek : Spek({
@@ -34,13 +47,17 @@ class OppfolgingstilfelleApiSpek : Spek({
         val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(
             database = database,
         )
+        val oppfolgingstilfelleProducer = mockk<OppfolgingstilfelleProducer>()
+        justRun { oppfolgingstilfelleProducer.sendOppfolgingstilfelle(any()) }
         val oppfolgingstilfelleService = OppfolgingstilfelleService(
             database = database,
             oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
+            oppfolgingstilfelleProducer = oppfolgingstilfelleProducer,
         )
 
         application.testApiModule(
             externalMockEnvironment = externalMockEnvironment,
+            oppfolgingstilfelleService = oppfolgingstilfelleService,
         )
 
         val kafkaSyketilfellebitService = KafkaSyketilfellebitService(
@@ -116,6 +133,9 @@ class OppfolgingstilfelleApiSpek : Spek({
                         verify(exactly = 1) {
                             mockKafkaConsumerSyketilfelleBit.commitSync()
                         }
+                        verify(exactly = 1) {
+                            oppfolgingstilfelleProducer.sendOppfolgingstilfelle(any())
+                        }
 
                         with(
                             handleRequest(HttpMethod.Get, url) {
@@ -130,7 +150,8 @@ class OppfolgingstilfelleApiSpek : Spek({
 
                             oppfolgingstilfelleArbeidstakerDTO.personIdent shouldBeEqualTo oppfolgingstilfelleBit.personIdentNumber.value
 
-                            val oppfolgingstilfelleDTO = oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList.first()
+                            val oppfolgingstilfelleDTO =
+                                oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList.first()
 
                             oppfolgingstilfelleDTO.virksomhetsnummerList.size shouldBeEqualTo 1
                             oppfolgingstilfelleDTO.virksomhetsnummerList.first() shouldBeEqualTo oppfolgingstilfelleBit.virksomhetsnummer

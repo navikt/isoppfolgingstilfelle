@@ -15,6 +15,9 @@ import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
 import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.KafkaSyketilfellebitService
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.launchKafkaTaskSyketilfelleBit
+import no.nav.syfo.oppfolgingstilfelle.kafka.OppfolgingstilfelleProducer
+import no.nav.syfo.oppfolgingstilfelle.kafka.kafkaOppfolgingstilfelleProducerConfig
+import org.apache.kafka.clients.producer.KafkaProducer
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
@@ -25,6 +28,14 @@ fun main() {
     val environment = Environment()
     val wellKnownInternalAzureAD = getWellKnown(
         wellKnownUrl = environment.azureAppWellKnownUrl,
+    )
+
+    val oppfolgingstilfelleProducer = OppfolgingstilfelleProducer(
+        kafkaProducerOppfolgingstilfelle = KafkaProducer(
+            kafkaOppfolgingstilfelleProducerConfig(
+                kafkaEnvironment = environment.kafka
+            )
+        )
     )
 
     lateinit var oppfolgingstilfelleService: OppfolgingstilfelleService
@@ -49,6 +60,7 @@ fun main() {
             oppfolgingstilfelleService = OppfolgingstilfelleService(
                 database = applicationDatabase,
                 oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
+                oppfolgingstilfelleProducer = oppfolgingstilfelleProducer,
             )
             apiModule(
                 applicationState = applicationState,
