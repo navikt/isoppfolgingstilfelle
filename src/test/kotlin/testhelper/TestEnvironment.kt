@@ -1,10 +1,12 @@
 package testhelper
 
 import no.nav.syfo.application.*
+import java.net.ServerSocket
 
 fun testEnvironment(
-    azureOpenIdTokenEndpoint: String = "azureTokenEndpoint",
+    azureOpenIdTokenEndpoint: String,
     kafkaBootstrapServers: String,
+    syfoTilgangskontrollUrl: String,
 ) = Environment(
     azureAppClientId = "isoppfolgingstilfelle-client-id",
     azureAppClientSecret = "isoppfolgingstilfelle-secret",
@@ -23,9 +25,14 @@ fun testEnvironment(
         aivenTruststoreLocation = "truststore",
     ),
     kafkaSykeketilfellebitProcessingEnabled = true,
+    syfotilgangskontrollClientId = "syfotilgangskontroll-client-id",
+    syfotilgangskontrollUrl = syfoTilgangskontrollUrl,
 )
 
 fun testAppState() = ApplicationState(
     alive = true,
     ready = true,
 )
+fun getRandomPort() = ServerSocket(0).use {
+    it.localPort
+}

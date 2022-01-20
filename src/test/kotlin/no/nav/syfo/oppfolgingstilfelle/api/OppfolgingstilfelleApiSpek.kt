@@ -26,6 +26,7 @@ import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import testhelper.ExternalMockEnvironment
 import testhelper.UserConstants.ARBEIDSTAKER_PERSONIDENTNUMBER
+import testhelper.UserConstants.ARBEIDSTAKER_PERSONIDENTNUMBER_VEILEDER_NO_ACCESS
 import testhelper.UserConstants.VIRKSOMHETSNUMMER_DEFAULT
 import testhelper.generateJWT
 import testhelper.generator.generateKafkaSyketilfellebit
@@ -189,6 +190,17 @@ class OppfolgingstilfelleApiSpek : Spek({
                             }
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.BadRequest
+                        }
+                    }
+
+                    it("should return status Forbidden if denied access to personident supplied in $NAV_PERSONIDENT_HEADER") {
+                        with(
+                            handleRequest(HttpMethod.Get, url) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_PERSONIDENTNUMBER_VEILEDER_NO_ACCESS.value)
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.Forbidden
                         }
                     }
                 }

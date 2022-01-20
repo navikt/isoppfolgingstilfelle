@@ -24,7 +24,9 @@ data class Environment(
         aivenTruststoreLocation = getEnvVar("KAFKA_TRUSTSTORE_PATH"),
     ),
 
-    val kafkaSykeketilfellebitProcessingEnabled: Boolean = getEnvVar("TOGGLE_KAFKA_SYKETILFELLEBIT_PROCESSING_ENABLED").toBoolean()
+    val kafkaSykeketilfellebitProcessingEnabled: Boolean = getEnvVar("TOGGLE_KAFKA_SYKETILFELLEBIT_PROCESSING_ENABLED").toBoolean(),
+    val syfotilgangskontrollClientId: String = getEnvVar("SYFOTILGANGSKONTROLL_CLIENT_ID"),
+    val syfotilgangskontrollUrl: String = getEnvVar("SYFOTILGANGSKONTROLL_URL"),
 ) {
     fun jdbcUrl(): String {
         return "jdbc:postgresql://$isoppfolgingstilfelleDbHost:$isoppfolgingstilfelleDbPort/$isoppfolgingstilfelleDbName"

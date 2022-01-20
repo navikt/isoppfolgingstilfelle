@@ -52,6 +52,9 @@ spec:
         - application: syfomodiaperson
           namespace: teamsykefravr
           cluster: prod-fss
+    outbound:
+      external:
+        - host: "syfo-tilgangskontroll.prod-fss-pub.nais.io"
   azure:
     application:
       enabled: true
@@ -65,3 +68,7 @@ spec:
       value: "production"
     - name: TOGGLE_KAFKA_SYKETILFELLEBIT_PROCESSING_ENABLED
       value: "false"
+    - name: SYFOTILGANGSKONTROLL_CLIENT_ID
+      value: "prod-fss.teamsykefravr.syfo-tilgangskontroll"
+    - name: SYFOTILGANGSKONTROLL_URL
+      value: "https://syfo-tilgangskontroll.prod-fss-pub.nais.io"
