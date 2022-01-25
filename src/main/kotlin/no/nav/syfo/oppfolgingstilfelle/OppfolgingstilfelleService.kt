@@ -4,9 +4,7 @@ import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingstilfelle.bit.*
 import no.nav.syfo.oppfolgingstilfelle.bit.database.createOppfolgingstilfelleBit
-import no.nav.syfo.oppfolgingstilfelle.database.createOppfolgingstilfelleArbeidstaker
-import no.nav.syfo.oppfolgingstilfelle.database.getOppfolgingstilfelleArbeidstaker
-import no.nav.syfo.oppfolgingstilfelle.database.toOppfolgingstilfelleArbeidstaker
+import no.nav.syfo.oppfolgingstilfelle.database.*
 import no.nav.syfo.oppfolgingstilfelle.domain.OppfolgingstilfelleArbeidstaker
 import no.nav.syfo.oppfolgingstilfelle.kafka.OppfolgingstilfelleProducer
 import java.sql.Connection
@@ -19,9 +17,9 @@ class OppfolgingstilfelleService(
     fun oppfolgingstilfelleArbeidstaker(
         arbeidstakerPersonIdent: PersonIdentNumber,
     ): OppfolgingstilfelleArbeidstaker? {
-        val oppfolgingstilfelleArbeidstaker =
-            database.getOppfolgingstilfelleArbeidstaker(arbeidstakerPersonIdent = arbeidstakerPersonIdent)
-
+        val oppfolgingstilfelleArbeidstaker = database.getOppfolgingstilfelleArbeidstaker(
+            arbeidstakerPersonIdent = arbeidstakerPersonIdent,
+        )
         return oppfolgingstilfelleArbeidstaker?.toOppfolgingstilfelleArbeidstaker()
     }
 

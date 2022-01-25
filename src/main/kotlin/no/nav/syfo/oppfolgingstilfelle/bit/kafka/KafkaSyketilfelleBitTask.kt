@@ -16,7 +16,9 @@ fun launchKafkaTaskSyketilfelleBit(
     applicationEnvironmentKafka: ApplicationEnvironmentKafka,
     kafkaSyketilfellebitService: KafkaSyketilfellebitService,
 ) {
-    launchBackgroundTask(applicationState = applicationState) {
+    launchBackgroundTask(
+        applicationState = applicationState,
+    ) {
         blockingApplicationLogicSyketilfelleBit(
             applicationState = applicationState,
             applicationEnvironmentKafka = applicationEnvironmentKafka,

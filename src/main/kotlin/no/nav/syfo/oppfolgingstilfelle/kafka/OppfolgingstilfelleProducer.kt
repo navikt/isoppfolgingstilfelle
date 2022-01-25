@@ -9,7 +9,9 @@ import org.slf4j.LoggerFactory
 class OppfolgingstilfelleProducer(
     private val kafkaProducerOppfolgingstilfelle: KafkaProducer<String, KafkaOppfolgingstilfelleArbeidstaker>,
 ) {
-    fun sendOppfolgingstilfelle(oppfolgingstilfelleArbeidstaker: OppfolgingstilfelleArbeidstaker) {
+    fun sendOppfolgingstilfelle(
+        oppfolgingstilfelleArbeidstaker: OppfolgingstilfelleArbeidstaker,
+    ) {
         val key = oppfolgingstilfelleArbeidstaker.uuid.toString()
         try {
             val kafkaOppfolgingstilfelle = oppfolgingstilfelleArbeidstaker.toKafkaOppfolgingstilfelleArbeidstaker()

@@ -9,10 +9,7 @@ import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
 import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfelleArbeidstakerDTO
 import no.nav.syfo.oppfolgingstilfelle.domain.toOppfolgingstilfelleArbeidstakerDTO
-import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
-import no.nav.syfo.util.getBearerHeader
-import no.nav.syfo.util.getCallId
-import no.nav.syfo.util.personIdentHeader
+import no.nav.syfo.util.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -45,7 +42,9 @@ fun Route.registerOppfolgingstilfelleApi(
                 val oppfolgingstilfelleArbeidstakerDTO: OppfolgingstilfelleArbeidstakerDTO =
                     oppfolgingstilfelleService.oppfolgingstilfelleArbeidstaker(
                         arbeidstakerPersonIdent = personIdent,
-                    ).toOppfolgingstilfelleArbeidstakerDTO(arbeidstakerPersonIdent = personIdent)
+                    ).toOppfolgingstilfelleArbeidstakerDTO(
+                        arbeidstakerPersonIdent = personIdent,
+                    )
 
                 call.respond(oppfolgingstilfelleArbeidstakerDTO)
             } else {
