@@ -42,7 +42,7 @@ private fun List<Oppfolgingstilfelle>.toOppfolgingstilfelleDTOList() =
     }
 
 fun OppfolgingstilfelleArbeidstaker.toKafkaOppfolgingstilfelleArbeidstaker() = KafkaOppfolgingstilfelleArbeidstaker(
-    uuid = this.uuid,
+    uuid = this.uuid.toString(),
     createdAt = this.createdAt,
     personIdentNumber = this.personIdentNumber.value,
     oppfolgingstilfelleList = this.oppfolgingstilfelleList.map { oppfolgingstilfelle ->
@@ -52,6 +52,6 @@ fun OppfolgingstilfelleArbeidstaker.toKafkaOppfolgingstilfelleArbeidstaker() = K
             virksomhetsnummerList = oppfolgingstilfelle.virksomhetsnummerList.map { virksomhetsnummer -> virksomhetsnummer.value }
         )
     },
-    referanseTilfelleBitUuid = this.referanseTilfelleBitUuid,
+    referanseTilfelleBitUuid = this.referanseTilfelleBitUuid.toString(),
     referanseTilfelleBitInntruffet = this.referanseTilfelleBitInntruffet,
 )

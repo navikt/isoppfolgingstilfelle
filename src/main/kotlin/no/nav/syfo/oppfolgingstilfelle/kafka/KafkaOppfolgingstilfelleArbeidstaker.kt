@@ -5,11 +5,11 @@ import java.time.OffsetDateTime
 import java.util.*
 
 data class KafkaOppfolgingstilfelleArbeidstaker(
-    val uuid: UUID,
+    val uuid: String,
     val createdAt: OffsetDateTime,
     val personIdentNumber: String,
     val oppfolgingstilfelleList: List<KafkaOppfolgingstilfelle>,
-    val referanseTilfelleBitUuid: UUID,
+    val referanseTilfelleBitUuid: String,
     val referanseTilfelleBitInntruffet: OffsetDateTime,
 )
 
