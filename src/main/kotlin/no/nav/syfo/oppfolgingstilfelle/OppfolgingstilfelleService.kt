@@ -36,6 +36,7 @@ class OppfolgingstilfelleService(
             personIdentNumber = oppfolgingstilfelleBit.personIdentNumber
         ).toMutableList()
         oppfolgingstilfelleBitList.add(oppfolgingstilfelleBit)
+        oppfolgingstilfelleBitList.sortedByDescending { bit -> bit.inntruffet }
 
         val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
         val oppfolgingstilfelleArbeidstaker = oppfolgingstilfelleBit.toOppfolgingstilfelleArbeidstaker(
