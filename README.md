@@ -48,3 +48,9 @@ This application produces the following topic(s):
 This application consumes the following topic(s):
 
 * flex.syketilfellebiter
+
+## Contact
+
+### For NAV employees
+
+We are available at the Slack channel `#isyfo`.
