@@ -37,11 +37,7 @@ fun List<OppfolgingstilfelleDag>.groupOppfolgingstilfelleList(): List<Oppfolging
 
         val noSykedagLast16days = notSykedagSinceLastSykedagCounter >= 16 && oppfolgingstilfelleSykedagList.isNotEmpty()
         if (noSykedagLast16days) {
-            val newOppfolgingstilfelle = Oppfolgingstilfelle(
-                start = oppfolgingstilfelleSykedagList.first().dag,
-                end = oppfolgingstilfelleSykedagList.last().dag,
-                virksomhetsnummerList = emptyList(),
-            )
+            val newOppfolgingstilfelle = oppfolgingstilfelleSykedagList.toOppfolgingstilfelle()
             oppfolgingstilfelleList.add(newOppfolgingstilfelle)
 
             // Reset variables
@@ -51,20 +47,24 @@ fun List<OppfolgingstilfelleDag>.groupOppfolgingstilfelleList(): List<Oppfolging
     }
 
     if (oppfolgingstilfelleSykedagList.isNotEmpty()) {
-        val virksomhetsnummerList: List<Virksomhetsnummer> = oppfolgingstilfelleSykedagList.mapNotNull {
-            it.priorityOppfolgingstilfelleBit?.virksomhetsnummer
-        }.distinct().map { virksomhetsnummer ->
-            Virksomhetsnummer(virksomhetsnummer)
-        }
-        val lastOppfolgingstilfelle = Oppfolgingstilfelle(
-            start = oppfolgingstilfelleSykedagList.first().dag,
-            end = oppfolgingstilfelleSykedagList.last().dag,
-            virksomhetsnummerList = virksomhetsnummerList,
-        )
+        val lastOppfolgingstilfelle = oppfolgingstilfelleSykedagList.toOppfolgingstilfelle()
         oppfolgingstilfelleList.add(lastOppfolgingstilfelle)
     }
 
     return oppfolgingstilfelleList
+}
+
+fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelle(): Oppfolgingstilfelle {
+    val virksomhetsnummerList = this.mapNotNull {
+        it.priorityOppfolgingstilfelleBit?.virksomhetsnummer
+    }.distinct().map { virksomhetsnummer ->
+        Virksomhetsnummer(virksomhetsnummer)
+    }
+    return Oppfolgingstilfelle(
+        start = this.first().dag,
+        end = this.last().dag,
+        virksomhetsnummerList = virksomhetsnummerList,
+    )
 }
 
 fun OppfolgingstilfelleDag.isArbeidsdag() =
