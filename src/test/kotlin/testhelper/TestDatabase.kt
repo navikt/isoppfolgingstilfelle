@@ -42,7 +42,10 @@ class TestDatabaseNotResponding : DatabaseInterface {
 fun DatabaseInterface.dropData() {
     val queryList = listOf(
         """
-        DELETE FROM NARMESTE_LEDER_RELASJON
+        DELETE FROM TILFELLE_BIT
+        """.trimIndent(),
+        """
+        DELETE FROM OPPFOLGINGSTILFELLE_PERSON
         """.trimIndent(),
     )
     this.connection.use { connection ->

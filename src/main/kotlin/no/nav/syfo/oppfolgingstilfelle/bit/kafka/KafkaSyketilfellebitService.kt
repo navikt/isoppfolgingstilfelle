@@ -55,21 +55,25 @@ class KafkaSyketilfellebitService(
         connection: Connection,
         kafkaSyketilfellebit: KafkaSyketilfellebit,
     ) {
-        val oppfolgingstilfelleBit = kafkaSyketilfellebit.toOppfolgingstilfelleBit()
+        if (kafkaSyketilfellebit.isRelevantForOppfolgingstilfelle()) {
+            val oppfolgingstilfelleBit = kafkaSyketilfellebit.toOppfolgingstilfelleBit()
 
-        val oppfolgingstilfelleBitInserted =
-            connection.getOppfolgingstilfelleBitForUUID(oppfolgingstilfelleBit.uuid) != null
-        if (oppfolgingstilfelleBitInserted) {
-            log.warn(
-                "No ${KafkaSyketilfellebit::class.java.simpleName} was inserted into database, attempted to insert a duplicate"
-            )
-            COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_DUPLICATE.increment()
+            val isOppfolgingstilfelleBitDuplicate =
+                connection.getOppfolgingstilfelleBitForUUID(oppfolgingstilfelleBit.uuid) != null
+            if (isOppfolgingstilfelleBitDuplicate) {
+                log.warn(
+                    "No ${KafkaSyketilfellebit::class.java.simpleName} was inserted into database, attempted to insert a duplicate"
+                )
+                COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_DUPLICATE.increment()
+            } else {
+                oppfolgingstilfelleService.createOppfolgingstilfellePerson(
+                    connection = connection,
+                    oppfolgingstilfelleBit = oppfolgingstilfelleBit,
+                )
+                COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_CREATED.increment()
+            }
         } else {
-            oppfolgingstilfelleService.createOppfolgingstilfellePerson(
-                connection = connection,
-                oppfolgingstilfelleBit = oppfolgingstilfelleBit,
-            )
-            COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_CREATED.increment()
+            COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_NOT_RELEVANT.increment()
         }
     }
 

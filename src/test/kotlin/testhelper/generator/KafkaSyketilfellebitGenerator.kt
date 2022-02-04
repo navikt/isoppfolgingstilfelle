@@ -9,7 +9,7 @@ import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.*
 
-fun generateKafkaSyketilfellebit(
+fun generateKafkaSyketilfellebitRelevantVirksomhet(
     personIdent: PersonIdentNumber = UserConstants.PERSONIDENTNUMBER_DEFAULT,
     virksomhetsnummer: Virksomhetsnummer = UserConstants.VIRKSOMHETSNUMMER_DEFAULT,
 ) = KafkaSyketilfellebit(
@@ -26,4 +26,46 @@ fun generateKafkaSyketilfellebit(
     fom = LocalDate.now().minusDays(1),
     tom = LocalDate.now().plusDays(1),
     korrigererSendtSoknad = null,
+)
+
+fun generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
+    personIdentNumber: PersonIdentNumber = UserConstants.PERSONIDENTNUMBER_DEFAULT,
+    virksomhetsnummer: Virksomhetsnummer = UserConstants.VIRKSOMHETSNUMMER_DEFAULT,
+) = generateKafkaSyketilfellebitRelevantVirksomhet(
+    personIdent = personIdentNumber,
+    virksomhetsnummer = virksomhetsnummer
+).copy(
+    orgnummer = null,
+    tags = listOf(
+        Tag.SYKMELDING,
+        Tag.BEKREFTET,
+    ).map { tag -> tag.name },
+)
+
+fun generateKafkaSyketilfellebitNotRelevantNoVirksomhet(
+    personIdentNumber: PersonIdentNumber = UserConstants.PERSONIDENTNUMBER_DEFAULT,
+    virksomhetsnummer: Virksomhetsnummer = UserConstants.VIRKSOMHETSNUMMER_DEFAULT,
+) = generateKafkaSyketilfellebitRelevantVirksomhet(
+    personIdent = personIdentNumber,
+    virksomhetsnummer = virksomhetsnummer
+).copy(
+    orgnummer = null,
+    tags = listOf(
+        Tag.SYKEPENGESOKNAD,
+        Tag.SENDT,
+    ).map { tag -> tag.name },
+)
+
+fun generateKafkaSyketilfellebitNotRelevantSykmeldingNy(
+    personIdentNumber: PersonIdentNumber = UserConstants.PERSONIDENTNUMBER_DEFAULT,
+    virksomhetsnummer: Virksomhetsnummer = UserConstants.VIRKSOMHETSNUMMER_DEFAULT,
+) = generateKafkaSyketilfellebitRelevantVirksomhet(
+    personIdent = personIdentNumber,
+    virksomhetsnummer = virksomhetsnummer
+).copy(
+    orgnummer = null,
+    tags = listOf(
+        Tag.SYKMELDING,
+        Tag.NY,
+    ).map { tag -> tag.name },
 )
