@@ -2,7 +2,7 @@ package no.nav.syfo.oppfolgingstilfelle.api.domain
 
 import java.time.LocalDate
 
-data class OppfolgingstilfelleArbeidstakerDTO(
+data class OppfolgingstilfellePersonDTO(
     val oppfolgingstilfelleList: List<OppfolgingstilfelleDTO>,
     val personIdent: String,
 )

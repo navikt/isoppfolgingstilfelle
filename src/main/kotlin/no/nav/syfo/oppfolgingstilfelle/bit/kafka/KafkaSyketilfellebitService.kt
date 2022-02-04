@@ -65,7 +65,7 @@ class KafkaSyketilfellebitService(
             )
             COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_DUPLICATE.increment()
         } else {
-            oppfolgingstilfelleService.createOppfolgingstilfelleArbeidstaker(
+            oppfolgingstilfelleService.createOppfolgingstilfellePerson(
                 connection = connection,
                 oppfolgingstilfelleBit = oppfolgingstilfelleBit,
             )

@@ -2,15 +2,15 @@ package no.nav.syfo.oppfolgingstilfelle.domain
 
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.domain.Virksomhetsnummer
-import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfelleArbeidstakerDTO
 import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfelleDTO
+import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfellePersonDTO
 import no.nav.syfo.oppfolgingstilfelle.kafka.KafkaOppfolgingstilfelle
-import no.nav.syfo.oppfolgingstilfelle.kafka.KafkaOppfolgingstilfelleArbeidstaker
+import no.nav.syfo.oppfolgingstilfelle.kafka.KafkaOppfolgingstilfellePerson
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.*
 
-data class OppfolgingstilfelleArbeidstaker(
+data class OppfolgingstilfellePerson(
     val uuid: UUID,
     val createdAt: OffsetDateTime,
     val personIdentNumber: PersonIdentNumber,
@@ -25,11 +25,11 @@ data class Oppfolgingstilfelle(
     val virksomhetsnummerList: List<Virksomhetsnummer>,
 )
 
-fun OppfolgingstilfelleArbeidstaker?.toOppfolgingstilfelleArbeidstakerDTO(
-    arbeidstakerPersonIdent: PersonIdentNumber,
-) = OppfolgingstilfelleArbeidstakerDTO(
+fun OppfolgingstilfellePerson?.toOppfolgingstilfellePersonDTO(
+    personIdent: PersonIdentNumber,
+) = OppfolgingstilfellePersonDTO(
     oppfolgingstilfelleList = this?.oppfolgingstilfelleList?.toOppfolgingstilfelleDTOList() ?: emptyList(),
-    personIdent = arbeidstakerPersonIdent.value,
+    personIdent = personIdent.value,
 )
 
 private fun List<Oppfolgingstilfelle>.toOppfolgingstilfelleDTOList() =
@@ -41,7 +41,7 @@ private fun List<Oppfolgingstilfelle>.toOppfolgingstilfelleDTOList() =
         )
     }
 
-fun OppfolgingstilfelleArbeidstaker.toKafkaOppfolgingstilfelleArbeidstaker() = KafkaOppfolgingstilfelleArbeidstaker(
+fun OppfolgingstilfellePerson.toKafkaOppfolgingstilfellePerson() = KafkaOppfolgingstilfellePerson(
     uuid = this.uuid.toString(),
     createdAt = this.createdAt,
     personIdentNumber = this.personIdentNumber.value,
@@ -49,7 +49,7 @@ fun OppfolgingstilfelleArbeidstaker.toKafkaOppfolgingstilfelleArbeidstaker() = K
         KafkaOppfolgingstilfelle(
             start = oppfolgingstilfelle.start,
             end = oppfolgingstilfelle.end,
-            virksomhetsnummerList = oppfolgingstilfelle.virksomhetsnummerList.map { virksomhetsnummer -> virksomhetsnummer.value }
+            virksomhetsnummerList = oppfolgingstilfelle.virksomhetsnummerList.map { virksomhetsnummer -> virksomhetsnummer.value },
         )
     },
     referanseTilfelleBitUuid = this.referanseTilfelleBitUuid.toString(),

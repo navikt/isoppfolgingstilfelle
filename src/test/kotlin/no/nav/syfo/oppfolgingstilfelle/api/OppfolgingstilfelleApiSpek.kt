@@ -6,7 +6,7 @@ import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.mockk.*
 import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
-import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfelleArbeidstakerDTO
+import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfellePersonDTO
 import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
 import no.nav.syfo.oppfolgingstilfelle.bit.Tag
@@ -25,8 +25,8 @@ import org.apache.kafka.common.TopicPartition
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import testhelper.ExternalMockEnvironment
-import testhelper.UserConstants.ARBEIDSTAKER_PERSONIDENTNUMBER
-import testhelper.UserConstants.ARBEIDSTAKER_PERSONIDENTNUMBER_VEILEDER_NO_ACCESS
+import testhelper.UserConstants.PERSONIDENTNUMBER_DEFAULT
+import testhelper.UserConstants.PERSONIDENTNUMBER_VEILEDER_NO_ACCESS
 import testhelper.UserConstants.VIRKSOMHETSNUMMER_DEFAULT
 import testhelper.generateJWT
 import testhelper.generator.generateKafkaSyketilfellebit
@@ -68,7 +68,7 @@ class OppfolgingstilfelleApiSpek : Spek({
 
         val oppfolgingstilfelleBit = OppfolgingstilfelleBit(
             uuid = UUID.randomUUID(),
-            personIdentNumber = ARBEIDSTAKER_PERSONIDENTNUMBER,
+            personIdentNumber = PERSONIDENTNUMBER_DEFAULT,
             virksomhetsnummer = VIRKSOMHETSNUMMER_DEFAULT.value,
             createdAt = OffsetDateTime.now(),
             inntruffet = OffsetDateTime.now().minusDays(1),
@@ -88,7 +88,7 @@ class OppfolgingstilfelleApiSpek : Spek({
         )
 
         val kafkaSyketilfellebit = generateKafkaSyketilfellebit(
-            arbeidstakerPersonIdentNumber = ARBEIDSTAKER_PERSONIDENTNUMBER,
+            personIdent = PERSONIDENTNUMBER_DEFAULT,
         )
         val kafkaSyketilfellebitRecord = ConsumerRecord(
             SYKETILFELLEBIT_TOPIC,
@@ -117,7 +117,7 @@ class OppfolgingstilfelleApiSpek : Spek({
         every { mockKafkaConsumerSyketilfelleBit.commitSync() } returns Unit
 
         describe(OppfolgingstilfelleApiSpek::class.java.simpleName) {
-            describe("Get OppfolgingstilfelleArbeidstakerDTO for PersonIdent") {
+            describe("Get OppfolgingstilfellePersonDTO for PersonIdent") {
                 val url = "$oppfolgingstilfelleApiV1Path$oppfolgingstilfelleApiPersonIdentPath"
                 val validToken = generateJWT(
                     audience = externalMockEnvironment.environment.azureAppClientId,
@@ -141,18 +141,18 @@ class OppfolgingstilfelleApiSpek : Spek({
                         with(
                             handleRequest(HttpMethod.Get, url) {
                                 addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
-                                addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_PERSONIDENTNUMBER.value)
+                                addHeader(NAV_PERSONIDENT_HEADER, PERSONIDENTNUMBER_DEFAULT.value)
                             }
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.OK
 
-                            val oppfolgingstilfelleArbeidstakerDTO: OppfolgingstilfelleArbeidstakerDTO =
+                            val oppfolgingstilfellePersonDTO: OppfolgingstilfellePersonDTO =
                                 objectMapper.readValue(response.content!!)
 
-                            oppfolgingstilfelleArbeidstakerDTO.personIdent shouldBeEqualTo oppfolgingstilfelleBit.personIdentNumber.value
+                            oppfolgingstilfellePersonDTO.personIdent shouldBeEqualTo oppfolgingstilfelleBit.personIdentNumber.value
 
                             val oppfolgingstilfelleDTO =
-                                oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList.first()
+                                oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.first()
 
                             oppfolgingstilfelleDTO.virksomhetsnummerList.size shouldBeEqualTo 1
                             oppfolgingstilfelleDTO.virksomhetsnummerList.first() shouldBeEqualTo oppfolgingstilfelleBit.virksomhetsnummer
@@ -186,7 +186,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                         with(
                             handleRequest(HttpMethod.Get, url) {
                                 addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
-                                addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_PERSONIDENTNUMBER.value.drop(1))
+                                addHeader(NAV_PERSONIDENT_HEADER, PERSONIDENTNUMBER_DEFAULT.value.drop(1))
                             }
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.BadRequest
@@ -197,7 +197,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                         with(
                             handleRequest(HttpMethod.Get, url) {
                                 addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
-                                addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_PERSONIDENTNUMBER_VEILEDER_NO_ACCESS.value)
+                                addHeader(NAV_PERSONIDENT_HEADER, PERSONIDENTNUMBER_VEILEDER_NO_ACCESS.value)
                             }
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.Forbidden

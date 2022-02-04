@@ -7,8 +7,8 @@ import io.ktor.routing.*
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
-import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfelleArbeidstakerDTO
-import no.nav.syfo.oppfolgingstilfelle.domain.toOppfolgingstilfelleArbeidstakerDTO
+import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfellePersonDTO
+import no.nav.syfo.oppfolgingstilfelle.domain.toOppfolgingstilfellePersonDTO
 import no.nav.syfo.util.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -39,14 +39,14 @@ fun Route.registerOppfolgingstilfelleApi(
             )
 
             if (harTilgang) {
-                val oppfolgingstilfelleArbeidstakerDTO: OppfolgingstilfelleArbeidstakerDTO =
-                    oppfolgingstilfelleService.oppfolgingstilfelleArbeidstaker(
-                        arbeidstakerPersonIdent = personIdent,
-                    ).toOppfolgingstilfelleArbeidstakerDTO(
-                        arbeidstakerPersonIdent = personIdent,
+                val oppfolgingstilfellePersonDTO: OppfolgingstilfellePersonDTO =
+                    oppfolgingstilfelleService.oppfolgingstilfellePerson(
+                        personIdent = personIdent,
+                    ).toOppfolgingstilfellePersonDTO(
+                        personIdent = personIdent,
                     )
 
-                call.respond(oppfolgingstilfelleArbeidstakerDTO)
+                call.respond(oppfolgingstilfellePersonDTO)
             } else {
                 val accessDeniedMessage = "Denied Veileder access to PersonIdent"
                 log.warn("$accessDeniedMessage, {}", callId)

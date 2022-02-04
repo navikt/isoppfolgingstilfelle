@@ -1,20 +1,20 @@
 package no.nav.syfo.oppfolgingstilfelle.kafka
 
-import no.nav.syfo.oppfolgingstilfelle.domain.OppfolgingstilfelleArbeidstaker
-import no.nav.syfo.oppfolgingstilfelle.domain.toKafkaOppfolgingstilfelleArbeidstaker
+import no.nav.syfo.oppfolgingstilfelle.domain.OppfolgingstilfellePerson
+import no.nav.syfo.oppfolgingstilfelle.domain.toKafkaOppfolgingstilfellePerson
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
 
 class OppfolgingstilfelleProducer(
-    private val kafkaProducerOppfolgingstilfelle: KafkaProducer<String, KafkaOppfolgingstilfelleArbeidstaker>,
+    private val kafkaProducerOppfolgingstilfelle: KafkaProducer<String, KafkaOppfolgingstilfellePerson>,
 ) {
     fun sendOppfolgingstilfelle(
-        oppfolgingstilfelleArbeidstaker: OppfolgingstilfelleArbeidstaker,
+        oppfolgingstilfellePerson: OppfolgingstilfellePerson,
     ) {
-        val key = oppfolgingstilfelleArbeidstaker.uuid.toString()
+        val key = oppfolgingstilfellePerson.uuid.toString()
         try {
-            val kafkaOppfolgingstilfelle = oppfolgingstilfelleArbeidstaker.toKafkaOppfolgingstilfelleArbeidstaker()
+            val kafkaOppfolgingstilfelle = oppfolgingstilfellePerson.toKafkaOppfolgingstilfellePerson()
             kafkaProducerOppfolgingstilfelle.send(
                 ProducerRecord(
                     OPPFOLGINGSTILFELLE_TOPIC,
@@ -32,7 +32,7 @@ class OppfolgingstilfelleProducer(
     }
 
     companion object {
-        const val OPPFOLGINGSTILFELLE_TOPIC = "teamsykefravr.isoppfolgingstilfelle-oppfolgingstilfelle-arbeidstaker"
+        const val OPPFOLGINGSTILFELLE_TOPIC = "teamsykefravr.isoppfolgingstilfelle-oppfolgingstilfelle-person"
         private val log = LoggerFactory.getLogger(OppfolgingstilfelleProducer::class.java)
     }
 }
