@@ -18,7 +18,7 @@ private val mapper = configuredJacksonMapper()
 
 const val queryCreateOppfolgingstilfelleArbeidstaker =
     """
-    INSERT INTO OPPFOLGINGSTILFELLE_ARBEIDSTAKER (
+    INSERT INTO OPPFOLGINGSTILFELLE_PERSON (
         id,
         uuid,
         created_at,
@@ -45,7 +45,7 @@ fun Connection.createOppfolgingstilfelleArbeidstaker(
     }
 
     if (idList.size != 1) {
-        throw NoElementInsertedException("Creating OPPFOLGINGSTILFELLE_ARBEIDSTAKER failed, no rows affected.")
+        throw NoElementInsertedException("Creating OPPFOLGINGSTILFELLE_PERSON failed, no rows affected.")
     }
 
     if (commit) {
@@ -56,7 +56,7 @@ fun Connection.createOppfolgingstilfelleArbeidstaker(
 const val queryGetOppfolgingstilfelleArbeidstaker =
     """
         SELECT * 
-        FROM OPPFOLGINGSTILFELLE_ARBEIDSTAKER
+        FROM OPPFOLGINGSTILFELLE_PERSON
         WHERE personident = ?
         ORDER BY referanse_tilfelle_bit_inntruffet DESC;
     """
