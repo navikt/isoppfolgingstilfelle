@@ -3,8 +3,8 @@ package no.nav.syfo.oppfolgingstilfelle.kafka
 import no.nav.syfo.util.configuredJacksonMapper
 import org.apache.kafka.common.serialization.Serializer
 
-class KafkaOppfolgingstilfelleSerializer : Serializer<KafkaOppfolgingstilfelleArbeidstaker> {
+class KafkaOppfolgingstilfelleSerializer : Serializer<KafkaOppfolgingstilfellePerson> {
     private val mapper = configuredJacksonMapper()
 
-    override fun serialize(topic: String?, data: KafkaOppfolgingstilfelleArbeidstaker?): ByteArray = mapper.writeValueAsBytes(data)
+    override fun serialize(topic: String?, data: KafkaOppfolgingstilfellePerson?): ByteArray = mapper.writeValueAsBytes(data)
 }

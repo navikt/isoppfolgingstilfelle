@@ -2,10 +2,10 @@ apiVersion: kafka.nais.io/v1
 kind: Topic
 metadata:
   annotations:
-    dcat.data.nav.no/title: "Oppfolgingstilfeller for alle sykmeldte arbeidstakere"
+    dcat.data.nav.no/title: "Oppfolgingstilfeller for sykmeldte personer"
     dcat.data.nav.no/description: >-
-      Topic inneholder full historikk med Oppfolgingstilfeller for alle sykmeldte arbeidstakere.
-  name: isoppfolgingstilfelle-oppfolgingstilfelle-arbeidstaker
+      Topic inneholder full historikk med Oppfolgingstilfeller for sykmeldte personer.
+  name: isoppfolgingstilfelle-oppfolgingstilfelle-person
   namespace: teamsykefravr
   labels:
     team: teamsykefravr

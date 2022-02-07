@@ -163,9 +163,9 @@ fun KafkaSyketilfellebit.toOppfolgingstilfelleBit(): OppfolgingstilfelleBit {
     )
 }
 
-fun OppfolgingstilfelleBit.toOppfolgingstilfelleArbeidstaker(
+fun OppfolgingstilfelleBit.toOppfolgingstilfellePerson(
     oppfolgingstilfelleList: List<Oppfolgingstilfelle>,
-) = OppfolgingstilfelleArbeidstaker(
+) = OppfolgingstilfellePerson(
     uuid = UUID.randomUUID(),
     createdAt = OffsetDateTime.now(),
     personIdentNumber = this.personIdentNumber,

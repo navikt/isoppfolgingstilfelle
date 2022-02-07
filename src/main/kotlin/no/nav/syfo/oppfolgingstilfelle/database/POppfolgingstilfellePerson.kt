@@ -2,11 +2,11 @@ package no.nav.syfo.oppfolgingstilfelle.database
 
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingstilfelle.domain.Oppfolgingstilfelle
-import no.nav.syfo.oppfolgingstilfelle.domain.OppfolgingstilfelleArbeidstaker
+import no.nav.syfo.oppfolgingstilfelle.domain.OppfolgingstilfellePerson
 import java.time.OffsetDateTime
 import java.util.*
 
-data class POppfolgingstilfelleArbeidstaker(
+data class POppfolgingstilfellePerson(
     val id: Int,
     val uuid: UUID,
     val createdAt: OffsetDateTime,
@@ -16,7 +16,7 @@ data class POppfolgingstilfelleArbeidstaker(
     val referanseTilfelleBitInntruffet: OffsetDateTime,
 )
 
-fun POppfolgingstilfelleArbeidstaker.toOppfolgingstilfelleArbeidstaker() = OppfolgingstilfelleArbeidstaker(
+fun POppfolgingstilfellePerson.toOppfolgingstilfellePerson() = OppfolgingstilfellePerson(
     uuid = this.uuid,
     createdAt = this.createdAt,
     personIdentNumber = this.personIdentNumber,

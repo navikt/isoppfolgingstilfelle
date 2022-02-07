@@ -5,7 +5,7 @@ import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingstilfelle.bit.*
 import no.nav.syfo.oppfolgingstilfelle.bit.database.createOppfolgingstilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.database.*
-import no.nav.syfo.oppfolgingstilfelle.domain.OppfolgingstilfelleArbeidstaker
+import no.nav.syfo.oppfolgingstilfelle.domain.OppfolgingstilfellePerson
 import no.nav.syfo.oppfolgingstilfelle.kafka.OppfolgingstilfelleProducer
 import java.sql.Connection
 
@@ -14,16 +14,16 @@ class OppfolgingstilfelleService(
     val oppfolgingstilfelleBitService: OppfolgingstilfelleBitService,
     val oppfolgingstilfelleProducer: OppfolgingstilfelleProducer,
 ) {
-    fun oppfolgingstilfelleArbeidstaker(
-        arbeidstakerPersonIdent: PersonIdentNumber,
-    ): OppfolgingstilfelleArbeidstaker? {
-        val oppfolgingstilfelleArbeidstaker = database.getOppfolgingstilfelleArbeidstaker(
-            arbeidstakerPersonIdent = arbeidstakerPersonIdent,
+    fun oppfolgingstilfellePerson(
+        personIdent: PersonIdentNumber,
+    ): OppfolgingstilfellePerson? {
+        val oppfolgingstilfellePerson = database.getOppfolgingstilfellePerson(
+            personIdent = personIdent,
         )
-        return oppfolgingstilfelleArbeidstaker?.toOppfolgingstilfelleArbeidstaker()
+        return oppfolgingstilfellePerson?.toOppfolgingstilfellePerson()
     }
 
-    fun createOppfolgingstilfelleArbeidstaker(
+    fun createOppfolgingstilfellePerson(
         connection: Connection,
         oppfolgingstilfelleBit: OppfolgingstilfelleBit,
     ) {
@@ -39,16 +39,16 @@ class OppfolgingstilfelleService(
         oppfolgingstilfelleBitList.sortedByDescending { bit -> bit.inntruffet }
 
         val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
-        val oppfolgingstilfelleArbeidstaker = oppfolgingstilfelleBit.toOppfolgingstilfelleArbeidstaker(
+        val oppfolgingstilfellePerson = oppfolgingstilfelleBit.toOppfolgingstilfellePerson(
             oppfolgingstilfelleList = oppfolgingstilfelleList,
         )
-        connection.createOppfolgingstilfelleArbeidstaker(
+        connection.createOppfolgingstilfellePerson(
             commit = false,
-            oppfolgingstilfelleArbeidstaker = oppfolgingstilfelleArbeidstaker
+            oppfolgingstilfellePerson = oppfolgingstilfellePerson
         )
 
         oppfolgingstilfelleProducer.sendOppfolgingstilfelle(
-            oppfolgingstilfelleArbeidstaker = oppfolgingstilfelleArbeidstaker
+            oppfolgingstilfellePerson = oppfolgingstilfellePerson
         )
     }
 }

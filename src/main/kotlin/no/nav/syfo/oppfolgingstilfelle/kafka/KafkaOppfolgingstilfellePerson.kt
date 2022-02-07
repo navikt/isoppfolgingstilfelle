@@ -2,9 +2,8 @@ package no.nav.syfo.oppfolgingstilfelle.kafka
 
 import java.time.LocalDate
 import java.time.OffsetDateTime
-import java.util.*
 
-data class KafkaOppfolgingstilfelleArbeidstaker(
+data class KafkaOppfolgingstilfellePerson(
     val uuid: String,
     val createdAt: OffsetDateTime,
     val personIdentNumber: String,

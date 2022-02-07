@@ -6,7 +6,7 @@ import no.nav.syfo.application.database.toList
 import no.nav.syfo.database.NoElementInsertedException
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingstilfelle.domain.Oppfolgingstilfelle
-import no.nav.syfo.oppfolgingstilfelle.domain.OppfolgingstilfelleArbeidstaker
+import no.nav.syfo.oppfolgingstilfelle.domain.OppfolgingstilfellePerson
 import no.nav.syfo.util.configuredJacksonMapper
 import no.nav.syfo.util.toOffsetDateTimeUTC
 import java.sql.Connection
@@ -16,7 +16,7 @@ import java.util.*
 
 private val mapper = configuredJacksonMapper()
 
-const val queryCreateOppfolgingstilfelleArbeidstaker =
+const val queryCreateOppfolgingstilfellePerson =
     """
     INSERT INTO OPPFOLGINGSTILFELLE_PERSON (
         id,
@@ -30,17 +30,17 @@ const val queryCreateOppfolgingstilfelleArbeidstaker =
     RETURNING id
     """
 
-fun Connection.createOppfolgingstilfelleArbeidstaker(
+fun Connection.createOppfolgingstilfellePerson(
     commit: Boolean,
-    oppfolgingstilfelleArbeidstaker: OppfolgingstilfelleArbeidstaker,
+    oppfolgingstilfellePerson: OppfolgingstilfellePerson,
 ) {
-    val idList = this.prepareStatement(queryCreateOppfolgingstilfelleArbeidstaker).use {
-        it.setString(1, oppfolgingstilfelleArbeidstaker.uuid.toString())
-        it.setTimestamp(2, Timestamp.from(oppfolgingstilfelleArbeidstaker.createdAt.toInstant()))
-        it.setString(3, oppfolgingstilfelleArbeidstaker.personIdentNumber.value)
-        it.setObject(4, mapper.writeValueAsString(oppfolgingstilfelleArbeidstaker.oppfolgingstilfelleList))
-        it.setString(5, oppfolgingstilfelleArbeidstaker.referanseTilfelleBitUuid.toString())
-        it.setTimestamp(6, Timestamp.from(oppfolgingstilfelleArbeidstaker.referanseTilfelleBitInntruffet.toInstant()))
+    val idList = this.prepareStatement(queryCreateOppfolgingstilfellePerson).use {
+        it.setString(1, oppfolgingstilfellePerson.uuid.toString())
+        it.setTimestamp(2, Timestamp.from(oppfolgingstilfellePerson.createdAt.toInstant()))
+        it.setString(3, oppfolgingstilfellePerson.personIdentNumber.value)
+        it.setObject(4, mapper.writeValueAsString(oppfolgingstilfellePerson.oppfolgingstilfelleList))
+        it.setString(5, oppfolgingstilfellePerson.referanseTilfelleBitUuid.toString())
+        it.setTimestamp(6, Timestamp.from(oppfolgingstilfellePerson.referanseTilfelleBitInntruffet.toInstant()))
         it.executeQuery().toList { getInt("id") }
     }
 
@@ -53,7 +53,7 @@ fun Connection.createOppfolgingstilfelleArbeidstaker(
     }
 }
 
-const val queryGetOppfolgingstilfelleArbeidstaker =
+const val queryGetOppfolgingstilfellePerson =
     """
         SELECT * 
         FROM OPPFOLGINGSTILFELLE_PERSON
@@ -61,19 +61,19 @@ const val queryGetOppfolgingstilfelleArbeidstaker =
         ORDER BY referanse_tilfelle_bit_inntruffet DESC;
     """
 
-fun DatabaseInterface.getOppfolgingstilfelleArbeidstaker(
-    arbeidstakerPersonIdent: PersonIdentNumber,
-): POppfolgingstilfelleArbeidstaker? {
+fun DatabaseInterface.getOppfolgingstilfellePerson(
+    personIdent: PersonIdentNumber,
+): POppfolgingstilfellePerson? {
     return this.connection.use {
-        connection.prepareStatement(queryGetOppfolgingstilfelleArbeidstaker).use {
-            it.setString(1, arbeidstakerPersonIdent.value)
-            it.executeQuery().toList { toPOppfolgingstilfelleArbeidstaker() }
+        connection.prepareStatement(queryGetOppfolgingstilfellePerson).use {
+            it.setString(1, personIdent.value)
+            it.executeQuery().toList { toPOppfolgingstilfellePerson() }
         }
     }.firstOrNull()
 }
 
-fun ResultSet.toPOppfolgingstilfelleArbeidstaker(): POppfolgingstilfelleArbeidstaker =
-    POppfolgingstilfelleArbeidstaker(
+fun ResultSet.toPOppfolgingstilfellePerson(): POppfolgingstilfellePerson =
+    POppfolgingstilfellePerson(
         id = getInt("id"),
         uuid = UUID.fromString(getString("uuid")),
         personIdentNumber = PersonIdentNumber(getString("personident")),

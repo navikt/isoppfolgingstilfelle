@@ -2,14 +2,14 @@ package testhelper.generator
 
 import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.bit.Tag
-import testhelper.UserConstants.ARBEIDSTAKER_PERSONIDENTNUMBER
+import testhelper.UserConstants.PERSONIDENTNUMBER_DEFAULT
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.*
 
 fun generateOppfolgingstilfelleBit() = OppfolgingstilfelleBit(
     uuid = UUID.randomUUID(),
-    personIdentNumber = ARBEIDSTAKER_PERSONIDENTNUMBER,
+    personIdentNumber = PERSONIDENTNUMBER_DEFAULT,
     virksomhetsnummer = "987654321",
     createdAt = OffsetDateTime.now(),
     inntruffet = OffsetDateTime.now().minusDays(1),

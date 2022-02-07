@@ -9,7 +9,7 @@ import no.nav.syfo.application.api.installContentNegotiation
 import no.nav.syfo.client.veiledertilgang.Tilgang
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.util.personIdentHeader
-import testhelper.UserConstants.ARBEIDSTAKER_PERSONIDENTNUMBER_VEILEDER_NO_ACCESS
+import testhelper.UserConstants.PERSONIDENTNUMBER_VEILEDER_NO_ACCESS
 import testhelper.getRandomPort
 
 class SyfoTilgangskontrollMock {
@@ -30,7 +30,7 @@ class SyfoTilgangskontrollMock {
             routing {
                 get(VeilederTilgangskontrollClient.TILGANGSKONTROLL_PERSON_PATH) {
                     when (personIdentHeader()) {
-                        ARBEIDSTAKER_PERSONIDENTNUMBER_VEILEDER_NO_ACCESS.value -> call.respond(
+                        PERSONIDENTNUMBER_VEILEDER_NO_ACCESS.value -> call.respond(
                             Tilgang(false, "Ingen tilgang")
                         )
                         else -> call.respond(Tilgang(true, ""))

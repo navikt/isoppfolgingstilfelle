@@ -10,11 +10,11 @@ import java.time.OffsetDateTime
 import java.util.*
 
 fun generateKafkaSyketilfellebit(
-    arbeidstakerPersonIdentNumber: PersonIdentNumber = UserConstants.ARBEIDSTAKER_PERSONIDENTNUMBER,
+    personIdent: PersonIdentNumber = UserConstants.PERSONIDENTNUMBER_DEFAULT,
     virksomhetsnummer: Virksomhetsnummer = UserConstants.VIRKSOMHETSNUMMER_DEFAULT,
 ) = KafkaSyketilfellebit(
     id = UUID.randomUUID().toString(),
-    fnr = arbeidstakerPersonIdentNumber.value,
+    fnr = personIdent.value,
     orgnummer = virksomhetsnummer.value,
     opprettet = OffsetDateTime.now(),
     inntruffet = OffsetDateTime.now().minusDays(1),
