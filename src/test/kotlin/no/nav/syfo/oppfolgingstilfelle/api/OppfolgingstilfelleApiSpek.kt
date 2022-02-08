@@ -7,33 +7,21 @@ import io.ktor.server.testing.*
 import io.mockk.*
 import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
 import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfellePersonDTO
-import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBit
-import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
-import no.nav.syfo.oppfolgingstilfelle.bit.Tag
-import no.nav.syfo.oppfolgingstilfelle.bit.kafka.KafkaSyketilfellebit
-import no.nav.syfo.oppfolgingstilfelle.bit.kafka.KafkaSyketilfellebitService
-import no.nav.syfo.oppfolgingstilfelle.bit.kafka.SYKETILFELLEBIT_TOPIC
+import no.nav.syfo.oppfolgingstilfelle.bit.*
+import no.nav.syfo.oppfolgingstilfelle.bit.kafka.*
 import no.nav.syfo.oppfolgingstilfelle.kafka.OppfolgingstilfelleProducer
-import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
-import no.nav.syfo.util.bearerHeader
-import no.nav.syfo.util.configuredJacksonMapper
+import no.nav.syfo.util.*
 import org.amshove.kluent.shouldBeEqualTo
-import org.apache.kafka.clients.consumer.ConsumerRecord
-import org.apache.kafka.clients.consumer.ConsumerRecords
-import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.apache.kafka.clients.consumer.*
 import org.apache.kafka.common.TopicPartition
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import testhelper.ExternalMockEnvironment
+import testhelper.*
 import testhelper.UserConstants.PERSONIDENTNUMBER_DEFAULT
 import testhelper.UserConstants.PERSONIDENTNUMBER_VEILEDER_NO_ACCESS
 import testhelper.UserConstants.VIRKSOMHETSNUMMER_DEFAULT
-import testhelper.generateJWT
-import testhelper.generator.generateKafkaSyketilfellebit
-import testhelper.testApiModule
-import java.time.Duration
-import java.time.LocalDate
-import java.time.OffsetDateTime
+import testhelper.generator.*
+import java.time.*
 import java.util.*
 
 class OppfolgingstilfelleApiSpek : Spek({
@@ -49,7 +37,6 @@ class OppfolgingstilfelleApiSpek : Spek({
             database = database,
         )
         val oppfolgingstilfelleProducer = mockk<OppfolgingstilfelleProducer>()
-        justRun { oppfolgingstilfelleProducer.sendOppfolgingstilfelle(any()) }
         val oppfolgingstilfelleService = OppfolgingstilfelleService(
             database = database,
             oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
@@ -87,34 +74,66 @@ class OppfolgingstilfelleApiSpek : Spek({
             partition,
         )
 
-        val kafkaSyketilfellebit = generateKafkaSyketilfellebit(
+        val kafkaSyketilfellebitRelevantVirksomhet = generateKafkaSyketilfellebitRelevantVirksomhet(
             personIdent = PERSONIDENTNUMBER_DEFAULT,
         )
-        val kafkaSyketilfellebitRecord = ConsumerRecord(
+        val kafkaSyketilfellebitRecordRelevantVirksomhet = ConsumerRecord(
             SYKETILFELLEBIT_TOPIC,
             partition,
             1,
             "key1",
-            kafkaSyketilfellebit,
+            kafkaSyketilfellebitRelevantVirksomhet,
         )
-        val kafkaSyketilfellebitRecordDuplicate = ConsumerRecord(
+        val kafkaSyketilfellebitRecordRelevantVirksomhetDuplicate = ConsumerRecord(
             SYKETILFELLEBIT_TOPIC,
             partition,
             1,
             "key1",
-            kafkaSyketilfellebit,
+            kafkaSyketilfellebitRelevantVirksomhet,
+        )
+        val kafkaSyketilfellebitRelevantSykmeldingNotArbeidstaker =
+            generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
+                personIdentNumber = PERSONIDENTNUMBER_DEFAULT,
+            )
+        val kafkaSyketilfellebitRecordRelevantSykmeldingNotArbeidstaker = ConsumerRecord(
+            SYKETILFELLEBIT_TOPIC,
+            partition,
+            2,
+            "key2",
+            kafkaSyketilfellebitRelevantSykmeldingNotArbeidstaker,
+        )
+        val kafkaSyketilfellebitNotRelevant1 = generateKafkaSyketilfellebitNotRelevantNoVirksomhet(
+            personIdentNumber = PERSONIDENTNUMBER_DEFAULT,
+        )
+        val kafkaSyketilfellebitRecordNotRelevant1 = ConsumerRecord(
+            SYKETILFELLEBIT_TOPIC,
+            partition,
+            3,
+            "key3",
+            kafkaSyketilfellebitNotRelevant1,
+        )
+        val kafkaSyketilfellebitNotRelevant2 = generateKafkaSyketilfellebitNotRelevantSykmeldingNy(
+            personIdentNumber = PERSONIDENTNUMBER_DEFAULT,
+        )
+        val kafkaSyketilfellebitRecordNotRelevant2 = ConsumerRecord(
+            SYKETILFELLEBIT_TOPIC,
+            partition,
+            4,
+            "key4",
+            kafkaSyketilfellebitNotRelevant2,
         )
 
         val mockKafkaConsumerSyketilfelleBit = mockk<KafkaConsumer<String, KafkaSyketilfellebit>>()
-        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
-            mapOf(
-                syketilfellebitTopicPartition to listOf(
-                    kafkaSyketilfellebitRecord,
-                    kafkaSyketilfellebitRecordDuplicate,
-                )
-            )
-        )
-        every { mockKafkaConsumerSyketilfelleBit.commitSync() } returns Unit
+
+        beforeEachTest {
+            database.dropData()
+
+            clearMocks(mockKafkaConsumerSyketilfelleBit)
+            every { mockKafkaConsumerSyketilfelleBit.commitSync() } returns Unit
+
+            clearMocks(oppfolgingstilfelleProducer)
+            justRun { oppfolgingstilfelleProducer.sendOppfolgingstilfelle(any()) }
+        }
 
         describe(OppfolgingstilfelleApiSpek::class.java.simpleName) {
             describe("Get OppfolgingstilfellePersonDTO for PersonIdent") {
@@ -125,8 +144,15 @@ class OppfolgingstilfelleApiSpek : Spek({
                 )
 
                 describe("Happy path") {
+                    it("should return list of OppfolgingstilfelleDTO if request is successful: Person is Arbeidstaker") {
+                        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+                            mapOf(
+                                syketilfellebitTopicPartition to listOf(
+                                    kafkaSyketilfellebitRecordRelevantVirksomhet,
+                                )
+                            )
+                        )
 
-                    it("should return list of OppfolgingstilfelleDTO if request is successful") {
                         kafkaSyketilfellebitService.pollAndProcessRecords(
                             kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
                         )
@@ -159,6 +185,86 @@ class OppfolgingstilfelleApiSpek : Spek({
 
                             oppfolgingstilfelleDTO.start shouldBeEqualTo oppfolgingstilfelleBit.fom
                             oppfolgingstilfelleDTO.end shouldBeEqualTo oppfolgingstilfelleBit.tom
+                        }
+                    }
+
+                    it("should create OppfolgingstilfellePerson if SyketilfelleBit is relevant") {
+                        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+                            mapOf(
+                                syketilfellebitTopicPartition to listOf(
+                                    kafkaSyketilfellebitRecordRelevantSykmeldingNotArbeidstaker,
+                                )
+                            )
+                        )
+
+                        kafkaSyketilfellebitService.pollAndProcessRecords(
+                            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                        )
+
+                        verify(exactly = 1) {
+                            mockKafkaConsumerSyketilfelleBit.commitSync()
+                        }
+                        verify(exactly = 1) {
+                            oppfolgingstilfelleProducer.sendOppfolgingstilfelle(any())
+                        }
+                    }
+
+                    it("should not create OppfolgingstilfelleBit or OppfolgingstilfellePerson if SyketilfelleBit is not relevant") {
+                        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+                            mapOf(
+                                syketilfellebitTopicPartition to listOf(
+                                    kafkaSyketilfellebitRecordNotRelevant1,
+                                    kafkaSyketilfellebitRecordNotRelevant2,
+                                )
+                            )
+                        )
+
+                        kafkaSyketilfellebitService.pollAndProcessRecords(
+                            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                        )
+
+                        verify(exactly = 1) {
+                            mockKafkaConsumerSyketilfelleBit.commitSync()
+                        }
+                        verify(exactly = 0) {
+                            oppfolgingstilfelleProducer.sendOppfolgingstilfelle(any())
+                        }
+
+                        with(
+                            handleRequest(HttpMethod.Get, url) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(NAV_PERSONIDENT_HEADER, PERSONIDENTNUMBER_DEFAULT.value)
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                            val oppfolgingstilfelleArbeidstakerDTO: OppfolgingstilfellePersonDTO =
+                                objectMapper.readValue(response.content!!)
+
+                            oppfolgingstilfelleArbeidstakerDTO.personIdent shouldBeEqualTo oppfolgingstilfelleBit.personIdentNumber.value
+                            oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList.size shouldBeEqualTo 0
+                        }
+                    }
+
+                    it("should produce exactly 1 Oppfolgingstilfelle for each relevant SyketilfelleBit") {
+                        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+                            mapOf(
+                                syketilfellebitTopicPartition to listOf(
+                                    kafkaSyketilfellebitRecordRelevantVirksomhet,
+                                    kafkaSyketilfellebitRecordRelevantVirksomhetDuplicate,
+                                )
+                            )
+                        )
+
+                        kafkaSyketilfellebitService.pollAndProcessRecords(
+                            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                        )
+
+                        verify(exactly = 1) {
+                            mockKafkaConsumerSyketilfelleBit.commitSync()
+                        }
+                        verify(exactly = 1) {
+                            oppfolgingstilfelleProducer.sendOppfolgingstilfelle(any())
                         }
                     }
                 }
