@@ -1,8 +1,7 @@
 package no.nav.syfo.oppfolgingstilfelle.domain
 
 import no.nav.syfo.domain.Virksomhetsnummer
-import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBit
-import no.nav.syfo.oppfolgingstilfelle.bit.Tag
+import no.nav.syfo.oppfolgingstilfelle.bit.*
 import no.nav.syfo.util.and
 import no.nav.syfo.util.or
 import java.time.LocalDate
@@ -54,6 +53,11 @@ fun List<OppfolgingstilfelleDag>.groupOppfolgingstilfelleList(): List<Oppfolging
     return oppfolgingstilfelleList
 }
 
+fun List<OppfolgingstilfelleDag>.isArbeidstakerAtTilfelleEnd() =
+    this.last {
+        it.priorityOppfolgingstilfelleBit != null
+    }.priorityOppfolgingstilfelleBit?.isArbeidstakerBit() ?: false
+
 fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelle(): Oppfolgingstilfelle {
     val virksomhetsnummerList = this.mapNotNull {
         it.priorityOppfolgingstilfelleBit?.virksomhetsnummer
@@ -61,6 +65,7 @@ fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelle(): Oppfolgingstilfelle {
         Virksomhetsnummer(virksomhetsnummer)
     }
     return Oppfolgingstilfelle(
+        arbeidstakerAtTilfelleEnd = this.isArbeidstakerAtTilfelleEnd(),
         start = this.first().dag,
         end = this.last().dag,
         virksomhetsnummerList = virksomhetsnummerList,

@@ -20,6 +20,7 @@ data class OppfolgingstilfellePerson(
 )
 
 data class Oppfolgingstilfelle(
+    val arbeidstakerAtTilfelleEnd: Boolean,
     val start: LocalDate,
     val end: LocalDate,
     val virksomhetsnummerList: List<Virksomhetsnummer>,
@@ -35,6 +36,7 @@ fun OppfolgingstilfellePerson?.toOppfolgingstilfellePersonDTO(
 private fun List<Oppfolgingstilfelle>.toOppfolgingstilfelleDTOList() =
     this.map { oppfolgingstilfelle ->
         OppfolgingstilfelleDTO(
+            arbeidstakerAtTilfelleEnd = oppfolgingstilfelle.arbeidstakerAtTilfelleEnd,
             start = oppfolgingstilfelle.start,
             end = oppfolgingstilfelle.end,
             virksomhetsnummerList = oppfolgingstilfelle.virksomhetsnummerList.map { it.value },
@@ -47,6 +49,7 @@ fun OppfolgingstilfellePerson.toKafkaOppfolgingstilfellePerson() = KafkaOppfolgi
     personIdentNumber = this.personIdentNumber.value,
     oppfolgingstilfelleList = this.oppfolgingstilfelleList.map { oppfolgingstilfelle ->
         KafkaOppfolgingstilfelle(
+            arbeidstakerAtTilfelleEnd = oppfolgingstilfelle.arbeidstakerAtTilfelleEnd,
             start = oppfolgingstilfelle.start,
             end = oppfolgingstilfelle.end,
             virksomhetsnummerList = oppfolgingstilfelle.virksomhetsnummerList.map { virksomhetsnummer -> virksomhetsnummer.value },
