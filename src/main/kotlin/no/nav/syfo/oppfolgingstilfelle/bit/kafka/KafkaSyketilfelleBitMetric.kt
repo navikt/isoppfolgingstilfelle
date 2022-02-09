@@ -4,7 +4,7 @@ import io.micrometer.core.instrument.Counter
 import no.nav.syfo.application.metric.METRICS_NS
 import no.nav.syfo.application.metric.METRICS_REGISTRY
 
-const val KAFKA_CONSUMER_SYKETILFELLEBIT_BASE = "${METRICS_NS}_kafka_consumer_nlr"
+const val KAFKA_CONSUMER_SYKETILFELLEBIT_BASE = "${METRICS_NS}_kafka_consumer_syketilfellebit"
 const val KAFKA_CONSUMER_SYKETILFELLEBIT_READ = "${KAFKA_CONSUMER_SYKETILFELLEBIT_BASE}_read"
 const val KAFKA_CONSUMER_SYKETILFELLEBIT_CREATED = "${KAFKA_CONSUMER_SYKETILFELLEBIT_BASE}_created"
 const val KAFKA_CONSUMER_SYKETILFELLEBIT_DUPLICATE = "${KAFKA_CONSUMER_SYKETILFELLEBIT_BASE}_duplicate"
