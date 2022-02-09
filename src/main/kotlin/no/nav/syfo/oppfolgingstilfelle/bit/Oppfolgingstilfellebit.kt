@@ -163,6 +163,8 @@ fun KafkaSyketilfellebit.toOppfolgingstilfelleBit(): OppfolgingstilfelleBit {
     )
 }
 
+fun OppfolgingstilfelleBit.isArbeidstakerBit(): Boolean = this.virksomhetsnummer != null
+
 fun OppfolgingstilfelleBit.toOppfolgingstilfellePerson(
     oppfolgingstilfelleList: List<Oppfolgingstilfelle>,
 ) = OppfolgingstilfellePerson(

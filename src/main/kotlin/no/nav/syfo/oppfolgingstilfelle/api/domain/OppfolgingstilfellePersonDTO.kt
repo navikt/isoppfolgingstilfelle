@@ -8,6 +8,7 @@ data class OppfolgingstilfellePersonDTO(
 )
 
 data class OppfolgingstilfelleDTO(
+    val arbeidstakerAtTilfelleEnd: Boolean,
     val start: LocalDate,
     val end: LocalDate,
     val virksomhetsnummerList: List<String>,

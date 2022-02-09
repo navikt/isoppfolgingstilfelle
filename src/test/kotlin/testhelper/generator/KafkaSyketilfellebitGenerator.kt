@@ -31,15 +31,21 @@ fun generateKafkaSyketilfellebitRelevantVirksomhet(
 fun generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
     personIdentNumber: PersonIdentNumber = UserConstants.PERSONIDENTNUMBER_DEFAULT,
     virksomhetsnummer: Virksomhetsnummer = UserConstants.VIRKSOMHETSNUMMER_DEFAULT,
+    fom: LocalDate,
+    tom: LocalDate,
 ) = generateKafkaSyketilfellebitRelevantVirksomhet(
     personIdent = personIdentNumber,
-    virksomhetsnummer = virksomhetsnummer
+    virksomhetsnummer = virksomhetsnummer,
 ).copy(
     orgnummer = null,
     tags = listOf(
         Tag.SYKMELDING,
         Tag.BEKREFTET,
+        Tag.PERIODE,
+        Tag.INGEN_AKTIVITET,
     ).map { tag -> tag.name },
+    fom = fom,
+    tom = tom,
 )
 
 fun generateKafkaSyketilfellebitNotRelevantNoVirksomhet(

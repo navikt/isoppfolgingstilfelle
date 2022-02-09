@@ -27,11 +27,6 @@ class OppfolgingstilfelleService(
         connection: Connection,
         oppfolgingstilfelleBit: OppfolgingstilfelleBit,
     ) {
-        connection.createOppfolgingstilfelleBit(
-            commit = false,
-            oppfolgingstilfelleBit = oppfolgingstilfelleBit,
-        )
-
         val oppfolgingstilfelleBitList = oppfolgingstilfelleBitService.oppfolgingstilfelleBitList(
             personIdentNumber = oppfolgingstilfelleBit.personIdentNumber
         ).toMutableList()
@@ -41,6 +36,10 @@ class OppfolgingstilfelleService(
         val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
         val oppfolgingstilfellePerson = oppfolgingstilfelleBit.toOppfolgingstilfellePerson(
             oppfolgingstilfelleList = oppfolgingstilfelleList,
+        )
+        connection.createOppfolgingstilfelleBit(
+            commit = false,
+            oppfolgingstilfelleBit = oppfolgingstilfelleBit,
         )
         connection.createOppfolgingstilfellePerson(
             commit = false,
