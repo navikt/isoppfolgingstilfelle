@@ -1,7 +1,6 @@
 package no.nav.syfo.oppfolgingstilfelle.api
 
 import io.ktor.application.*
-import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
@@ -24,21 +23,16 @@ fun Route.registerOppfolgingstilfelleApi(
 ) {
     route(oppfolgingstilfelleApiV1Path) {
         get(oppfolgingstilfelleApiPersonIdentPath) {
-            val callId = getCallId()
-            val token = getBearerHeader()
-                ?: throw IllegalArgumentException("Could not retrieve OppfolgingstilfelleDTO: No Authorization header supplied")
             val personIdent = personIdentHeader()?.let { personIdent ->
                 PersonIdentNumber(personIdent)
             }
-                ?: throw IllegalArgumentException("Could not retrieve OppfolgingstilfelleDTO: No $NAV_PERSONIDENT_HEADER supplied in request header")
+                ?: throw IllegalArgumentException("Failed to retrieve OppfolgingstilfelleDTO: No $NAV_PERSONIDENT_HEADER supplied in request header")
 
-            val harTilgang = veilederTilgangskontrollClient.harTilgang(
-                callId = callId,
-                personIdent = personIdent,
-                token = token,
-            )
-
-            if (harTilgang) {
+            validateVeilederAccess(
+                action = "Read OppfolgingstilfelleDTO for Person with PersonIdent",
+                personIdentToAccess = personIdent,
+                veilederTilgangskontrollClient = veilederTilgangskontrollClient,
+            ) {
                 val oppfolgingstilfellePersonDTO: OppfolgingstilfellePersonDTO =
                     oppfolgingstilfelleService.oppfolgingstilfellePerson(
                         personIdent = personIdent,
@@ -47,10 +41,6 @@ fun Route.registerOppfolgingstilfelleApi(
                     )
 
                 call.respond(oppfolgingstilfellePersonDTO)
-            } else {
-                val accessDeniedMessage = "Denied Veileder access to PersonIdent"
-                log.warn("$accessDeniedMessage, {}", callId)
-                call.respond(HttpStatusCode.Forbidden, accessDeniedMessage)
             }
         }
     }

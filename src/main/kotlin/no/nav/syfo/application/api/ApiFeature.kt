@@ -41,6 +41,20 @@ fun Application.installContentNegotiation() {
 fun Application.installStatusPages() {
     install(StatusPages) {
         exception<Throwable> { cause ->
+            val callId = getCallId()
+            val consumerClientId = getConsumerClientId()
+            val logExceptionMessage = "Caught exception, callId=$callId, consumerClientId=$consumerClientId"
+            when (cause) {
+                is ForbiddenAccessVeilederException -> {
+                    log.warn(logExceptionMessage, cause)
+                }
+                else -> {
+                    log.error(logExceptionMessage, cause)
+                }
+            }
+
+            var isUnexpectedException = false
+
             val responseStatus: HttpStatusCode = when (cause) {
                 is ResponseException -> {
                     cause.response.status
@@ -48,16 +62,19 @@ fun Application.installStatusPages() {
                 is IllegalArgumentException -> {
                     HttpStatusCode.BadRequest
                 }
+                is ForbiddenAccessVeilederException -> {
+                    HttpStatusCode.Forbidden
+                }
                 else -> {
+                    isUnexpectedException = true
                     HttpStatusCode.InternalServerError
                 }
             }
-
-            val callId = getCallId()
-            val consumerClientId = getConsumerClientId()
-            log.error("Caught exception, callId=$callId, consumerClientId=$consumerClientId", cause)
-
-            val message = cause.message ?: "Unknown error"
+            val message = if (isUnexpectedException) {
+                "The server reported an unexpected error and cannot complete the request."
+            } else {
+                cause.message ?: "Unknown error"
+            }
             call.respond(responseStatus, message)
         }
     }
