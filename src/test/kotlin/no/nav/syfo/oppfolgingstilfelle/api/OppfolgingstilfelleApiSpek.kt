@@ -235,7 +235,53 @@ class OppfolgingstilfelleApiSpek : Spek({
                         }
                     }
 
-                    it("should create 2 OppfolgingstilfellePerson and return OppfolgingstilfelleDTO for Person that is Arbeidstaker at the start of, but not at the end of Oppfolgingstilfelle") {
+                    it("Multiple Syketilfellebit, 1 poll: should create 2 OppfolgingstilfellePerson and return OppfolgingstilfelleDTO for Person that is Arbeidstaker at the start of, but not at the end of Oppfolgingstilfelle") {
+                        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+                            mapOf(
+                                syketilfellebitTopicPartition to listOf(
+                                    kafkaSyketilfellebitRecordRelevantVirksomhet,
+                                    kafkaSyketilfellebitRecordRelevantSykmeldingBekreftet,
+                                )
+                            )
+                        )
+
+                        kafkaSyketilfellebitService.pollAndProcessRecords(
+                            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                        )
+
+                        verify(exactly = 1) {
+                            mockKafkaConsumerSyketilfelleBit.commitSync()
+                        }
+                        verify(exactly = 2) {
+                            oppfolgingstilfelleProducer.sendOppfolgingstilfelle(any())
+                        }
+
+                        with(
+                            handleRequest(HttpMethod.Get, url) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(NAV_PERSONIDENT_HEADER, PERSONIDENTNUMBER_DEFAULT.value)
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                            val oppfolgingstilfellePersonDTO: OppfolgingstilfellePersonDTO =
+                                objectMapper.readValue(response.content!!)
+
+                            oppfolgingstilfellePersonDTO.personIdent shouldBeEqualTo kafkaSyketilfellebitRelevantSykmeldingBekreftet.fnr
+
+                            val oppfolgingstilfelleDTO =
+                                oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.first()
+
+                            oppfolgingstilfelleDTO.virksomhetsnummerList.size shouldBeEqualTo 1
+                            oppfolgingstilfelleDTO.virksomhetsnummerList.first() shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.orgnummer
+
+                            oppfolgingstilfelleDTO.arbeidstakerAtTilfelleEnd shouldBeEqualTo false
+                            oppfolgingstilfelleDTO.start shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.fom
+                            oppfolgingstilfelleDTO.end shouldBeEqualTo kafkaSyketilfellebitRelevantSykmeldingBekreftet.tom
+                        }
+                    }
+
+                    it("Multiple polls, 1 Syketilfellebit: should create 2 OppfolgingstilfellePerson and return OppfolgingstilfelleDTO for Person that is Arbeidstaker at the start of, but not at the end of Oppfolgingstilfelle") {
                         every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
                             mapOf(
                                 syketilfellebitTopicPartition to listOf(

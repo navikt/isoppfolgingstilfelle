@@ -166,12 +166,12 @@ fun KafkaSyketilfellebit.toOppfolgingstilfelleBit(): OppfolgingstilfelleBit {
 fun OppfolgingstilfelleBit.isArbeidstakerBit(): Boolean = this.virksomhetsnummer != null
 
 fun OppfolgingstilfelleBit.toOppfolgingstilfellePerson(
-    oppfolgingstilfelleList: List<Oppfolgingstilfelle>,
+    oppfolgingstilfelleBitList: List<OppfolgingstilfelleBit>,
 ) = OppfolgingstilfellePerson(
     uuid = UUID.randomUUID(),
     createdAt = OffsetDateTime.now(),
     personIdentNumber = this.personIdentNumber,
-    oppfolgingstilfelleList = oppfolgingstilfelleList,
+    oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList(),
     referanseTilfelleBitUuid = this.uuid,
     referanseTilfelleBitInntruffet = this.inntruffet,
 )
