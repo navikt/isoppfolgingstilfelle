@@ -34,10 +34,10 @@ spec:
   resources:
     limits:
       cpu: 600m
-      memory: 512Mi
+      memory: 1024i
     requests:
       cpu: 500m
-      memory: 384Mi
+      memory: 768Mi
   ingresses:
     - "https://isoppfolgingstilfelle.intern.nav.no"
   gcp:
