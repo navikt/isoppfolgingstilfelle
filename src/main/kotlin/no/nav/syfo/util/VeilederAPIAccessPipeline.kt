@@ -14,9 +14,9 @@ suspend fun PipelineContext<out Unit, ApplicationCall>.validateVeilederAccess(
     val callId = getCallId()
 
     val token = getBearerHeader()
-        ?: throw IllegalArgumentException("Failed complete the following action: $action. No Authorization header supplied")
+        ?: throw IllegalArgumentException("Failed to complete the following action: $action. No Authorization header supplied")
 
-    val hasVeilederAccess = veilederTilgangskontrollClient.harTilgang(
+    val hasVeilederAccess = veilederTilgangskontrollClient.hasAccess(
         callId = callId,
         personIdent = personIdentToAccess,
         token = token,

@@ -21,7 +21,7 @@ class VeilederTilgangskontrollClient(
     private val httpClient = httpClientDefault()
     private val tilgangskontrollPersonUrl = "$tilgangskontrollBaseUrl$TILGANGSKONTROLL_PERSON_PATH"
 
-    suspend fun harTilgang(
+    suspend fun hasAccess(
         callId: String,
         personIdent: PersonIdentNumber,
         token: String,
