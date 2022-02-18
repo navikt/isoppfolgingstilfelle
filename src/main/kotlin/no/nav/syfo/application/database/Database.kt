@@ -11,7 +11,7 @@ data class DatabaseConfig(
     val jdbcUrl: String,
     val password: String,
     val username: String,
-    val poolSize: Int = 4,
+    val poolSize: Int = 5,
 )
 
 class Database(
