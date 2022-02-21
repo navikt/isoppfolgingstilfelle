@@ -64,7 +64,7 @@ const val queryGetOppfolgingstilfellePerson =
 fun DatabaseInterface.getOppfolgingstilfellePerson(
     personIdent: PersonIdentNumber,
 ): POppfolgingstilfellePerson? {
-    return this.connection.use {
+    return this.connection.use { connection ->
         connection.prepareStatement(queryGetOppfolgingstilfellePerson).use {
             it.setString(1, personIdent.value)
             it.executeQuery().toList { toPOppfolgingstilfellePerson() }
