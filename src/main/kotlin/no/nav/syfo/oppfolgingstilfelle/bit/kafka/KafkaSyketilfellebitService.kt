@@ -5,7 +5,6 @@ import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
 import no.nav.syfo.oppfolgingstilfelle.bit.toOppfolgingstilfelleBit
 import org.apache.kafka.clients.consumer.*
 import org.slf4j.LoggerFactory
-import java.sql.Connection
 import java.time.Duration
 
 class KafkaSyketilfellebitService(
@@ -27,29 +26,26 @@ class KafkaSyketilfellebitService(
     private fun processRecords(
         consumerRecords: ConsumerRecords<String, KafkaSyketilfellebit>,
     ) {
-        database.connection.use { connection ->
-            COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_READ.increment()
+        COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_READ.increment()
 
-            val (tombstoneRecordList, recordsValid) = consumerRecords.partition {
-                it.value() == null
-            }
-            processTombstoneRecordList(
-                tombstoneRecordList = tombstoneRecordList,
-            )
-
-            val (relevantRecordList, notRelevantRecordList) = recordsValid.partition {
-                it.value().isRelevantForOppfolgingstilfelle()
-            }
-
-            processRelevantRecordList(
-                connection = connection,
-                relevantRecordList = relevantRecordList
-            )
-            processNotRelevantRecordList(
-                notRelevantRecordList = notRelevantRecordList,
-            )
-            connection.commit()
+        val (tombstoneRecordList, recordsValid) = consumerRecords.partition {
+            it.value() == null
         }
+        processTombstoneRecordList(
+            tombstoneRecordList = tombstoneRecordList,
+        )
+
+        val (relevantRecordList, notRelevantRecordList) = recordsValid.partition {
+            it.value().isRelevantForOppfolgingstilfelle()
+        }
+
+        processNotRelevantRecordList(
+            notRelevantRecordList = notRelevantRecordList,
+        )
+
+        processRelevantRecordList(
+            relevantRecordList = relevantRecordList
+        )
     }
 
     private fun processTombstoneRecordList(
@@ -62,16 +58,20 @@ class KafkaSyketilfellebitService(
     }
 
     private fun processRelevantRecordList(
-        connection: Connection,
         relevantRecordList: List<ConsumerRecord<String, KafkaSyketilfellebit>>,
     ) {
         val relevantOppfolgingstilfelleBitList = relevantRecordList.map {
             it.value().toOppfolgingstilfelleBit()
         }
-        oppfolgingstilfelleService.createOppfolgingstilfelleBitList(
-            connection = connection,
-            oppfolgingstilfelleBitList = relevantOppfolgingstilfelleBitList,
-        )
+        relevantOppfolgingstilfelleBitList.forEach { oppfolgingstilfelleBit ->
+            database.connection.use { connection ->
+                oppfolgingstilfelleService.createOppfolgingstilfelleBitList(
+                    connection = connection,
+                    oppfolgingstilfelleBitList = listOf(oppfolgingstilfelleBit),
+                )
+                connection.commit()
+            }
+        }
     }
 
     private fun processNotRelevantRecordList(

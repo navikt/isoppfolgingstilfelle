@@ -26,7 +26,6 @@ class Database(
             username = config.username
             password = config.password
             maximumPoolSize = config.poolSize
-            minimumIdle = 1
             isAutoCommit = false
             transactionIsolation = "TRANSACTION_REPEATABLE_READ"
             metricsTrackerFactory = PrometheusMetricsTrackerFactory()
