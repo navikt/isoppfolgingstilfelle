@@ -83,5 +83,5 @@ fun ResultSet.toPOppfolgingstilfellePerson(): POppfolgingstilfellePerson =
         oppfolgingstilfeller = mapper.readValue(
             getString("oppfolgingstilfeller"),
             object : TypeReference<List<Oppfolgingstilfelle>>() {}
-        ),
+        ).sortedByDescending { it.start },
     )
