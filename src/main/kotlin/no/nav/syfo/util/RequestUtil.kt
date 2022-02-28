@@ -8,6 +8,9 @@ const val NAV_CALL_ID_HEADER = "Nav-Call-Id"
 
 const val NAV_PERSONIDENT_HEADER = "nav-personident"
 
+const val ALLE_TEMA_HEADERVERDI = "GEN"
+const val TEMA_HEADER = "Tema"
+
 fun bearerHeader(token: String) = "Bearer $token"
 
 private val kafkaCounter = AtomicInteger(0)

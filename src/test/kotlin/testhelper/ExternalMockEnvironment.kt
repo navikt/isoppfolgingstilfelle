@@ -2,9 +2,7 @@ package testhelper
 
 import no.nav.common.KafkaEnvironment
 import no.nav.syfo.application.ApplicationState
-import testhelper.mock.AzureAdMock
-import testhelper.mock.SyfoTilgangskontrollMock
-import testhelper.mock.wellKnownInternalAzureAD
+import testhelper.mock.*
 
 class ExternalMockEnvironment private constructor() {
     val applicationState: ApplicationState = testAppState()
@@ -12,17 +10,25 @@ class ExternalMockEnvironment private constructor() {
     val embeddedEnvironment: KafkaEnvironment = testKafka()
 
     private val azureAdMock = AzureAdMock()
+    private val pdlMock = PdlMock()
     private val syfoTilgangskontrollMock = SyfoTilgangskontrollMock()
 
     val externalMocks = hashMapOf(
         azureAdMock.name to azureAdMock.server,
+        pdlMock.name to pdlMock.server,
         syfoTilgangskontrollMock.name to syfoTilgangskontrollMock.server
     )
 
     val environment = testEnvironment(
         kafkaBootstrapServers = embeddedEnvironment.brokersURL,
         azureOpenIdTokenEndpoint = azureAdMock.url,
+        pdlUrl = pdlMock.url,
         syfoTilgangskontrollUrl = syfoTilgangskontrollMock.url
+    )
+
+    val redisServer = testRedis(
+        port = environment.redisPort,
+        secret = environment.redisSecret,
     )
 
     val wellKnownInternalAzureAD = wellKnownInternalAzureAD()
@@ -39,4 +45,5 @@ class ExternalMockEnvironment private constructor() {
 fun ExternalMockEnvironment.startExternalMocks() {
     this.embeddedEnvironment.start()
     this.externalMocks.forEach { (_, externalMock) -> externalMock.start() }
+    this.redisServer.start()
 }

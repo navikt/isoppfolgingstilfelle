@@ -6,6 +6,7 @@ import java.net.ServerSocket
 fun testEnvironment(
     azureOpenIdTokenEndpoint: String,
     kafkaBootstrapServers: String,
+    pdlUrl: String,
     syfoTilgangskontrollUrl: String,
 ) = Environment(
     azureAppClientId = "isoppfolgingstilfelle-client-id",
@@ -25,6 +26,10 @@ fun testEnvironment(
         aivenTruststoreLocation = "truststore",
     ),
     kafkaSykeketilfellebitProcessingEnabled = true,
+    pdlClientId = "dev-fss.pdl.pdl-api",
+    pdlUrl = pdlUrl,
+    redisHost = "localhost",
+    redisSecret = "password",
     syfotilgangskontrollClientId = "syfotilgangskontroll-client-id",
     syfotilgangskontrollUrl = syfoTilgangskontrollUrl,
 )

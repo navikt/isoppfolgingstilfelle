@@ -26,10 +26,10 @@ data class Oppfolgingstilfelle(
     val virksomhetsnummerList: List<Virksomhetsnummer>,
 )
 
-fun OppfolgingstilfellePerson?.toOppfolgingstilfellePersonDTO(
+fun List<Oppfolgingstilfelle>?.toOppfolgingstilfellePersonDTO(
     personIdent: PersonIdentNumber,
 ) = OppfolgingstilfellePersonDTO(
-    oppfolgingstilfelleList = this?.oppfolgingstilfelleList?.toOppfolgingstilfelleDTOList() ?: emptyList(),
+    oppfolgingstilfelleList = this?.toOppfolgingstilfelleDTOList() ?: emptyList(),
     personIdent = personIdent.value,
 )
 

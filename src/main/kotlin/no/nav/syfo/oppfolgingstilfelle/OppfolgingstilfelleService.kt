@@ -1,14 +1,12 @@
 package no.nav.syfo.oppfolgingstilfelle
 
 import no.nav.syfo.application.database.DatabaseInterface
-import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingstilfelle.bit.*
 import no.nav.syfo.oppfolgingstilfelle.bit.database.createOppfolgingstilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.bit.database.getOppfolgingstilfelleBitForUUID
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_CREATED
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_DUPLICATE
-import no.nav.syfo.oppfolgingstilfelle.database.*
-import no.nav.syfo.oppfolgingstilfelle.domain.OppfolgingstilfellePerson
+import no.nav.syfo.oppfolgingstilfelle.database.createOppfolgingstilfellePerson
 import no.nav.syfo.oppfolgingstilfelle.kafka.OppfolgingstilfelleProducer
 import no.nav.syfo.util.kafkaCallId
 import org.slf4j.LoggerFactory
@@ -19,15 +17,6 @@ class OppfolgingstilfelleService(
     val oppfolgingstilfelleBitService: OppfolgingstilfelleBitService,
     val oppfolgingstilfelleProducer: OppfolgingstilfelleProducer,
 ) {
-    fun oppfolgingstilfellePerson(
-        personIdent: PersonIdentNumber,
-    ): OppfolgingstilfellePerson? {
-        val oppfolgingstilfellePerson = database.getOppfolgingstilfellePerson(
-            personIdent = personIdent,
-        )
-        return oppfolgingstilfellePerson?.toOppfolgingstilfellePerson()
-    }
-
     fun createOppfolgingstilfelleBitList(
         connection: Connection,
         oppfolgingstilfelleBitList: List<OppfolgingstilfelleBit>

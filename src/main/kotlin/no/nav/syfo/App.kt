@@ -66,7 +66,6 @@ fun main() {
                 applicationState = applicationState,
                 database = applicationDatabase,
                 environment = environment,
-                oppfolgingstilfelleService = oppfolgingstilfelleService,
                 wellKnownInternalAzureAD = wellKnownInternalAzureAD,
             )
         }
