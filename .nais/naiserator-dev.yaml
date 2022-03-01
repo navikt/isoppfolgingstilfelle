@@ -77,6 +77,8 @@ spec:
       value: "dev-fss.pdl.pdl-api"
     - name: PDL_URL
       value: "https://pdl-api.dev-fss-pub.nais.io/graphql"
+    - name: REDIS_HOST
+      value: "isoppfolgingstilfelle-redis.teamsykefravr.svc.cluster.local"
     - name: SYFOTILGANGSKONTROLL_CLIENT_ID
       value: "dev-fss.teamsykefravr.syfo-tilgangskontroll"
     - name: SYFOTILGANGSKONTROLL_URL
