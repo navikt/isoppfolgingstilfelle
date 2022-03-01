@@ -2,7 +2,7 @@ package testhelper.generator
 
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.domain.Virksomhetsnummer
-import no.nav.syfo.oppfolgingstilfelle.bit.Tag
+import no.nav.syfo.oppfolgingstilfelle.bit.domain.Tag
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.KafkaSyketilfellebit
 import testhelper.UserConstants
 import java.time.LocalDate

@@ -1,8 +1,8 @@
-package no.nav.syfo.oppfolgingstilfelle.database
+package no.nav.syfo.oppfolgingstilfelle.person.database
 
 import no.nav.syfo.domain.PersonIdentNumber
-import no.nav.syfo.oppfolgingstilfelle.domain.Oppfolgingstilfelle
-import no.nav.syfo.oppfolgingstilfelle.domain.OppfolgingstilfellePerson
+import no.nav.syfo.oppfolgingstilfelle.person.domain.Oppfolgingstilfelle
+import no.nav.syfo.oppfolgingstilfelle.person.domain.OppfolgingstilfellePerson
 import java.time.OffsetDateTime
 import java.util.*
 

@@ -1,6 +1,6 @@
 package no.nav.syfo.oppfolgingstilfelle.bit.kafka
 
-import no.nav.syfo.oppfolgingstilfelle.bit.Tag
+import no.nav.syfo.oppfolgingstilfelle.bit.domain.Tag
 import java.time.LocalDate
 import java.time.OffsetDateTime
 

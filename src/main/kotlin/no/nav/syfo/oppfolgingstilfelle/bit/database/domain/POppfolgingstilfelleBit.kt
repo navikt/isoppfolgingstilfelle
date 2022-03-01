@@ -1,8 +1,8 @@
 package no.nav.syfo.oppfolgingstilfelle.bit.database.domain
 
 import no.nav.syfo.domain.PersonIdentNumber
-import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBit
-import no.nav.syfo.oppfolgingstilfelle.bit.Tag
+import no.nav.syfo.oppfolgingstilfelle.bit.domain.OppfolgingstilfelleBit
+import no.nav.syfo.oppfolgingstilfelle.bit.domain.Tag
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.*
@@ -19,6 +19,7 @@ data class POppfolgingstilfelleBit(
     val fom: LocalDate,
     val tom: LocalDate,
 )
+
 fun List<POppfolgingstilfelleBit>.toOppfolgingstilfelleBitList() = this.map { it.toOppfolgingstilfelleBit() }
 
 fun POppfolgingstilfelleBit.toOppfolgingstilfelleBit() = OppfolgingstilfelleBit(

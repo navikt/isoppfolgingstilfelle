@@ -1,9 +1,9 @@
-package no.nav.syfo.oppfolgingstilfelle.bit
+package no.nav.syfo.oppfolgingstilfelle.bit.domain
 
 import no.nav.syfo.domain.PersonIdentNumber
-import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBit.Companion.TAG_PRIORITY
+import no.nav.syfo.oppfolgingstilfelle.bit.domain.OppfolgingstilfelleBit.Companion.TAG_PRIORITY
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.KafkaSyketilfellebit
-import no.nav.syfo.oppfolgingstilfelle.domain.*
+import no.nav.syfo.oppfolgingstilfelle.person.domain.*
 import no.nav.syfo.util.*
 import java.time.*
 import java.time.temporal.ChronoUnit

@@ -1,4 +1,4 @@
-package no.nav.syfo.oppfolgingstilfelle.kafka
+package no.nav.syfo.oppfolgingstilfelle.person.kafka
 
 import no.nav.syfo.util.configuredJacksonMapper
 import org.apache.kafka.common.serialization.Serializer

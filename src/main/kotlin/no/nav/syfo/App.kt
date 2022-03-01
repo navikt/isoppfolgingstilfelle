@@ -11,12 +11,12 @@ import no.nav.syfo.application.api.apiModule
 import no.nav.syfo.application.database.applicationDatabase
 import no.nav.syfo.application.database.databaseModule
 import no.nav.syfo.client.wellknown.getWellKnown
-import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
 import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
+import no.nav.syfo.oppfolgingstilfelle.person.OppfolgingstilfellePersonService
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.KafkaSyketilfellebitService
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.launchKafkaTaskSyketilfelleBit
-import no.nav.syfo.oppfolgingstilfelle.kafka.OppfolgingstilfelleProducer
-import no.nav.syfo.oppfolgingstilfelle.kafka.kafkaOppfolgingstilfelleProducerConfig
+import no.nav.syfo.oppfolgingstilfelle.person.kafka.OppfolgingstilfellePersonProducer
+import no.nav.syfo.oppfolgingstilfelle.person.kafka.kafkaOppfolgingstilfelleProducerConfig
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
@@ -30,7 +30,7 @@ fun main() {
         wellKnownUrl = environment.azureAppWellKnownUrl,
     )
 
-    val oppfolgingstilfelleProducer = OppfolgingstilfelleProducer(
+    val oppfolgingstilfellePersonProducer = OppfolgingstilfellePersonProducer(
         kafkaProducerOppfolgingstilfelle = KafkaProducer(
             kafkaOppfolgingstilfelleProducerConfig(
                 kafkaEnvironment = environment.kafka
@@ -38,7 +38,7 @@ fun main() {
         )
     )
 
-    lateinit var oppfolgingstilfelleService: OppfolgingstilfelleService
+    lateinit var oppfolgingstilfelleBitService: OppfolgingstilfelleBitService
 
     val applicationEngineEnvironment = applicationEngineEnvironment {
         log = LoggerFactory.getLogger("ktor.application")
@@ -54,13 +54,13 @@ fun main() {
             databaseModule(
                 environment = environment,
             )
-            val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(
+            val oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
                 database = applicationDatabase,
+                oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
             )
-            oppfolgingstilfelleService = OppfolgingstilfelleService(
+            oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(
                 database = applicationDatabase,
-                oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
-                oppfolgingstilfelleProducer = oppfolgingstilfelleProducer,
+                oppfolgingstilfellePersonService = oppfolgingstilfellePersonService,
             )
             apiModule(
                 applicationState = applicationState,
@@ -76,7 +76,7 @@ fun main() {
         application.environment.log.info("Application is ready")
         val kafkaSyketilfellebitService = KafkaSyketilfellebitService(
             database = applicationDatabase,
-            oppfolgingstilfelleService = oppfolgingstilfelleService,
+            oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
         )
 
         if (environment.kafkaSykeketilfellebitProcessingEnabled) {

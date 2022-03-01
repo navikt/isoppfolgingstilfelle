@@ -1,8 +1,8 @@
 package no.nav.syfo.oppfolgingstilfelle.bit.kafka
 
 import no.nav.syfo.application.database.DatabaseInterface
-import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
-import no.nav.syfo.oppfolgingstilfelle.bit.toOppfolgingstilfelleBit
+import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
+import no.nav.syfo.oppfolgingstilfelle.bit.domain.toOppfolgingstilfelleBit
 import org.apache.kafka.clients.consumer.*
 import org.slf4j.LoggerFactory
 import java.sql.Connection
@@ -10,7 +10,7 @@ import java.time.Duration
 
 class KafkaSyketilfellebitService(
     val database: DatabaseInterface,
-    val oppfolgingstilfelleService: OppfolgingstilfelleService,
+    val oppfolgingstilfelleBitService: OppfolgingstilfelleBitService,
 ) {
     fun pollAndProcessRecords(
         kafkaConsumerSyketilfelleBit: KafkaConsumer<String, KafkaSyketilfellebit>,
@@ -68,7 +68,7 @@ class KafkaSyketilfellebitService(
         val relevantOppfolgingstilfelleBitList = relevantRecordList.map {
             it.value().toOppfolgingstilfelleBit()
         }
-        oppfolgingstilfelleService.createOppfolgingstilfelleBitList(
+        oppfolgingstilfelleBitService.createOppfolgingstilfelleBitList(
             connection = connection,
             oppfolgingstilfelleBitList = relevantOppfolgingstilfelleBitList,
         )

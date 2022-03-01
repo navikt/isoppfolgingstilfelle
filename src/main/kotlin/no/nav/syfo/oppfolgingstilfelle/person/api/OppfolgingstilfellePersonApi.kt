@@ -1,19 +1,19 @@
-package no.nav.syfo.oppfolgingstilfelle.api
+package no.nav.syfo.oppfolgingstilfelle.person.api
 
 import io.ktor.application.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.domain.PersonIdentNumber
-import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfellePersonService
-import no.nav.syfo.oppfolgingstilfelle.domain.toOppfolgingstilfellePersonDTO
+import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
+import no.nav.syfo.oppfolgingstilfelle.person.domain.toOppfolgingstilfellePersonDTO
 import no.nav.syfo.util.*
 
 const val oppfolgingstilfelleApiV1Path = "/api/internad/v1/oppfolgingstilfelle"
 const val oppfolgingstilfelleApiPersonIdentPath = "/personident"
 
 fun Route.registerOppfolgingstilfelleApi(
-    oppfolgingstilfellePersonService: OppfolgingstilfellePersonService,
+    oppfolgingstilfelleService: OppfolgingstilfelleService,
     veilederTilgangskontrollClient: VeilederTilgangskontrollClient,
 ) {
     route(oppfolgingstilfelleApiV1Path) {
@@ -28,7 +28,7 @@ fun Route.registerOppfolgingstilfelleApi(
                 personIdentToAccess = personIdent,
                 veilederTilgangskontrollClient = veilederTilgangskontrollClient,
             ) {
-                val oppfolgingstilfellePersonDTO = oppfolgingstilfellePersonService.oppfolgingstilfelleList(
+                val oppfolgingstilfellePersonDTO = oppfolgingstilfelleService.oppfolgingstilfelleList(
                     callId = getCallId(),
                     personIdent = personIdent,
                 ).toOppfolgingstilfellePersonDTO(

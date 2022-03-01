@@ -13,8 +13,8 @@ import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.pdl.PdlClient
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.client.wellknown.WellKnown
-import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfellePersonService
-import no.nav.syfo.oppfolgingstilfelle.api.registerOppfolgingstilfelleApi
+import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
+import no.nav.syfo.oppfolgingstilfelle.person.api.registerOppfolgingstilfelleApi
 import redis.clients.jedis.*
 
 fun Application.apiModule(
@@ -59,7 +59,7 @@ fun Application.apiModule(
         pdlClientId = environment.pdlClientId,
         redisStore = redisStore,
     )
-    val oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
+    val oppfolgingstilfelleService = OppfolgingstilfelleService(
         database = database,
         pdlClient = pdlClient,
     )
@@ -77,7 +77,7 @@ fun Application.apiModule(
         registerMetricApi()
         authenticate(JwtIssuerType.INTERNAL_AZUREAD.name) {
             registerOppfolgingstilfelleApi(
-                oppfolgingstilfellePersonService = oppfolgingstilfellePersonService,
+                oppfolgingstilfelleService = oppfolgingstilfelleService,
                 veilederTilgangskontrollClient = veilederTilgangskontrollClient,
             )
         }

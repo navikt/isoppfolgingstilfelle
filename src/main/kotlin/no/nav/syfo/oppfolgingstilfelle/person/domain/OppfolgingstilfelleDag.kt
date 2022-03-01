@@ -1,7 +1,7 @@
-package no.nav.syfo.oppfolgingstilfelle.domain
+package no.nav.syfo.oppfolgingstilfelle.person.domain
 
 import no.nav.syfo.domain.Virksomhetsnummer
-import no.nav.syfo.oppfolgingstilfelle.bit.*
+import no.nav.syfo.oppfolgingstilfelle.bit.domain.*
 import no.nav.syfo.util.and
 import no.nav.syfo.util.or
 import java.time.LocalDate

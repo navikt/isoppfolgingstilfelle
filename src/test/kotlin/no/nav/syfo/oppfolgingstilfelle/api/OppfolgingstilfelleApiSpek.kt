@@ -5,11 +5,15 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.mockk.*
-import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
-import no.nav.syfo.oppfolgingstilfelle.api.domain.OppfolgingstilfellePersonDTO
-import no.nav.syfo.oppfolgingstilfelle.bit.*
+import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
+import no.nav.syfo.oppfolgingstilfelle.bit.domain.OppfolgingstilfelleBit
+import no.nav.syfo.oppfolgingstilfelle.bit.domain.Tag
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.*
-import no.nav.syfo.oppfolgingstilfelle.kafka.OppfolgingstilfelleProducer
+import no.nav.syfo.oppfolgingstilfelle.person.OppfolgingstilfellePersonService
+import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfellePersonDTO
+import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleApiPersonIdentPath
+import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleApiV1Path
+import no.nav.syfo.oppfolgingstilfelle.person.kafka.OppfolgingstilfellePersonProducer
 import no.nav.syfo.util.*
 import org.amshove.kluent.shouldBeEqualTo
 import org.apache.kafka.clients.consumer.*
@@ -34,14 +38,14 @@ class OppfolgingstilfelleApiSpek : Spek({
         val externalMockEnvironment = ExternalMockEnvironment.instance
         val database = externalMockEnvironment.database
 
+        val oppfolgingstilfellePersonProducer = mockk<OppfolgingstilfellePersonProducer>()
+        val oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
+            database = database,
+            oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
+        )
         val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(
             database = database,
-        )
-        val oppfolgingstilfelleProducer = mockk<OppfolgingstilfelleProducer>()
-        val oppfolgingstilfelleService = OppfolgingstilfelleService(
-            database = database,
-            oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
-            oppfolgingstilfelleProducer = oppfolgingstilfelleProducer,
+            oppfolgingstilfellePersonService = oppfolgingstilfellePersonService,
         )
 
         application.testApiModule(
@@ -50,7 +54,7 @@ class OppfolgingstilfelleApiSpek : Spek({
 
         val kafkaSyketilfellebitService = KafkaSyketilfellebitService(
             database = database,
-            oppfolgingstilfelleService = oppfolgingstilfelleService,
+            oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
         )
         val personIdentDefault = PERSONIDENTNUMBER_DEFAULT.toHistoricalPersonIdentNumber()
 
@@ -134,8 +138,8 @@ class OppfolgingstilfelleApiSpek : Spek({
             clearMocks(mockKafkaConsumerSyketilfelleBit)
             every { mockKafkaConsumerSyketilfelleBit.commitSync() } returns Unit
 
-            clearMocks(oppfolgingstilfelleProducer)
-            justRun { oppfolgingstilfelleProducer.sendOppfolgingstilfelle(any()) }
+            clearMocks(oppfolgingstilfellePersonProducer)
+            justRun { oppfolgingstilfellePersonProducer.sendOppfolgingstilfellePerson(any()) }
         }
 
         describe(OppfolgingstilfelleApiSpek::class.java.simpleName) {
@@ -164,7 +168,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                             mockKafkaConsumerSyketilfelleBit.commitSync()
                         }
                         verify(exactly = 1) {
-                            oppfolgingstilfelleProducer.sendOppfolgingstilfelle(any())
+                            oppfolgingstilfellePersonProducer.sendOppfolgingstilfellePerson(any())
                         }
 
                         with(
@@ -209,7 +213,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                             mockKafkaConsumerSyketilfelleBit.commitSync()
                         }
                         verify(exactly = 1) {
-                            oppfolgingstilfelleProducer.sendOppfolgingstilfelle(any())
+                            oppfolgingstilfellePersonProducer.sendOppfolgingstilfellePerson(any())
                         }
                         val requestPersonIdent = PERSONIDENTNUMBER_DEFAULT.value
 
@@ -258,7 +262,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                             mockKafkaConsumerSyketilfelleBit.commitSync()
                         }
                         verify(exactly = 1) {
-                            oppfolgingstilfelleProducer.sendOppfolgingstilfelle(any())
+                            oppfolgingstilfellePersonProducer.sendOppfolgingstilfellePerson(any())
                         }
 
                         with(
@@ -303,7 +307,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                             mockKafkaConsumerSyketilfelleBit.commitSync()
                         }
                         verify(exactly = 2) {
-                            oppfolgingstilfelleProducer.sendOppfolgingstilfelle(any())
+                            oppfolgingstilfellePersonProducer.sendOppfolgingstilfellePerson(any())
                         }
 
                         with(
@@ -358,7 +362,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                             mockKafkaConsumerSyketilfelleBit.commitSync()
                         }
                         verify(exactly = 2) {
-                            oppfolgingstilfelleProducer.sendOppfolgingstilfelle(any())
+                            oppfolgingstilfellePersonProducer.sendOppfolgingstilfellePerson(any())
                         }
 
                         with(
@@ -404,7 +408,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                             mockKafkaConsumerSyketilfelleBit.commitSync()
                         }
                         verify(exactly = 0) {
-                            oppfolgingstilfelleProducer.sendOppfolgingstilfelle(any())
+                            oppfolgingstilfellePersonProducer.sendOppfolgingstilfellePerson(any())
                         }
 
                         with(
@@ -441,7 +445,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                             mockKafkaConsumerSyketilfelleBit.commitSync()
                         }
                         verify(exactly = 1) {
-                            oppfolgingstilfelleProducer.sendOppfolgingstilfelle(any())
+                            oppfolgingstilfellePersonProducer.sendOppfolgingstilfellePerson(any())
                         }
                     }
                 }

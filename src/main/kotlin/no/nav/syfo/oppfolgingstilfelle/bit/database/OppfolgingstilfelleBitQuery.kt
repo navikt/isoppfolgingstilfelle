@@ -6,6 +6,7 @@ import no.nav.syfo.database.NoElementInsertedException
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingstilfelle.bit.*
 import no.nav.syfo.oppfolgingstilfelle.bit.database.domain.POppfolgingstilfelleBit
+import no.nav.syfo.oppfolgingstilfelle.bit.domain.*
 import no.nav.syfo.util.toOffsetDateTimeUTC
 import java.sql.*
 import java.sql.Date

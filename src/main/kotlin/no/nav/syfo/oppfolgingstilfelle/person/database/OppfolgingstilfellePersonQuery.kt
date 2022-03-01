@@ -1,12 +1,12 @@
-package no.nav.syfo.oppfolgingstilfelle.database
+package no.nav.syfo.oppfolgingstilfelle.person.database
 
 import com.fasterxml.jackson.core.type.TypeReference
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.database.toList
 import no.nav.syfo.database.NoElementInsertedException
 import no.nav.syfo.domain.PersonIdentNumber
-import no.nav.syfo.oppfolgingstilfelle.domain.Oppfolgingstilfelle
-import no.nav.syfo.oppfolgingstilfelle.domain.OppfolgingstilfellePerson
+import no.nav.syfo.oppfolgingstilfelle.person.domain.Oppfolgingstilfelle
+import no.nav.syfo.oppfolgingstilfelle.person.domain.OppfolgingstilfellePerson
 import no.nav.syfo.util.configuredJacksonMapper
 import no.nav.syfo.util.toOffsetDateTimeUTC
 import java.sql.*
