@@ -64,6 +64,8 @@ spec:
       claims:
         extra:
           - "NAVident"
+  envFrom:
+    - secret: isoppfolgingstilfelle-redis-password
   kafka:
     pool: nav-dev
   env:
@@ -71,6 +73,10 @@ spec:
       value: "production"
     - name: TOGGLE_KAFKA_SYKETILFELLEBIT_PROCESSING_ENABLED
       value: "true"
+    - name: PDL_CLIENT_ID
+      value: "dev-fss.pdl.pdl-api"
+    - name: PDL_URL
+      value: "https://pdl-api.dev-fss-pub.nais.io/graphql"
     - name: SYFOTILGANGSKONTROLL_CLIENT_ID
       value: "dev-fss.teamsykefravr.syfo-tilgangskontroll"
     - name: SYFOTILGANGSKONTROLL_URL

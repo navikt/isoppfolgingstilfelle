@@ -21,6 +21,7 @@ import testhelper.UserConstants.PERSONIDENTNUMBER_DEFAULT
 import testhelper.UserConstants.PERSONIDENTNUMBER_VEILEDER_NO_ACCESS
 import testhelper.UserConstants.VIRKSOMHETSNUMMER_DEFAULT
 import testhelper.generator.*
+import testhelper.mock.toHistoricalPersonIdentNumber
 import java.time.*
 import java.util.*
 
@@ -45,17 +46,17 @@ class OppfolgingstilfelleApiSpek : Spek({
 
         application.testApiModule(
             externalMockEnvironment = externalMockEnvironment,
-            oppfolgingstilfelleService = oppfolgingstilfelleService,
         )
 
         val kafkaSyketilfellebitService = KafkaSyketilfellebitService(
             database = database,
             oppfolgingstilfelleService = oppfolgingstilfelleService,
         )
+        val personIdentDefault = PERSONIDENTNUMBER_DEFAULT.toHistoricalPersonIdentNumber()
 
         val oppfolgingstilfelleBit = OppfolgingstilfelleBit(
             uuid = UUID.randomUUID(),
-            personIdentNumber = PERSONIDENTNUMBER_DEFAULT,
+            personIdentNumber = personIdentDefault,
             virksomhetsnummer = VIRKSOMHETSNUMMER_DEFAULT.value,
             createdAt = OffsetDateTime.now(),
             inntruffet = OffsetDateTime.now().minusDays(1),
@@ -75,7 +76,7 @@ class OppfolgingstilfelleApiSpek : Spek({
         )
 
         val kafkaSyketilfellebitRelevantVirksomhet = generateKafkaSyketilfellebitRelevantVirksomhet(
-            personIdent = PERSONIDENTNUMBER_DEFAULT,
+            personIdent = personIdentDefault,
         )
         val kafkaSyketilfellebitRecordRelevantVirksomhet = ConsumerRecord(
             SYKETILFELLEBIT_TOPIC,
@@ -93,7 +94,7 @@ class OppfolgingstilfelleApiSpek : Spek({
         )
         val kafkaSyketilfellebitRelevantSykmeldingBekreftet =
             generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
-                personIdentNumber = PERSONIDENTNUMBER_DEFAULT,
+                personIdentNumber = personIdentDefault,
                 fom = kafkaSyketilfellebitRelevantVirksomhet.tom.plusDays(1),
                 tom = kafkaSyketilfellebitRelevantVirksomhet.tom.plusDays(2),
             )
@@ -105,7 +106,7 @@ class OppfolgingstilfelleApiSpek : Spek({
             kafkaSyketilfellebitRelevantSykmeldingBekreftet,
         )
         val kafkaSyketilfellebitNotRelevant1 = generateKafkaSyketilfellebitNotRelevantNoVirksomhet(
-            personIdentNumber = PERSONIDENTNUMBER_DEFAULT,
+            personIdentNumber = personIdentDefault,
         )
         val kafkaSyketilfellebitRecordNotRelevant1 = ConsumerRecord(
             SYKETILFELLEBIT_TOPIC,
@@ -115,7 +116,7 @@ class OppfolgingstilfelleApiSpek : Spek({
             kafkaSyketilfellebitNotRelevant1,
         )
         val kafkaSyketilfellebitNotRelevant2 = generateKafkaSyketilfellebitNotRelevantSykmeldingNy(
-            personIdentNumber = PERSONIDENTNUMBER_DEFAULT,
+            personIdentNumber = personIdentDefault,
         )
         val kafkaSyketilfellebitRecordNotRelevant2 = ConsumerRecord(
             SYKETILFELLEBIT_TOPIC,
@@ -169,7 +170,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                         with(
                             handleRequest(HttpMethod.Get, url) {
                                 addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
-                                addHeader(NAV_PERSONIDENT_HEADER, PERSONIDENTNUMBER_DEFAULT.value)
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
                             }
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.OK
@@ -178,6 +179,55 @@ class OppfolgingstilfelleApiSpek : Spek({
                                 objectMapper.readValue(response.content!!)
 
                             oppfolgingstilfellePersonDTO.personIdent shouldBeEqualTo oppfolgingstilfelleBit.personIdentNumber.value
+
+                            val oppfolgingstilfelleDTO =
+                                oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.first()
+
+                            oppfolgingstilfelleDTO.virksomhetsnummerList.size shouldBeEqualTo 1
+                            oppfolgingstilfelleDTO.virksomhetsnummerList.first() shouldBeEqualTo oppfolgingstilfelleBit.virksomhetsnummer
+
+                            oppfolgingstilfelleDTO.arbeidstakerAtTilfelleEnd shouldBeEqualTo true
+                            oppfolgingstilfelleDTO.start shouldBeEqualTo oppfolgingstilfelleBit.fom
+                            oppfolgingstilfelleDTO.end shouldBeEqualTo oppfolgingstilfelleBit.tom
+                        }
+                    }
+
+                    it("should create OppfolgingstilfellePerson and return OppfolgingstilfelleDTO for Person with mutiple historical PersonIdent") {
+                        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+                            mapOf(
+                                syketilfellebitTopicPartition to listOf(
+                                    kafkaSyketilfellebitRecordRelevantVirksomhet,
+                                )
+                            )
+                        )
+
+                        kafkaSyketilfellebitService.pollAndProcessRecords(
+                            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                        )
+
+                        verify(exactly = 1) {
+                            mockKafkaConsumerSyketilfelleBit.commitSync()
+                        }
+                        verify(exactly = 1) {
+                            oppfolgingstilfelleProducer.sendOppfolgingstilfelle(any())
+                        }
+                        val requestPersonIdent = PERSONIDENTNUMBER_DEFAULT.value
+
+                        with(
+                            handleRequest(HttpMethod.Get, url) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(
+                                    NAV_PERSONIDENT_HEADER,
+                                    requestPersonIdent
+                                )
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                            val oppfolgingstilfellePersonDTO: OppfolgingstilfellePersonDTO =
+                                objectMapper.readValue(response.content!!)
+
+                            oppfolgingstilfellePersonDTO.personIdent shouldBeEqualTo requestPersonIdent
 
                             val oppfolgingstilfelleDTO =
                                 oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.first()
@@ -214,7 +264,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                         with(
                             handleRequest(HttpMethod.Get, url) {
                                 addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
-                                addHeader(NAV_PERSONIDENT_HEADER, PERSONIDENTNUMBER_DEFAULT.value)
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
                             }
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.OK
@@ -259,7 +309,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                         with(
                             handleRequest(HttpMethod.Get, url) {
                                 addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
-                                addHeader(NAV_PERSONIDENT_HEADER, PERSONIDENTNUMBER_DEFAULT.value)
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
                             }
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.OK
@@ -314,7 +364,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                         with(
                             handleRequest(HttpMethod.Get, url) {
                                 addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
-                                addHeader(NAV_PERSONIDENT_HEADER, PERSONIDENTNUMBER_DEFAULT.value)
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
                             }
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.OK
@@ -360,7 +410,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                         with(
                             handleRequest(HttpMethod.Get, url) {
                                 addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
-                                addHeader(NAV_PERSONIDENT_HEADER, PERSONIDENTNUMBER_DEFAULT.value)
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
                             }
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.OK
@@ -419,7 +469,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                         with(
                             handleRequest(HttpMethod.Get, url) {
                                 addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
-                                addHeader(NAV_PERSONIDENT_HEADER, PERSONIDENTNUMBER_DEFAULT.value.drop(1))
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdentDefault.value.drop(1))
                             }
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.BadRequest

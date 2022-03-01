@@ -9,9 +9,7 @@ import no.nav.syfo.oppfolgingstilfelle.domain.Oppfolgingstilfelle
 import no.nav.syfo.oppfolgingstilfelle.domain.OppfolgingstilfellePerson
 import no.nav.syfo.util.configuredJacksonMapper
 import no.nav.syfo.util.toOffsetDateTimeUTC
-import java.sql.Connection
-import java.sql.ResultSet
-import java.sql.Timestamp
+import java.sql.*
 import java.util.*
 
 private val mapper = configuredJacksonMapper()
@@ -83,5 +81,5 @@ fun ResultSet.toPOppfolgingstilfellePerson(): POppfolgingstilfellePerson =
         oppfolgingstilfeller = mapper.readValue(
             getString("oppfolgingstilfeller"),
             object : TypeReference<List<Oppfolgingstilfelle>>() {}
-        ).sortedByDescending { it.start },
+        ),
     )

@@ -1,0 +1,33 @@
+apiVersion: "nais.io/v1alpha1"
+kind: "Application"
+metadata:
+  labels:
+    team: teamsykefravr
+  annotations:
+    "nais.io/run-as-group": "0"
+    "nais.io/read-only-file-system": "false"
+  namespace: teamsykefravr
+  name: isoppfolgingstilfelle-redis
+spec:
+  image: bitnami/redis:6.0.12
+  port: 6379
+  replicas:
+    min: 1
+    max: 1
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  service:
+    port: 6379
+    protocol: redis
+  accessPolicy:
+    inbound:
+      rules:
+        - application: isoppfolgingstilfelle
+        - application: isoppfolgingstilfelle-redisexporter
+  envFrom:
+    - secret: isoppfolgingstilfelle-redis-password
