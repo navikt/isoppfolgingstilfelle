@@ -57,6 +57,7 @@ spec:
           cluster: dev-fss
     outbound:
       external:
+        - host: "pdl-api.dev-fss-pub.nais.io"
         - host: "syfo-tilgangskontroll.dev-fss-pub.nais.io"
   azure:
     application:
