@@ -62,8 +62,8 @@ class OppfolgingstilfelleApiSpek : Spek({
             uuid = UUID.randomUUID(),
             personIdentNumber = personIdentDefault,
             virksomhetsnummer = VIRKSOMHETSNUMMER_DEFAULT.value,
-            createdAt = OffsetDateTime.now(),
-            inntruffet = OffsetDateTime.now().minusDays(1),
+            createdAt = OffsetDateTime.now(defaultZoneOffset),
+            inntruffet = OffsetDateTime.now(defaultZoneOffset).minusDays(1),
             fom = LocalDate.now().minusDays(1),
             tom = LocalDate.now().plusDays(1),
             tagList = listOf(

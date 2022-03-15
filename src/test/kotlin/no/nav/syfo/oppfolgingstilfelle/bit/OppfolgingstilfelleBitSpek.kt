@@ -28,15 +28,15 @@ class OppfolgingstilfelleBitSpek : Spek({
         it("should return 1 Oppfolgingstilfelle if person only has days with Sykedag") {
             val oppfolgingstilfelleBitList = listOf(
                 defaultBit.copy(
-                    createdAt = OffsetDateTime.now(),
-                    inntruffet = OffsetDateTime.now(),
+                    createdAt = OffsetDateTime.now(defaultZoneOffset),
+                    inntruffet = OffsetDateTime.now(defaultZoneOffset),
                     tagList = listOf(SYKEPENGESOKNAD, SENDT),
                     fom = LocalDate.now().minusDays(16),
                     tom = LocalDate.now().minusDays(16),
                 ),
                 defaultBit.copy(
-                    createdAt = OffsetDateTime.now(),
-                    inntruffet = OffsetDateTime.now(),
+                    createdAt = OffsetDateTime.now(defaultZoneOffset),
+                    inntruffet = OffsetDateTime.now(defaultZoneOffset),
                     tagList = listOf(SYKEPENGESOKNAD, SENDT),
                     fom = LocalDate.now(),
                     tom = LocalDate.now(),
@@ -56,29 +56,29 @@ class OppfolgingstilfelleBitSpek : Spek({
         it("should return 1 Oppfolgingstilfelle, if person only has Ferie/Permisjon between 2 Sykedag") {
             val oppfolgingstilfelleBitList = listOf(
                 defaultBit.copy(
-                    createdAt = OffsetDateTime.now(),
-                    inntruffet = OffsetDateTime.now(),
+                    createdAt = OffsetDateTime.now(defaultZoneOffset),
+                    inntruffet = OffsetDateTime.now(defaultZoneOffset),
                     tagList = listOf(SYKEPENGESOKNAD, SENDT),
                     fom = LocalDate.now().minusDays(20),
                     tom = LocalDate.now().minusDays(20),
                 ),
                 defaultBit.copy(
-                    createdAt = OffsetDateTime.now(),
-                    inntruffet = OffsetDateTime.now(),
+                    createdAt = OffsetDateTime.now(defaultZoneOffset),
+                    inntruffet = OffsetDateTime.now(defaultZoneOffset),
                     tagList = listOf(SYKEPENGESOKNAD, SENDT, FERIE),
                     fom = LocalDate.now().minusDays(19),
                     tom = LocalDate.now().minusDays(10),
                 ),
                 defaultBit.copy(
-                    createdAt = OffsetDateTime.now(),
-                    inntruffet = OffsetDateTime.now(),
+                    createdAt = OffsetDateTime.now(defaultZoneOffset),
+                    inntruffet = OffsetDateTime.now(defaultZoneOffset),
                     tagList = listOf(SYKEPENGESOKNAD, SENDT, PERMISJON),
                     fom = LocalDate.now().minusDays(9),
                     tom = LocalDate.now().minusDays(1),
                 ),
                 defaultBit.copy(
-                    createdAt = OffsetDateTime.now(),
-                    inntruffet = OffsetDateTime.now(),
+                    createdAt = OffsetDateTime.now(defaultZoneOffset),
+                    inntruffet = OffsetDateTime.now(defaultZoneOffset),
                     tagList = listOf(SYKEPENGESOKNAD, SENDT),
                     fom = LocalDate.now(),
                     tom = LocalDate.now(),
@@ -98,22 +98,22 @@ class OppfolgingstilfelleBitSpek : Spek({
         it("should return 1 Oppfolgingstilfelle, if person has less than 16 Arbeidsdag between sickness") {
             val oppfolgingstilfelleBitList = listOf(
                 defaultBit.copy(
-                    createdAt = OffsetDateTime.now(),
-                    inntruffet = OffsetDateTime.now(),
+                    createdAt = OffsetDateTime.now(defaultZoneOffset),
+                    inntruffet = OffsetDateTime.now(defaultZoneOffset),
                     tagList = listOf(SYKEPENGESOKNAD, SENDT),
                     fom = LocalDate.now().minusDays(16),
                     tom = LocalDate.now().minusDays(16),
                 ),
                 defaultBit.copy(
-                    createdAt = OffsetDateTime.now(),
-                    inntruffet = OffsetDateTime.now(),
+                    createdAt = OffsetDateTime.now(defaultZoneOffset),
+                    inntruffet = OffsetDateTime.now(defaultZoneOffset),
                     tagList = listOf(SYKEPENGESOKNAD, SENDT, ARBEID_GJENNOPPTATT),
                     fom = LocalDate.now().minusDays(15),
                     tom = LocalDate.now().minusDays(1),
                 ),
                 defaultBit.copy(
-                    createdAt = OffsetDateTime.now(),
-                    inntruffet = OffsetDateTime.now(),
+                    createdAt = OffsetDateTime.now(defaultZoneOffset),
+                    inntruffet = OffsetDateTime.now(defaultZoneOffset),
                     tagList = listOf(SYKEPENGESOKNAD, SENDT),
                     fom = LocalDate.now(),
                     tom = LocalDate.now(),
@@ -133,15 +133,15 @@ class OppfolgingstilfelleBitSpek : Spek({
         it("should return 2 Oppfolgingstilfelle, if person is not sick for at least 16 days") {
             val oppfolgingstilfelleBitList = listOf(
                 defaultBit.copy(
-                    createdAt = OffsetDateTime.now(),
-                    inntruffet = OffsetDateTime.now(),
+                    createdAt = OffsetDateTime.now(defaultZoneOffset),
+                    inntruffet = OffsetDateTime.now(defaultZoneOffset),
                     tagList = listOf(SYKEPENGESOKNAD, SENDT),
                     fom = LocalDate.now().minusDays(17),
                     tom = LocalDate.now().minusDays(17),
                 ),
                 defaultBit.copy(
-                    createdAt = OffsetDateTime.now(),
-                    inntruffet = OffsetDateTime.now(),
+                    createdAt = OffsetDateTime.now(defaultZoneOffset),
+                    inntruffet = OffsetDateTime.now(defaultZoneOffset),
                     tagList = listOf(SYKEPENGESOKNAD, SENDT),
                     fom = LocalDate.now(),
                     tom = LocalDate.now().plusDays(1),
@@ -167,22 +167,22 @@ class OppfolgingstilfelleBitSpek : Spek({
         it("should return 2 Oppfolgingstilfelle, if person has at least 16 Arbeidsdag between 2 Sykedag") {
             val oppfolgingstilfelleBitList = listOf(
                 defaultBit.copy(
-                    createdAt = OffsetDateTime.now(),
-                    inntruffet = OffsetDateTime.now(),
+                    createdAt = OffsetDateTime.now(defaultZoneOffset),
+                    inntruffet = OffsetDateTime.now(defaultZoneOffset),
                     tagList = listOf(SYKEPENGESOKNAD, SENDT),
                     fom = LocalDate.now().minusDays(17),
                     tom = LocalDate.now().minusDays(17),
                 ),
                 defaultBit.copy(
-                    createdAt = OffsetDateTime.now(),
-                    inntruffet = OffsetDateTime.now(),
+                    createdAt = OffsetDateTime.now(defaultZoneOffset),
+                    inntruffet = OffsetDateTime.now(defaultZoneOffset),
                     tagList = listOf(SYKEPENGESOKNAD, SENDT, ARBEID_GJENNOPPTATT),
                     fom = LocalDate.now().minusDays(16),
                     tom = LocalDate.now().minusDays(1),
                 ),
                 defaultBit.copy(
-                    createdAt = OffsetDateTime.now(),
-                    inntruffet = OffsetDateTime.now(),
+                    createdAt = OffsetDateTime.now(defaultZoneOffset),
+                    inntruffet = OffsetDateTime.now(defaultZoneOffset),
                     tagList = listOf(SYKEPENGESOKNAD, SENDT),
                     fom = LocalDate.now(),
                     tom = LocalDate.now(),
@@ -208,29 +208,29 @@ class OppfolgingstilfelleBitSpek : Spek({
         it("should return 2 Oppfolgingstilfelle, if person has at least 16 Arbeidsdag+Feriedag and at at least 1 Feriedag between 2 Sykedag") {
             val oppfolgingstilfelleBitList = listOf(
                 defaultBit.copy(
-                    createdAt = OffsetDateTime.now(),
-                    inntruffet = OffsetDateTime.now(),
+                    createdAt = OffsetDateTime.now(defaultZoneOffset),
+                    inntruffet = OffsetDateTime.now(defaultZoneOffset),
                     tagList = listOf(SYKEPENGESOKNAD, SENDT),
                     fom = LocalDate.now().minusDays(20),
                     tom = LocalDate.now().minusDays(20),
                 ),
                 defaultBit.copy(
-                    createdAt = OffsetDateTime.now(),
-                    inntruffet = OffsetDateTime.now(),
+                    createdAt = OffsetDateTime.now(defaultZoneOffset),
+                    inntruffet = OffsetDateTime.now(defaultZoneOffset),
                     tagList = listOf(SYKEPENGESOKNAD, SENDT, FERIE),
                     fom = LocalDate.now().minusDays(18),
                     tom = LocalDate.now().minusDays(10),
                 ),
                 defaultBit.copy(
-                    createdAt = OffsetDateTime.now(),
-                    inntruffet = OffsetDateTime.now(),
+                    createdAt = OffsetDateTime.now(defaultZoneOffset),
+                    inntruffet = OffsetDateTime.now(defaultZoneOffset),
                     tagList = listOf(SYKEPENGESOKNAD, SENDT, PERMISJON),
                     fom = LocalDate.now().minusDays(9),
                     tom = LocalDate.now().minusDays(1),
                 ),
                 defaultBit.copy(
-                    createdAt = OffsetDateTime.now(),
-                    inntruffet = OffsetDateTime.now(),
+                    createdAt = OffsetDateTime.now(defaultZoneOffset),
+                    inntruffet = OffsetDateTime.now(defaultZoneOffset),
                     tagList = listOf(SYKEPENGESOKNAD, SENDT),
                     fom = LocalDate.now(),
                     tom = LocalDate.now(),
