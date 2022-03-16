@@ -154,7 +154,7 @@ fun KafkaSyketilfellebit.toOppfolgingstilfelleBit(): OppfolgingstilfelleBit {
         uuid = UUID.fromString(this.id),
         personIdentNumber = PersonIdentNumber(this.fnr),
         virksomhetsnummer = this.orgnummer,
-        createdAt = OffsetDateTime.now(defaultZoneOffset),
+        createdAt = nowUTC(),
         inntruffet = this.inntruffet,
         tagList = this.tags.map { tag -> Tag.valueOf(tag) },
         ressursId = this.ressursId,
@@ -169,7 +169,7 @@ fun OppfolgingstilfelleBit.toOppfolgingstilfellePerson(
     oppfolgingstilfelleBitList: List<OppfolgingstilfelleBit>,
 ) = OppfolgingstilfellePerson(
     uuid = UUID.randomUUID(),
-    createdAt = OffsetDateTime.now(defaultZoneOffset),
+    createdAt = nowUTC(),
     personIdentNumber = this.personIdentNumber,
     oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList(),
     referanseTilfelleBitUuid = this.uuid,

@@ -26,7 +26,8 @@ import testhelper.UserConstants.PERSONIDENTNUMBER_VEILEDER_NO_ACCESS
 import testhelper.UserConstants.VIRKSOMHETSNUMMER_DEFAULT
 import testhelper.generator.*
 import testhelper.mock.toHistoricalPersonIdentNumber
-import java.time.*
+import java.time.Duration
+import java.time.LocalDate
 import java.util.*
 
 class OppfolgingstilfelleApiSpek : Spek({
@@ -62,8 +63,8 @@ class OppfolgingstilfelleApiSpek : Spek({
             uuid = UUID.randomUUID(),
             personIdentNumber = personIdentDefault,
             virksomhetsnummer = VIRKSOMHETSNUMMER_DEFAULT.value,
-            createdAt = OffsetDateTime.now(defaultZoneOffset),
-            inntruffet = OffsetDateTime.now(defaultZoneOffset).minusDays(1),
+            createdAt = nowUTC(),
+            inntruffet = nowUTC().minusDays(1),
             fom = LocalDate.now().minusDays(1),
             tom = LocalDate.now().plusDays(1),
             tagList = listOf(

@@ -4,10 +4,9 @@ import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.domain.Virksomhetsnummer
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.Tag
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.KafkaSyketilfellebit
-import no.nav.syfo.util.defaultZoneOffset
+import no.nav.syfo.util.nowUTC
 import testhelper.UserConstants
 import java.time.LocalDate
-import java.time.OffsetDateTime
 import java.util.*
 
 fun generateKafkaSyketilfellebitRelevantVirksomhet(
@@ -17,8 +16,8 @@ fun generateKafkaSyketilfellebitRelevantVirksomhet(
     id = UUID.randomUUID().toString(),
     fnr = personIdent.value,
     orgnummer = virksomhetsnummer.value,
-    opprettet = OffsetDateTime.now(defaultZoneOffset),
-    inntruffet = OffsetDateTime.now(defaultZoneOffset).minusDays(1),
+    opprettet = nowUTC(),
+    inntruffet = nowUTC().minusDays(1),
     tags = listOf(
         Tag.SYKEPENGESOKNAD,
         Tag.SENDT,
