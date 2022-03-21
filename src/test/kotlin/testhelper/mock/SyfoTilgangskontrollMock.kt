@@ -31,9 +31,11 @@ class SyfoTilgangskontrollMock {
                 get(VeilederTilgangskontrollClient.TILGANGSKONTROLL_PERSON_PATH) {
                     when (personIdentHeader()) {
                         PERSONIDENTNUMBER_VEILEDER_NO_ACCESS.value -> call.respond(
-                            Tilgang(false, "Ingen tilgang")
+                            Tilgang(harTilgang = false)
                         )
-                        else -> call.respond(Tilgang(true, ""))
+                        else -> call.respond(
+                            Tilgang(harTilgang = true)
+                        )
                     }
                 }
             }
