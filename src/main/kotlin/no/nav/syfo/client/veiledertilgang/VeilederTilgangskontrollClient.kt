@@ -1,6 +1,7 @@
 package no.nav.syfo.client.veiledertilgang
 
-import io.ktor.client.features.*
+import io.ktor.client.call.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -32,14 +33,14 @@ class VeilederTilgangskontrollClient(
         )?.accessToken ?: throw RuntimeException("Failed to request access to Person: Failed to get OBO token")
 
         return try {
-            val tilgang = httpClient.get<Tilgang>(tilgangskontrollPersonUrl) {
+            val tilgang = httpClient.get(tilgangskontrollPersonUrl) {
                 header(HttpHeaders.Authorization, bearerHeader(onBehalfOfToken))
                 header(NAV_PERSONIDENT_HEADER, personIdent.value)
                 header(NAV_CALL_ID_HEADER, callId)
                 accept(ContentType.Application.Json)
             }
             COUNT_CALL_TILGANGSKONTROLL_PERSON_SUCCESS.increment()
-            tilgang.harTilgang
+            tilgang.body<Tilgang>().harTilgang
         } catch (e: ClientRequestException) {
             if (e.response.status == HttpStatusCode.Forbidden) {
                 COUNT_CALL_TILGANGSKONTROLL_PERSON_FORBIDDEN.increment()

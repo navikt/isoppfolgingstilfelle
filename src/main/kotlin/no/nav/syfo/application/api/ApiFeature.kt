@@ -1,12 +1,14 @@
 package no.nav.syfo.application.api
 
-import io.ktor.application.*
-import io.ktor.client.features.*
-import io.ktor.features.*
+import io.ktor.client.plugins.*
 import io.ktor.http.*
-import io.ktor.jackson.*
-import io.ktor.metrics.micrometer.*
-import io.ktor.response.*
+import io.ktor.serialization.jackson.*
+import io.ktor.server.application.*
+import io.ktor.server.metrics.micrometer.*
+import io.ktor.server.plugins.callid.*
+import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.response.*
 import io.micrometer.core.instrument.distribution.DistributionStatisticConfig
 import no.nav.syfo.application.metric.METRICS_REGISTRY
 import no.nav.syfo.util.*
@@ -34,22 +36,22 @@ fun Application.installCallId() {
 
 fun Application.installContentNegotiation() {
     install(ContentNegotiation) {
-        jackson(block = configureJacksonMapper())
+        jackson { configure() }
     }
 }
 
 fun Application.installStatusPages() {
     install(StatusPages) {
-        exception<Throwable> { cause ->
-            val callId = getCallId()
-            val consumerClientId = getConsumerClientId()
+        exception<Throwable> { call, cause ->
+            val callId = call.getCallId()
+            val consumerClientId = call.getConsumerClientId()
             val logExceptionMessage = "Caught exception, callId=$callId, consumerClientId=$consumerClientId"
             when (cause) {
                 is ForbiddenAccessVeilederException -> {
-                    log.warn(logExceptionMessage, cause)
+                    call.application.log.warn(logExceptionMessage, cause)
                 }
                 else -> {
-                    log.error(logExceptionMessage, cause)
+                    call.application.log.error(logExceptionMessage, cause)
                 }
             }
 
