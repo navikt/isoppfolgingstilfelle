@@ -1,9 +1,9 @@
 package no.nav.syfo.application.api.authentication
 
 import com.auth0.jwk.JwkProviderBuilder
-import io.ktor.application.*
-import io.ktor.auth.*
-import io.ktor.auth.jwt.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import net.logstash.logback.argument.StructuredArguments
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -24,7 +24,7 @@ fun Application.installJwtAuthentication(
     }
 }
 
-fun Authentication.Configuration.configureJwt(
+fun AuthenticationConfig.configureJwt(
     jwtIssuer: JwtIssuer,
 ) {
     val jwkProvider = JwkProviderBuilder(URL(jwtIssuer.wellKnown.jwksUri))
