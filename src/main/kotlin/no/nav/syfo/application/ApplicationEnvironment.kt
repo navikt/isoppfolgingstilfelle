@@ -1,7 +1,7 @@
 package no.nav.syfo.application
 
 import io.ktor.server.application.*
-import no.nav.syfo.application.cache.ApplicationEnvironmentRedis
+import no.nav.syfo.application.cache.RedisEnvironment
 import no.nav.syfo.application.database.DatabaseEnvironment
 import no.nav.syfo.application.kafka.KafkaEnvironment
 import no.nav.syfo.client.ClientEnvironment
@@ -36,7 +36,7 @@ data class Environment(
 
     val kafkaSyketilfellebitProcessingEnabled: Boolean = getEnvVar("TOGGLE_KAFKA_SYKETILFELLEBIT_PROCESSING_ENABLED").toBoolean(),
 
-    val redis: ApplicationEnvironmentRedis = ApplicationEnvironmentRedis(
+    val redis: RedisEnvironment = RedisEnvironment(
         host = getEnvVar("REDIS_HOST"),
         port = getEnvVar("REDIS_PORT", "6379").toInt(),
         secret = getEnvVar("REDIS_PASSWORD"),

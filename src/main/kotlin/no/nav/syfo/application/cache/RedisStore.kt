@@ -8,7 +8,7 @@ import redis.clients.jedis.exceptions.JedisConnectionException
 import kotlin.reflect.KClass
 
 class RedisStore(
-    redisEnvironment: ApplicationEnvironmentRedis,
+    redisEnvironment: RedisEnvironment,
 ) {
     val objectMapper: ObjectMapper = configuredJacksonMapper()
 
