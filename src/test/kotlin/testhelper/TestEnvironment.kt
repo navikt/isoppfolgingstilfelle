@@ -1,6 +1,10 @@
 package testhelper
 
 import no.nav.syfo.application.*
+import no.nav.syfo.application.cache.ApplicationEnvironmentRedis
+import no.nav.syfo.application.database.DatabaseEnvironment
+import no.nav.syfo.application.kafka.KafkaEnvironment
+import no.nav.syfo.client.azuread.AzureEnvironment
 import java.net.ServerSocket
 
 fun testEnvironment(
@@ -9,16 +13,20 @@ fun testEnvironment(
     pdlUrl: String,
     syfoTilgangskontrollUrl: String,
 ) = Environment(
-    azureAppClientId = "isoppfolgingstilfelle-client-id",
-    azureAppClientSecret = "isoppfolgingstilfelle-secret",
-    azureAppWellKnownUrl = "wellknown",
-    azureOpenidConfigTokenEndpoint = azureOpenIdTokenEndpoint,
-    isoppfolgingstilfelleDbHost = "localhost",
-    isoppfolgingstilfelleDbPort = "5432",
-    isoppfolgingstilfelleDbName = "isoppfolgingstilfelle_dev",
-    isoppfolgingstilfelleDbUsername = "username",
-    isoppfolgingstilfelleDbPassword = "password",
-    kafka = ApplicationEnvironmentKafka(
+    azure = AzureEnvironment(
+        appClientId = "isoppfolgingstilfelle-client-id",
+        appClientSecret = "isoppfolgingstilfelle-secret",
+        appWellKnownUrl = "wellknown",
+        openidConfigTokenEndpoint = azureOpenIdTokenEndpoint,
+    ),
+    database = DatabaseEnvironment(
+        host = "localhost",
+        name = "isoppfolgingstilfelle_dev",
+        port = "5432",
+        password = "password",
+        username = "username",
+    ),
+    kafka = KafkaEnvironment(
         aivenBootstrapServers = kafkaBootstrapServers,
         aivenCredstorePassword = "credstorepassord",
         aivenKeystoreLocation = "keystore",
@@ -26,10 +34,13 @@ fun testEnvironment(
         aivenTruststoreLocation = "truststore",
     ),
     kafkaSykeketilfellebitProcessingEnabled = true,
+    redis = ApplicationEnvironmentRedis(
+        host = "localhost",
+        port = 6379,
+        secret = "password",
+    ),
     pdlClientId = "dev-fss.pdl.pdl-api",
     pdlUrl = pdlUrl,
-    redisHost = "localhost",
-    redisSecret = "password",
     syfotilgangskontrollClientId = "syfotilgangskontroll-client-id",
     syfotilgangskontrollUrl = syfoTilgangskontrollUrl,
 )
@@ -38,6 +49,7 @@ fun testAppState() = ApplicationState(
     alive = true,
     ready = true,
 )
+
 fun getRandomPort() = ServerSocket(0).use {
     it.localPort
 }

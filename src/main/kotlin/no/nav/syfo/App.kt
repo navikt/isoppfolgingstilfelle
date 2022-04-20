@@ -12,9 +12,9 @@ import no.nav.syfo.application.database.applicationDatabase
 import no.nav.syfo.application.database.databaseModule
 import no.nav.syfo.client.wellknown.getWellKnown
 import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
-import no.nav.syfo.oppfolgingstilfelle.person.OppfolgingstilfellePersonService
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.KafkaSyketilfellebitService
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.launchKafkaTaskSyketilfelleBit
+import no.nav.syfo.oppfolgingstilfelle.person.OppfolgingstilfellePersonService
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.OppfolgingstilfellePersonProducer
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.kafkaOppfolgingstilfelleProducerConfig
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -27,7 +27,7 @@ fun main() {
     val applicationState = ApplicationState()
     val environment = Environment()
     val wellKnownInternalAzureAD = getWellKnown(
-        wellKnownUrl = environment.azureAppWellKnownUrl,
+        wellKnownUrl = environment.azure.appWellKnownUrl,
     )
 
     val oppfolgingstilfellePersonProducer = OppfolgingstilfellePersonProducer(
@@ -52,7 +52,7 @@ fun main() {
 
         module {
             databaseModule(
-                environment = environment,
+                databaseEnvironment = environment.database,
             )
             val oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
                 database = applicationDatabase,
@@ -82,7 +82,7 @@ fun main() {
         if (environment.kafkaSykeketilfellebitProcessingEnabled) {
             launchKafkaTaskSyketilfelleBit(
                 applicationState = applicationState,
-                applicationEnvironmentKafka = environment.kafka,
+                kafkaEnvironment = environment.kafka,
                 kafkaSyketilfellebitService = kafkaSyketilfellebitService,
             )
         }

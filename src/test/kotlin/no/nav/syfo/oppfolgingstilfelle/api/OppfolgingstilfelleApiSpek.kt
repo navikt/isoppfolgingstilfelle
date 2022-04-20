@@ -147,7 +147,7 @@ class OppfolgingstilfelleApiSpek : Spek({
             describe("Get OppfolgingstilfellePersonDTO for PersonIdent") {
                 val url = "$oppfolgingstilfelleApiV1Path$oppfolgingstilfelleApiPersonIdentPath"
                 val validToken = generateJWT(
-                    audience = externalMockEnvironment.environment.azureAppClientId,
+                    audience = externalMockEnvironment.environment.azure.appClientId,
                     issuer = externalMockEnvironment.wellKnownInternalAzureAD.issuer,
                 )
 

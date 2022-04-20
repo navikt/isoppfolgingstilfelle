@@ -11,9 +11,7 @@ import no.nav.syfo.client.httpClientProxy
 import org.slf4j.LoggerFactory
 
 class AzureAdClient(
-    private val azureAppClientId: String,
-    private val azureAppClientSecret: String,
-    private val azureOpenidConfigTokenEndpoint: String,
+    private val azureEnviroment: AzureEnvironment,
     private val redisStore: RedisStore,
 ) {
 
@@ -25,8 +23,8 @@ class AzureAdClient(
     ): AzureAdToken? =
         getAccessToken(
             Parameters.build {
-                append("client_id", azureAppClientId)
-                append("client_secret", azureAppClientSecret)
+                append("client_id", azureEnviroment.appClientId)
+                append("client_secret", azureEnviroment.appClientSecret)
                 append("client_assertion_type", "urn:ietf:params:oauth:grant-type:jwt-bearer")
                 append("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer")
                 append("assertion", token)
@@ -44,8 +42,8 @@ class AzureAdClient(
         } else {
             val azureAdTokenResponse = getAccessToken(
                 Parameters.build {
-                    append("client_id", azureAppClientId)
-                    append("client_secret", azureAppClientSecret)
+                    append("client_id", azureEnviroment.appClientId)
+                    append("client_secret", azureEnviroment.appClientSecret)
                     append("grant_type", "client_credentials")
                     append("scope", "api://$scopeClientId/.default")
                 }
@@ -67,7 +65,7 @@ class AzureAdClient(
         formParameters: Parameters,
     ): AzureAdTokenResponse? =
         try {
-            val response: HttpResponse = httpClient.post(azureOpenidConfigTokenEndpoint) {
+            val response: HttpResponse = httpClient.post(azureEnviroment.openidConfigTokenEndpoint) {
                 accept(ContentType.Application.Json)
                 setBody(FormDataContent(formParameters))
             }

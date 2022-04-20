@@ -1,11 +1,11 @@
 package testhelper
 
+import no.nav.syfo.application.cache.ApplicationEnvironmentRedis
 import redis.embedded.RedisServer
 
 fun testRedis(
-    port: Int,
-    secret: String,
+    redisEnvironment: ApplicationEnvironmentRedis,
 ): RedisServer = RedisServer.builder()
-    .port(port)
-    .setting("requirepass $secret")
+    .port(redisEnvironment.port)
+    .setting("requirepass ${redisEnvironment.secret}")
     .build()

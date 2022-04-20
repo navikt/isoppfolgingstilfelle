@@ -15,7 +15,6 @@ import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.client.wellknown.WellKnown
 import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
 import no.nav.syfo.oppfolgingstilfelle.person.api.registerOppfolgingstilfelleApi
-import redis.clients.jedis.*
 
 fun Application.apiModule(
     applicationState: ApplicationState,
@@ -29,7 +28,7 @@ fun Application.apiModule(
     installJwtAuthentication(
         jwtIssuerList = listOf(
             JwtIssuer(
-                acceptedAudienceList = listOf(environment.azureAppClientId),
+                acceptedAudienceList = listOf(environment.azure.appClientId),
                 jwtIssuerType = JwtIssuerType.INTERNAL_AZUREAD,
                 wellKnown = wellKnownInternalAzureAD,
             ),
@@ -38,19 +37,11 @@ fun Application.apiModule(
     installStatusPages()
 
     val redisStore = RedisStore(
-        jedisPool = JedisPool(
-            JedisPoolConfig(),
-            environment.redisHost,
-            environment.redisPort,
-            Protocol.DEFAULT_TIMEOUT,
-            environment.redisSecret,
-        ),
+        redisEnvironment = environment.redis,
     )
 
     val azureAdClient = AzureAdClient(
-        azureAppClientId = environment.azureAppClientId,
-        azureAppClientSecret = environment.azureAppClientSecret,
-        azureOpenidConfigTokenEndpoint = environment.azureOpenidConfigTokenEndpoint,
+        azureEnviroment = environment.azure,
         redisStore = redisStore,
     )
     val pdlClient = PdlClient(

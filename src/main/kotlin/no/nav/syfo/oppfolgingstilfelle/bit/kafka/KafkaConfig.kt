@@ -1,16 +1,16 @@
 package no.nav.syfo.oppfolgingstilfelle.bit.kafka
 
-import no.nav.syfo.application.ApplicationEnvironmentKafka
+import no.nav.syfo.application.kafka.KafkaEnvironment
 import no.nav.syfo.application.kafka.commonKafkaAivenConfig
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
 import java.util.*
 
 fun kafkaSyketilfelleBitConsumerConfig(
-    applicationEnvironmentKafka: ApplicationEnvironmentKafka,
+    kafkaEnvironment: KafkaEnvironment,
 ): Properties {
     return Properties().apply {
-        putAll(commonKafkaAivenConfig(applicationEnvironmentKafka))
+        putAll(commonKafkaAivenConfig(kafkaEnvironment))
 
         this[ConsumerConfig.GROUP_ID_CONFIG] = "isoppfolgingstilfelle-v1"
         this[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java.canonicalName
