@@ -4,6 +4,8 @@ import io.ktor.server.application.*
 import no.nav.syfo.application.cache.ApplicationEnvironmentRedis
 import no.nav.syfo.application.database.DatabaseEnvironment
 import no.nav.syfo.application.kafka.KafkaEnvironment
+import no.nav.syfo.client.ApplicationEnvironmentClient
+import no.nav.syfo.client.ApplicationEnvironmentClients
 import no.nav.syfo.client.azuread.AzureEnvironment
 
 const val NAIS_DATABASE_ENV_PREFIX = "NAIS_DATABASE_ISOPPFOLGINGSTILFELLE_ISOPPFOLGINGSTILFELLE_DB"
@@ -40,11 +42,16 @@ data class Environment(
         secret = getEnvVar("REDIS_PASSWORD"),
     ),
 
-    val pdlClientId: String = getEnvVar("PDL_CLIENT_ID"),
-    val pdlUrl: String = getEnvVar("PDL_URL"),
-
-    val syfotilgangskontrollClientId: String = getEnvVar("SYFOTILGANGSKONTROLL_CLIENT_ID"),
-    val syfotilgangskontrollUrl: String = getEnvVar("SYFOTILGANGSKONTROLL_URL"),
+    val clients: ApplicationEnvironmentClients = ApplicationEnvironmentClients(
+        pdl = ApplicationEnvironmentClient(
+            baseUrl = getEnvVar("PDL_URL"),
+            clientId = getEnvVar("PDL_CLIENT_ID"),
+        ),
+        syfotilgangskontroll = ApplicationEnvironmentClient(
+            baseUrl = getEnvVar("SYFOTILGANGSKONTROLL_URL"),
+            clientId = getEnvVar("SYFOTILGANGSKONTROLL_CLIENT_ID"),
+        ),
+    ),
 )
 
 fun getEnvVar(

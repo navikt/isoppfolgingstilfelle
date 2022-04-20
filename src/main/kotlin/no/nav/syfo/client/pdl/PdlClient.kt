@@ -5,6 +5,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import no.nav.syfo.application.cache.RedisStore
+import no.nav.syfo.client.ApplicationEnvironmentClient
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.httpClientDefault
 import no.nav.syfo.client.pdl.domain.*
@@ -14,8 +15,7 @@ import org.slf4j.LoggerFactory
 
 class PdlClient(
     private val azureAdClient: AzureAdClient,
-    private val pdlBaseUrl: String,
-    private val pdlClientId: String,
+    private val clientEnvironment: ApplicationEnvironmentClient,
     private val redisStore: RedisStore,
 ) {
     private val httpClient = httpClientDefault()
@@ -55,7 +55,7 @@ class PdlClient(
         callId: String,
         personIdentNumber: PersonIdentNumber,
     ): PdlHentIdenter? {
-        val token = azureAdClient.getSystemToken(pdlClientId)
+        val token = azureAdClient.getSystemToken(clientEnvironment.clientId)
             ?: throw RuntimeException("Failed to send PdlHentIdenterRequest to PDL: No token was found")
 
         val query = getPdlQuery(
@@ -73,7 +73,7 @@ class PdlClient(
             ),
         )
 
-        val response: HttpResponse = httpClient.post(pdlBaseUrl) {
+        val response: HttpResponse = httpClient.post(clientEnvironment.baseUrl) {
             header(HttpHeaders.Authorization, bearerHeader(token.accessToken))
             header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
             header(TEMA_HEADER, ALLE_TEMA_HEADERVERDI)
@@ -98,7 +98,7 @@ class PdlClient(
             }
             else -> {
                 COUNT_CALL_PDL_IDENTER_FAIL.increment()
-                logger.error("Request to get IdentList with url: $pdlBaseUrl failed with reponse code ${response.status.value}")
+                logger.error("Request to get IdentList with url: ${clientEnvironment.baseUrl} failed with reponse code ${response.status.value}")
                 return null
             }
         }

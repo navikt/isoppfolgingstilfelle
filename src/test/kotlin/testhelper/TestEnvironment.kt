@@ -1,9 +1,12 @@
 package testhelper
 
-import no.nav.syfo.application.*
+import no.nav.syfo.application.ApplicationState
+import no.nav.syfo.application.Environment
 import no.nav.syfo.application.cache.ApplicationEnvironmentRedis
 import no.nav.syfo.application.database.DatabaseEnvironment
 import no.nav.syfo.application.kafka.KafkaEnvironment
+import no.nav.syfo.client.ApplicationEnvironmentClient
+import no.nav.syfo.client.ApplicationEnvironmentClients
 import no.nav.syfo.client.azuread.AzureEnvironment
 import java.net.ServerSocket
 
@@ -34,15 +37,21 @@ fun testEnvironment(
         aivenTruststoreLocation = "truststore",
     ),
     kafkaSykeketilfellebitProcessingEnabled = true,
+    clients = ApplicationEnvironmentClients(
+        pdl = ApplicationEnvironmentClient(
+            baseUrl = pdlUrl,
+            clientId = "dev-fss.pdl.pdl-api",
+        ),
+        syfotilgangskontroll = ApplicationEnvironmentClient(
+            baseUrl = syfoTilgangskontrollUrl,
+            clientId = "dev-fss.teamsykefravr.syfotilgangskontroll",
+        ),
+    ),
     redis = ApplicationEnvironmentRedis(
         host = "localhost",
         port = 6379,
         secret = "password",
     ),
-    pdlClientId = "dev-fss.pdl.pdl-api",
-    pdlUrl = pdlUrl,
-    syfotilgangskontrollClientId = "syfotilgangskontroll-client-id",
-    syfotilgangskontrollUrl = syfoTilgangskontrollUrl,
 )
 
 fun testAppState() = ApplicationState(
