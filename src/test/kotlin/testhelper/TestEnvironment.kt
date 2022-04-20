@@ -5,8 +5,8 @@ import no.nav.syfo.application.Environment
 import no.nav.syfo.application.cache.ApplicationEnvironmentRedis
 import no.nav.syfo.application.database.DatabaseEnvironment
 import no.nav.syfo.application.kafka.KafkaEnvironment
-import no.nav.syfo.client.ApplicationEnvironmentClient
-import no.nav.syfo.client.ApplicationEnvironmentClients
+import no.nav.syfo.client.ClientEnvironment
+import no.nav.syfo.client.ClientsEnvironment
 import no.nav.syfo.client.azuread.AzureEnvironment
 import java.net.ServerSocket
 
@@ -37,12 +37,12 @@ fun testEnvironment(
         aivenTruststoreLocation = "truststore",
     ),
     kafkaSyketilfellebitProcessingEnabled = true,
-    clients = ApplicationEnvironmentClients(
-        pdl = ApplicationEnvironmentClient(
+    clients = ClientsEnvironment(
+        pdl = ClientEnvironment(
             baseUrl = pdlUrl,
             clientId = "dev-fss.pdl.pdl-api",
         ),
-        syfotilgangskontroll = ApplicationEnvironmentClient(
+        syfotilgangskontroll = ClientEnvironment(
             baseUrl = syfoTilgangskontrollUrl,
             clientId = "dev-fss.teamsykefravr.syfotilgangskontroll",
         ),
