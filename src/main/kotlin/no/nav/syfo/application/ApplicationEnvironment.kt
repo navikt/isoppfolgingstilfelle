@@ -34,7 +34,7 @@ data class Environment(
         aivenTruststoreLocation = getEnvVar("KAFKA_TRUSTSTORE_PATH"),
     ),
 
-    val kafkaSykeketilfellebitProcessingEnabled: Boolean = getEnvVar("TOGGLE_KAFKA_SYKETILFELLEBIT_PROCESSING_ENABLED").toBoolean(),
+    val kafkaSyketilfellebitProcessingEnabled: Boolean = getEnvVar("TOGGLE_KAFKA_SYKETILFELLEBIT_PROCESSING_ENABLED").toBoolean(),
 
     val redis: ApplicationEnvironmentRedis = ApplicationEnvironmentRedis(
         host = getEnvVar("REDIS_HOST"),

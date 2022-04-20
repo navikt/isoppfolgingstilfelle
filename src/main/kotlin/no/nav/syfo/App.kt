@@ -79,7 +79,7 @@ fun main() {
             oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
         )
 
-        if (environment.kafkaSykeketilfellebitProcessingEnabled) {
+        if (environment.kafkaSyketilfellebitProcessingEnabled) {
             launchKafkaTaskSyketilfelleBit(
                 applicationState = applicationState,
                 kafkaEnvironment = environment.kafka,
