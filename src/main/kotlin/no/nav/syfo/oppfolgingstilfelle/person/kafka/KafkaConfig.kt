@@ -1,13 +1,13 @@
 package no.nav.syfo.oppfolgingstilfelle.person.kafka
 
-import no.nav.syfo.application.ApplicationEnvironmentKafka
+import no.nav.syfo.application.kafka.KafkaEnvironment
 import no.nav.syfo.application.kafka.commonKafkaAivenConfig
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.StringSerializer
 import java.util.*
 
 fun kafkaOppfolgingstilfelleProducerConfig(
-    kafkaEnvironment: ApplicationEnvironmentKafka,
+    kafkaEnvironment: KafkaEnvironment,
 ): Properties {
     return Properties().apply {
         putAll(commonKafkaAivenConfig(kafkaEnvironment))

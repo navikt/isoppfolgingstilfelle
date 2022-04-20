@@ -1,22 +1,30 @@
 package no.nav.syfo.application
 
 import io.ktor.server.application.*
+import no.nav.syfo.application.cache.ApplicationEnvironmentRedis
+import no.nav.syfo.application.database.DatabaseEnvironment
+import no.nav.syfo.application.kafka.KafkaEnvironment
+import no.nav.syfo.client.azuread.AzureEnvironment
 
 const val NAIS_DATABASE_ENV_PREFIX = "NAIS_DATABASE_ISOPPFOLGINGSTILFELLE_ISOPPFOLGINGSTILFELLE_DB"
 
 data class Environment(
-    val azureAppClientId: String = getEnvVar("AZURE_APP_CLIENT_ID"),
-    val azureAppClientSecret: String = getEnvVar("AZURE_APP_CLIENT_SECRET"),
-    val azureAppWellKnownUrl: String = getEnvVar("AZURE_APP_WELL_KNOWN_URL"),
-    val azureOpenidConfigTokenEndpoint: String = getEnvVar("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
+    val azure: AzureEnvironment = AzureEnvironment(
+        appClientId = getEnvVar("AZURE_APP_CLIENT_ID"),
+        appClientSecret = getEnvVar("AZURE_APP_CLIENT_SECRET"),
+        appWellKnownUrl = getEnvVar("AZURE_APP_WELL_KNOWN_URL"),
+        openidConfigTokenEndpoint = getEnvVar("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
+    ),
 
-    val isoppfolgingstilfelleDbHost: String = getEnvVar("${NAIS_DATABASE_ENV_PREFIX}_HOST"),
-    val isoppfolgingstilfelleDbPort: String = getEnvVar("${NAIS_DATABASE_ENV_PREFIX}_PORT"),
-    val isoppfolgingstilfelleDbName: String = getEnvVar("${NAIS_DATABASE_ENV_PREFIX}_DATABASE"),
-    val isoppfolgingstilfelleDbUsername: String = getEnvVar("${NAIS_DATABASE_ENV_PREFIX}_USERNAME"),
-    val isoppfolgingstilfelleDbPassword: String = getEnvVar("${NAIS_DATABASE_ENV_PREFIX}_PASSWORD"),
+    val database: DatabaseEnvironment = DatabaseEnvironment(
+        host = getEnvVar("${NAIS_DATABASE_ENV_PREFIX}_HOST"),
+        name = getEnvVar("${NAIS_DATABASE_ENV_PREFIX}_DATABASE"),
+        port = getEnvVar("${NAIS_DATABASE_ENV_PREFIX}_PORT"),
+        password = getEnvVar("${NAIS_DATABASE_ENV_PREFIX}_PASSWORD"),
+        username = getEnvVar("${NAIS_DATABASE_ENV_PREFIX}_USERNAME"),
+    ),
 
-    val kafka: ApplicationEnvironmentKafka = ApplicationEnvironmentKafka(
+    val kafka: KafkaEnvironment = KafkaEnvironment(
         aivenBootstrapServers = getEnvVar("KAFKA_BROKERS"),
         aivenCredstorePassword = getEnvVar("KAFKA_CREDSTORE_PASSWORD"),
         aivenKeystoreLocation = getEnvVar("KAFKA_KEYSTORE_PATH"),
@@ -26,20 +34,18 @@ data class Environment(
 
     val kafkaSykeketilfellebitProcessingEnabled: Boolean = getEnvVar("TOGGLE_KAFKA_SYKETILFELLEBIT_PROCESSING_ENABLED").toBoolean(),
 
-    val redisHost: String = getEnvVar("REDIS_HOST"),
-    val redisPort: Int = getEnvVar("REDIS_PORT", "6379").toInt(),
-    val redisSecret: String = getEnvVar("REDIS_PASSWORD"),
+    val redis: ApplicationEnvironmentRedis = ApplicationEnvironmentRedis(
+        host = getEnvVar("REDIS_HOST"),
+        port = getEnvVar("REDIS_PORT", "6379").toInt(),
+        secret = getEnvVar("REDIS_PASSWORD"),
+    ),
 
     val pdlClientId: String = getEnvVar("PDL_CLIENT_ID"),
     val pdlUrl: String = getEnvVar("PDL_URL"),
 
     val syfotilgangskontrollClientId: String = getEnvVar("SYFOTILGANGSKONTROLL_CLIENT_ID"),
     val syfotilgangskontrollUrl: String = getEnvVar("SYFOTILGANGSKONTROLL_URL"),
-) {
-    fun jdbcUrl(): String {
-        return "jdbc:postgresql://$isoppfolgingstilfelleDbHost:$isoppfolgingstilfelleDbPort/$isoppfolgingstilfelleDbName"
-    }
-}
+)
 
 fun getEnvVar(
     varName: String,

@@ -1,6 +1,6 @@
 package no.nav.syfo.oppfolgingstilfelle.bit.kafka
 
-import no.nav.syfo.application.ApplicationEnvironmentKafka
+import no.nav.syfo.application.kafka.KafkaEnvironment
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.backgroundtask.launchBackgroundTask
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -13,7 +13,7 @@ const val SYKETILFELLEBIT_TOPIC = "flex.syketilfellebiter"
 
 fun launchKafkaTaskSyketilfelleBit(
     applicationState: ApplicationState,
-    applicationEnvironmentKafka: ApplicationEnvironmentKafka,
+    kafkaEnvironment: KafkaEnvironment,
     kafkaSyketilfellebitService: KafkaSyketilfellebitService,
 ) {
     launchBackgroundTask(
@@ -21,7 +21,7 @@ fun launchKafkaTaskSyketilfelleBit(
     ) {
         blockingApplicationLogicSyketilfelleBit(
             applicationState = applicationState,
-            applicationEnvironmentKafka = applicationEnvironmentKafka,
+            kafkaEnvironment = kafkaEnvironment,
             kafkaSyketilfellebitService = kafkaSyketilfellebitService,
         )
     }
@@ -29,12 +29,12 @@ fun launchKafkaTaskSyketilfelleBit(
 
 fun blockingApplicationLogicSyketilfelleBit(
     applicationState: ApplicationState,
-    applicationEnvironmentKafka: ApplicationEnvironmentKafka,
+    kafkaEnvironment: KafkaEnvironment,
     kafkaSyketilfellebitService: KafkaSyketilfellebitService,
 ) {
     log.info("Setting up kafka consumer for KafkaSyketilfelleBit")
 
-    val consumerProperties = kafkaSyketilfelleBitConsumerConfig(applicationEnvironmentKafka)
+    val consumerProperties = kafkaSyketilfelleBitConsumerConfig(kafkaEnvironment)
     val kafkaConsumerSyketilfelleBit = KafkaConsumer<String, KafkaSyketilfellebit>(consumerProperties)
 
     kafkaConsumerSyketilfelleBit.subscribe(

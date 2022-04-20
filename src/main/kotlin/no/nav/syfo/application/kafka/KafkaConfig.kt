@@ -1,13 +1,12 @@
 package no.nav.syfo.application.kafka
 
-import no.nav.syfo.application.ApplicationEnvironmentKafka
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.common.config.SaslConfigs
 import org.apache.kafka.common.config.SslConfigs
 import java.util.*
 
 fun commonKafkaAivenConfig(
-    kafkaEnvironment: ApplicationEnvironmentKafka,
+    kafkaEnvironment: KafkaEnvironment,
 ) = Properties().apply {
     this[SaslConfigs.SASL_MECHANISM] = "PLAIN"
     this[CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG] = kafkaEnvironment.aivenBootstrapServers
