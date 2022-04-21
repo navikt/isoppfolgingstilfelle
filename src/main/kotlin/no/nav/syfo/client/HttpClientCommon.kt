@@ -13,12 +13,14 @@ fun httpClientDefault() = HttpClient(CIO) {
     install(ContentNegotiation) {
         jackson { configure() }
     }
+    expectSuccess = true
 }
 
 val proxyConfig: HttpClientConfig<ApacheEngineConfig>.() -> Unit = {
     install(ContentNegotiation) {
         jackson { configure() }
     }
+    expectSuccess = true
     engine {
         customizeClient {
             setRoutePlanner(SystemDefaultRoutePlanner(ProxySelector.getDefault()))
