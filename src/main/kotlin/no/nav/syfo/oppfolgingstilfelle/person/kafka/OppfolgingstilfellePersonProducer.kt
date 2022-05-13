@@ -5,6 +5,7 @@ import no.nav.syfo.oppfolgingstilfelle.person.domain.toKafkaOppfolgingstilfelleP
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
+import java.util.*
 
 class OppfolgingstilfellePersonProducer(
     private val kafkaProducerOppfolgingstilfelle: KafkaProducer<String, KafkaOppfolgingstilfellePerson>,
@@ -12,9 +13,9 @@ class OppfolgingstilfellePersonProducer(
     fun sendOppfolgingstilfellePerson(
         oppfolgingstilfellePerson: OppfolgingstilfellePerson,
     ) {
-        val key = oppfolgingstilfellePerson.uuid.toString()
+        val kafkaOppfolgingstilfellePerson = oppfolgingstilfellePerson.toKafkaOppfolgingstilfellePerson()
+        val key = UUID.nameUUIDFromBytes(kafkaOppfolgingstilfellePerson.personIdentNumber.toByteArray()).toString()
         try {
-            val kafkaOppfolgingstilfellePerson = oppfolgingstilfellePerson.toKafkaOppfolgingstilfellePerson()
             kafkaProducerOppfolgingstilfelle.send(
                 ProducerRecord(
                     OPPFOLGINGSTILFELLE_TOPIC,
