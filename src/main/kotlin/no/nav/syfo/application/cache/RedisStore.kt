@@ -28,6 +28,16 @@ class RedisStore(
         }
     }
 
+    inline fun <reified T> getListObject(key: String): List<T>? {
+        val value = get(key)
+        return if (value != null) {
+            objectMapper.readValue(
+                value,
+                objectMapper.typeFactory.constructCollectionType(ArrayList::class.java, T::class.java)
+            )
+        } else null
+    }
+
     fun get(
         key: String,
     ): String? {
