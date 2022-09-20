@@ -41,7 +41,7 @@ fun generateJWT(
         .sign(alg)
 }
 
-private fun getDefaultRSAKey(): RSAKey {
+fun getDefaultRSAKey(): RSAKey {
     return getJWKSet().getKeyByKeyId(keyId) as RSAKey
 }
 

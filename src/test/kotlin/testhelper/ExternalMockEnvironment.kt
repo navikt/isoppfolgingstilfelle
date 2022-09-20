@@ -12,6 +12,7 @@ class ExternalMockEnvironment private constructor() {
     private val azureAdMock = AzureAdMock()
     private val pdlMock = PdlMock()
     private val syfoTilgangskontrollMock = SyfoTilgangskontrollMock()
+    private val narmesteLederMock = NarmesteLederMock()
 
     val externalMocks = hashMapOf(
         azureAdMock.name to azureAdMock.server,
@@ -23,7 +24,8 @@ class ExternalMockEnvironment private constructor() {
         kafkaBootstrapServers = embeddedEnvironment.brokersURL,
         azureOpenIdTokenEndpoint = azureAdMock.url,
         pdlUrl = pdlMock.url,
-        syfoTilgangskontrollUrl = syfoTilgangskontrollMock.url
+        syfoTilgangskontrollUrl = syfoTilgangskontrollMock.url,
+        narmestelederUrl = narmesteLederMock.url
     )
 
     val redisServer = testRedis(
@@ -31,6 +33,7 @@ class ExternalMockEnvironment private constructor() {
     )
 
     val wellKnownInternalAzureAD = wellKnownInternalAzureAD()
+    val wellKnownSelvbetjening = wellKnownSelvbetjeningMock()
 
     companion object {
         val instance: ExternalMockEnvironment by lazy {
