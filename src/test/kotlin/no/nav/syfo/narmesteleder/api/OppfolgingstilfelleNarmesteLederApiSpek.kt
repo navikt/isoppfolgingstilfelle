@@ -1,8 +1,10 @@
 package no.nav.syfo.narmesteleder.api
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.*
 import io.ktor.server.testing.*
-import io.mockk.*
+import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfelleDTO
 import no.nav.syfo.oppfolgingstilfelle.person.database.createOppfolgingstilfellePerson
 import no.nav.syfo.util.*
 import org.amshove.kluent.shouldBeEqualTo
@@ -10,9 +12,9 @@ import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import testhelper.*
 import testhelper.generator.*
-import java.util.*
 
 class OppfolgingstilfelleNarmesteLederApiSpek : Spek({
+    val objectMapper: ObjectMapper = configuredJacksonMapper()
     with(TestApplicationEngine()) {
         start()
 
@@ -49,6 +51,10 @@ class OppfolgingstilfelleNarmesteLederApiSpek : Spek({
                             }
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.OK
+                            val content = objectMapper.readValue<List<OppfolgingstilfelleDTO>>(response.content!!)
+                            content.size shouldBeEqualTo 1
+                            val oppfolgingstilfelleDTO = content[0]
+                            oppfolgingstilfelleDTO.start shouldBeEqualTo oppfolgingstilfellePerson.oppfolgingstilfelleList[0].start
                         }
                     }
                 }
