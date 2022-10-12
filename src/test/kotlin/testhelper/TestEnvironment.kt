@@ -16,7 +16,8 @@ fun testEnvironment(
     kafkaBootstrapServers: String,
     pdlUrl: String,
     syfoTilgangskontrollUrl: String,
-    narmestelederUrl: String
+    narmestelederUrl: String,
+    tokendingsUrl: String
 ) = Environment(
     azure = AzureEnvironment(
         appClientId = "isoppfolgingstilfelle-client-id",
@@ -26,7 +27,7 @@ fun testEnvironment(
     ),
     tokenx = TokenxEnvironment(
         clientId = "tokenx-client-id",
-        endpoint = "tokenxEndpoint",
+        endpoint = tokendingsUrl,
         wellKnownUrl = "tokenx-wellknown",
         privateJWK = getDefaultRSAKey().toJSONString()
     ),
@@ -55,8 +56,8 @@ fun testEnvironment(
             clientId = "dev-fss.teamsykefravr.syfotilgangskontroll",
         ),
         narmesteLeder = ClientEnvironment(
-            baseUrl = "narmestelederClientId",
-            clientId = narmestelederUrl,
+            baseUrl = narmestelederUrl,
+            clientId = "narmestelederClientId",
         )
     ),
     redis = RedisEnvironment(

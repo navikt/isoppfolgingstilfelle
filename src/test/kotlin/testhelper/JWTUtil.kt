@@ -20,7 +20,8 @@ fun generateJWT(
     audience: String,
     issuer: String,
     subject: String? = null,
-    expiry: LocalDateTime? = LocalDateTime.now().plusHours(1)
+    expiry: LocalDateTime? = LocalDateTime.now().plusHours(1),
+    pid: String? = UserConstants.NARMESTELEDER_FNR.value
 ): String {
     val now = Date()
     val key = getDefaultRSAKey()
@@ -38,6 +39,7 @@ fun generateJWT(
         .withClaim("nbf", now)
         .withClaim("iat", now)
         .withClaim("exp", Date.from(expiry?.atZone(ZoneId.systemDefault())?.toInstant()))
+        .withClaim("pid", pid)
         .sign(alg)
 }
 

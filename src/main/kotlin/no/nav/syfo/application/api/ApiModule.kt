@@ -10,10 +10,14 @@ import no.nav.syfo.application.cache.RedisStore
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.metric.api.registerMetricApi
 import no.nav.syfo.client.azuread.AzureAdClient
+import no.nav.syfo.client.narmesteLeder.NarmesteLederClient
 import no.nav.syfo.client.pdl.PdlClient
+import no.nav.syfo.client.tokendings.TokendingsClient
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.client.wellknown.WellKnown
+import no.nav.syfo.narmesteleder.NarmesteLederAccessService
 import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
+import no.nav.syfo.narmesteleder.api.registerOppfolgingstilfelleNarmesteLederApi
 import no.nav.syfo.oppfolgingstilfelle.person.api.registerOppfolgingstilfelleApi
 
 fun Application.apiModule(
@@ -21,6 +25,7 @@ fun Application.apiModule(
     database: DatabaseInterface,
     environment: Environment,
     wellKnownInternalAzureAD: WellKnown,
+    wellKnownSelvbetjening: WellKnown
 ) {
     installMetrics()
     installCallId()
@@ -31,6 +36,11 @@ fun Application.apiModule(
                 acceptedAudienceList = listOf(environment.azure.appClientId),
                 jwtIssuerType = JwtIssuerType.INTERNAL_AZUREAD,
                 wellKnown = wellKnownInternalAzureAD,
+            ),
+            JwtIssuer(
+                acceptedAudienceList = listOf(environment.tokenx.clientId),
+                jwtIssuerType = JwtIssuerType.SELVBETJENING,
+                wellKnown = wellKnownSelvbetjening,
             ),
         ),
     )
@@ -44,6 +54,18 @@ fun Application.apiModule(
         azureEnviroment = environment.azure,
         redisStore = redisStore,
     )
+    val tokendingsClient = TokendingsClient(
+        tokenxClientId = environment.tokenx.clientId,
+        tokenxEndpoint = environment.tokenx.endpoint,
+        tokenxPrivateJWK = environment.tokenx.privateJWK,
+    )
+    val narmesteLederClient = NarmesteLederClient(
+        narmesteLederBaseUrl = environment.clients.narmesteLeder.baseUrl,
+        narmestelederClientId = environment.clients.narmesteLeder.clientId,
+        tokendingsClient = tokendingsClient,
+        redisStore = redisStore,
+    )
+    val narmesteLederAccessService = NarmesteLederAccessService(narmesteLederClient = narmesteLederClient)
     val pdlClient = PdlClient(
         azureAdClient = azureAdClient,
         clientEnvironment = environment.clients.pdl,
@@ -68,6 +90,12 @@ fun Application.apiModule(
             registerOppfolgingstilfelleApi(
                 oppfolgingstilfelleService = oppfolgingstilfelleService,
                 veilederTilgangskontrollClient = veilederTilgangskontrollClient,
+            )
+        }
+        authenticate(JwtIssuerType.SELVBETJENING.name) {
+            registerOppfolgingstilfelleNarmesteLederApi(
+                oppfolgingstilfelleService = oppfolgingstilfelleService,
+                narmesteLederAccessService = narmesteLederAccessService
             )
         }
     }

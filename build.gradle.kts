@@ -23,6 +23,7 @@ object Versions {
     const val redisEmbedded = "0.7.3"
     const val scala = "2.13.9"
     const val spek = "2.0.18"
+    const val nimbusjosejwt = "9.25.1"
 }
 
 plugins {
@@ -73,6 +74,9 @@ dependencies {
     implementation("com.zaxxer:HikariCP:${Versions.hikari}")
     implementation("org.postgresql:postgresql:${Versions.postgres}")
     testImplementation("com.opentable.components:otj-pg-embedded:${Versions.postgresEmbedded}")
+
+    // JWT
+    implementation("com.nimbusds:nimbus-jose-jwt:${Versions.nimbusjosejwt}")
 
     // Kafka
     val excludeLog4j = fun ExternalModuleDependency.() {

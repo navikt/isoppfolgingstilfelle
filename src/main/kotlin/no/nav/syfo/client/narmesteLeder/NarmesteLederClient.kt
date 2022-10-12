@@ -25,35 +25,38 @@ class NarmesteLederClient(
 
     suspend fun getAktiveAnsatte(
         narmesteLederIdent: PersonIdentNumber,
-        tokenx: String? = null,
+        tokenx: String,
         callId: String,
     ): List<NarmesteLederRelasjonDTO> {
         val cacheKey = "$CACHE_NARMESTE_LEDER_AKTIVE_ANSATTE_KEY_PREFIX${narmesteLederIdent.value}"
-        val cachedNarmesteLedere = redisStore.getListObject<NarmesteLederRelasjonDTO>(cacheKey)
-        return if (cachedNarmesteLedere != null) {
-            cachedNarmesteLedere
+        val cachedAktiveAnsatte = redisStore.getListObject<NarmesteLederRelasjonDTO>(cacheKey)
+        return if (cachedAktiveAnsatte != null) {
+            cachedAktiveAnsatte
         } else {
-            val token = tokenx?.let {
+            val token =
                 tokendingsClient.getOnBehalfOfToken(
                     scopeClientId = narmestelederClientId,
-                    token = it,
+                    token = tokenx,
                 ).accessToken
-            } ?: throw RuntimeException("Could not get AktiveAnsatte: Failed to get token x")
 
             val path = ansatteNarmesteLederSelvbetjeningPath
             try {
-                val narmesteLedere = httpClient.get(path) {
+                val ansatte = httpClient.get(path) {
                     header(HttpHeaders.Authorization, bearerHeader(token))
                     header(NAV_PERSONIDENT_HEADER, narmesteLederIdent.value)
                     header(NAV_CALL_ID_HEADER, callId)
                     accept(ContentType.Application.Json)
                 }.body<List<NarmesteLederRelasjonDTO>>()
+                val aktiveAnsatte = ansatte.filter {
+                    it.narmesteLederPersonIdentNumber == narmesteLederIdent.value &&
+                        it.status == NarmesteLederRelasjonStatus.INNMELDT_AKTIV.name
+                }
                 redisStore.setObject(
                     cacheKey,
-                    narmesteLedere,
+                    aktiveAnsatte,
                     CACHE_NARMESTE_LEDER_EXPIRE_SECONDS,
                 )
-                narmesteLedere.filter { it.narmesteLederPersonIdentNumber == narmesteLederIdent.value }
+                aktiveAnsatte
             } catch (e: ClientRequestException) {
                 handleUnexpectedResponseException(e.response)
                 emptyList()
@@ -79,7 +82,6 @@ class NarmesteLederClient(
         const val CACHE_NARMESTE_LEDER_EXPIRE_SECONDS = 3600L
 
         const val CURRENT_NARMESTELEDER_PATH = "/api/v1/narmestelederrelasjon/personident"
-        const val NARMESTELEDERE_SYSTEM_PATH = "/api/system/v1/narmestelederrelasjoner"
         const val NARMESTELEDERE_SELVBETJENING_PATH = "/api/selvbetjening/v1/narmestelederrelasjoner"
     }
 }

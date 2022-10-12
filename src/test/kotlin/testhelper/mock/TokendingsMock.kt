@@ -10,6 +10,7 @@ import no.nav.syfo.client.tokendings.TokenendingsTokenDTO
 import no.nav.syfo.client.wellknown.WellKnown
 import testhelper.getRandomPort
 import java.nio.file.Paths
+import java.util.*
 
 fun wellKnownSelvbetjeningMock(): WellKnown {
     val path = "src/test/resources/jwkset.json"
@@ -24,8 +25,10 @@ class TokendingsMock {
     private val port = getRandomPort()
     val url = "http://localhost:$port"
 
+    var uuid: String = UUID.randomUUID().toString()
+
     val tokenResponse = TokenendingsTokenDTO(
-        access_token = "token",
+        access_token = uuid,
         issued_token_type = "issued_token_type",
         token_type = "token_type",
         expires_in = 3600,

@@ -1,5 +1,6 @@
 package no.nav.syfo.application.api
 
+import com.auth0.jwt.JWT
 import io.ktor.client.plugins.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
@@ -11,6 +12,7 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.micrometer.core.instrument.distribution.DistributionStatisticConfig
 import no.nav.syfo.application.metric.METRICS_REGISTRY
+import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.util.*
 import java.time.Duration
 import java.util.*
@@ -40,6 +42,14 @@ fun Application.installContentNegotiation() {
     }
 }
 
+fun ApplicationCall.personIdent(): PersonIdentNumber? {
+    val token = this.getBearerHeader()
+    val decodedJWT = JWT.decode(token)
+    val pid = decodedJWT.claims["pid"]
+
+    return pid?.asString()?.let { PersonIdentNumber(it) }
+}
+
 fun Application.installStatusPages() {
     install(StatusPages) {
         exception<Throwable> { call, cause ->
@@ -50,6 +60,7 @@ fun Application.installStatusPages() {
                 is ForbiddenAccessVeilederException -> {
                     call.application.log.warn(logExceptionMessage, cause)
                 }
+
                 else -> {
                     call.application.log.error(logExceptionMessage, cause)
                 }
@@ -61,12 +72,15 @@ fun Application.installStatusPages() {
                 is ResponseException -> {
                     cause.response.status
                 }
+
                 is IllegalArgumentException -> {
                     HttpStatusCode.BadRequest
                 }
+
                 is ForbiddenAccessVeilederException -> {
                     HttpStatusCode.Forbidden
                 }
+
                 else -> {
                     isUnexpectedException = true
                     HttpStatusCode.InternalServerError

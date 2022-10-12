@@ -10,4 +10,5 @@ data class JwtIssuer(
 
 enum class JwtIssuerType {
     INTERNAL_AZUREAD,
+    SELVBETJENING,
 }

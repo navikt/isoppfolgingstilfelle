@@ -13,11 +13,14 @@ class ExternalMockEnvironment private constructor() {
     private val pdlMock = PdlMock()
     private val syfoTilgangskontrollMock = SyfoTilgangskontrollMock()
     private val narmesteLederMock = NarmesteLederMock()
+    private val tokendingsMock = TokendingsMock()
 
     val externalMocks = hashMapOf(
         azureAdMock.name to azureAdMock.server,
         pdlMock.name to pdlMock.server,
-        syfoTilgangskontrollMock.name to syfoTilgangskontrollMock.server
+        syfoTilgangskontrollMock.name to syfoTilgangskontrollMock.server,
+        narmesteLederMock.name to narmesteLederMock.server,
+        tokendingsMock.name to tokendingsMock.server
     )
 
     val environment = testEnvironment(
@@ -25,7 +28,8 @@ class ExternalMockEnvironment private constructor() {
         azureOpenIdTokenEndpoint = azureAdMock.url,
         pdlUrl = pdlMock.url,
         syfoTilgangskontrollUrl = syfoTilgangskontrollMock.url,
-        narmestelederUrl = narmesteLederMock.url
+        narmestelederUrl = narmesteLederMock.url,
+        tokendingsUrl = tokendingsMock.url
     )
 
     val redisServer = testRedis(

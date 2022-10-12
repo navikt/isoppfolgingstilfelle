@@ -65,18 +65,6 @@ class NarmesteLederMock {
                         )
                     }
                 }
-                get(NarmesteLederClient.NARMESTELEDERE_SYSTEM_PATH) {
-                    if (call.request.headers[NAV_PERSONIDENT_HEADER] == NARMESTELEDER_FNR_2.value) {
-                        call.respond(emptyList<NarmesteLederRelasjonDTO>())
-                    } else {
-                        call.respond(
-                            listOf(
-                                narmesteLeder,
-                                narmesteLeder.copy(virksomhetsnummer = OTHER_VIRKSOMHETSNUMMER_HAS_NARMESTELEDER.value),
-                            )
-                        )
-                    }
-                }
                 get(NarmesteLederClient.NARMESTELEDERE_SELVBETJENING_PATH) {
                     if (call.request.headers[NAV_PERSONIDENT_HEADER] == NARMESTELEDER_FNR_2.value) {
                         call.respond(emptyList<NarmesteLederRelasjonDTO>())
