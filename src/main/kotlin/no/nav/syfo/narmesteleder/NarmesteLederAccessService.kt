@@ -18,8 +18,6 @@ class NarmesteLederAccessService(private val narmesteLederClient: NarmesteLederC
             callId = callId,
         )
 
-        println("___narm: $aktiveAnsatteRelasjoner")
-
         return aktiveAnsatteRelasjoner.any { relasjon ->
             relasjon.arbeidstakerPersonIdentNumber == arbeidstakerPersonIdentNumber.value && relasjon.virksomhetsnummer == virksomhetsnummer.value
         }
