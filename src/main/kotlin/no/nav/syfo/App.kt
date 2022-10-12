@@ -29,6 +29,9 @@ fun main() {
     val wellKnownInternalAzureAD = getWellKnown(
         wellKnownUrl = environment.azure.appWellKnownUrl,
     )
+    val wellKnownSelvbetjening = getWellKnown(
+        wellKnownUrl = environment.tokenx.wellKnownUrl
+    )
 
     val oppfolgingstilfellePersonProducer = OppfolgingstilfellePersonProducer(
         kafkaProducerOppfolgingstilfelle = KafkaProducer(
@@ -67,6 +70,7 @@ fun main() {
                 database = applicationDatabase,
                 environment = environment,
                 wellKnownInternalAzureAD = wellKnownInternalAzureAD,
+                wellKnownSelvbetjening = wellKnownSelvbetjening,
             )
         }
     }

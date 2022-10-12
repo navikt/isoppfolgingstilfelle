@@ -33,7 +33,7 @@ fun List<Oppfolgingstilfelle>?.toOppfolgingstilfellePersonDTO(
     personIdent = personIdent.value,
 )
 
-private fun List<Oppfolgingstilfelle>.toOppfolgingstilfelleDTOList() =
+fun List<Oppfolgingstilfelle>.toOppfolgingstilfelleDTOList() =
     this.map { oppfolgingstilfelle ->
         OppfolgingstilfelleDTO(
             arbeidstakerAtTilfelleEnd = oppfolgingstilfelle.arbeidstakerAtTilfelleEnd,

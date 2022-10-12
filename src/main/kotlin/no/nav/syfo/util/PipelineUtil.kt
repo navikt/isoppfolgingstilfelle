@@ -31,3 +31,7 @@ fun ApplicationCall.getConsumerClientId(): String? =
 fun PipelineContext<out Unit, ApplicationCall>.personIdentHeader(): String? {
     return this.call.request.headers[NAV_PERSONIDENT_HEADER]
 }
+
+fun PipelineContext<out Unit, ApplicationCall>.virksomhetsnummerHeader(): String? {
+    return this.call.request.headers[NAV_VIRKSOMHETSNUMMER]
+}

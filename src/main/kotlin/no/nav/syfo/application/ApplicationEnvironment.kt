@@ -1,6 +1,7 @@
 package no.nav.syfo.application
 
 import io.ktor.server.application.*
+import no.nav.syfo.application.api.authentication.TokenxEnvironment
 import no.nav.syfo.application.cache.RedisEnvironment
 import no.nav.syfo.application.database.DatabaseEnvironment
 import no.nav.syfo.application.kafka.KafkaEnvironment
@@ -16,6 +17,13 @@ data class Environment(
         appClientSecret = getEnvVar("AZURE_APP_CLIENT_SECRET"),
         appWellKnownUrl = getEnvVar("AZURE_APP_WELL_KNOWN_URL"),
         openidConfigTokenEndpoint = getEnvVar("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
+    ),
+
+    val tokenx: TokenxEnvironment = TokenxEnvironment(
+        clientId = getEnvVar("TOKEN_X_CLIENT_ID"),
+        endpoint = getEnvVar("TOKEN_X_TOKEN_ENDPOINT"),
+        wellKnownUrl = getEnvVar("TOKEN_X_WELL_KNOWN_URL"),
+        privateJWK = getEnvVar("TOKEN_X_PRIVATE_JWK"),
     ),
 
     val database: DatabaseEnvironment = DatabaseEnvironment(
@@ -51,7 +59,11 @@ data class Environment(
             baseUrl = getEnvVar("SYFOTILGANGSKONTROLL_URL"),
             clientId = getEnvVar("SYFOTILGANGSKONTROLL_CLIENT_ID"),
         ),
-    ),
+        narmesteLeder = ClientEnvironment(
+            baseUrl = getEnvVar("NARMESTELEDER_URL"),
+            clientId = getEnvVar("NARMESTELEDER_CLIENT_ID")
+        )
+    )
 )
 
 fun getEnvVar(

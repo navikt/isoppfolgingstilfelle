@@ -2,6 +2,7 @@ package testhelper
 
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.Environment
+import no.nav.syfo.application.api.authentication.TokenxEnvironment
 import no.nav.syfo.application.cache.RedisEnvironment
 import no.nav.syfo.application.database.DatabaseEnvironment
 import no.nav.syfo.application.kafka.KafkaEnvironment
@@ -15,12 +16,20 @@ fun testEnvironment(
     kafkaBootstrapServers: String,
     pdlUrl: String,
     syfoTilgangskontrollUrl: String,
+    narmestelederUrl: String,
+    tokendingsUrl: String
 ) = Environment(
     azure = AzureEnvironment(
         appClientId = "isoppfolgingstilfelle-client-id",
         appClientSecret = "isoppfolgingstilfelle-secret",
         appWellKnownUrl = "wellknown",
         openidConfigTokenEndpoint = azureOpenIdTokenEndpoint,
+    ),
+    tokenx = TokenxEnvironment(
+        clientId = "tokenx-client-id",
+        endpoint = tokendingsUrl,
+        wellKnownUrl = "tokenx-wellknown",
+        privateJWK = getDefaultRSAKey().toJSONString()
     ),
     database = DatabaseEnvironment(
         host = "localhost",
@@ -46,6 +55,10 @@ fun testEnvironment(
             baseUrl = syfoTilgangskontrollUrl,
             clientId = "dev-fss.teamsykefravr.syfotilgangskontroll",
         ),
+        narmesteLeder = ClientEnvironment(
+            baseUrl = narmestelederUrl,
+            clientId = "narmestelederClientId",
+        )
     ),
     redis = RedisEnvironment(
         host = "localhost",

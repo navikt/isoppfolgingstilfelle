@@ -14,3 +14,7 @@ fun OffsetDateTime.toLocalDateTimeOslo(): LocalDateTime = this.atZoneSameInstant
 fun OffsetDateTime.toLocalDateOslo(): LocalDate = this.toLocalDateTimeOslo().toLocalDate()
 
 fun Timestamp.toOffsetDateTimeUTC(): OffsetDateTime = this.toInstant().atOffset(defaultZoneOffset)
+
+fun LocalDate.isBeforeOrEqual(date: LocalDate) = !this.isAfter(date)
+
+fun LocalDate.isAfterOrEqual(date: LocalDate) = !this.isBefore(date)
