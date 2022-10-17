@@ -118,20 +118,27 @@ fun List<OppfolgingstilfelleBit>.pickOppfolgingstilfelleDag(
         .groupBy { bit -> bit.inntruffet.toLocalDateOslo() }
         .toSortedMap()
         .mapValues { entryDagBitList: Map.Entry<LocalDate, List<OppfolgingstilfelleBit>> ->
-            entryDagBitList.value.findPriorityOppfolgingstilfelleBitOrNull()
+            entryDagBitList.value.findPriorityOppfolgingstilfelleBitAndVirksomheter()
         }
-        .mapNotNull(Map.Entry<LocalDate, OppfolgingstilfelleBit?>::value)
-        .map { bit ->
+        .mapNotNull(Map.Entry<LocalDate, Pair<OppfolgingstilfelleBit, List<String>>?>::value)
+        .map { bitPair ->
             OppfolgingstilfelleDag(
                 dag = dag,
-                priorityOppfolgingstilfelleBit = bit,
+                priorityOppfolgingstilfelleBit = bitPair.first,
+                virksomhetsnummerList = bitPair.second,
             )
         }
         .lastOrNull()
         ?: OppfolgingstilfelleDag(
             dag = dag,
             priorityOppfolgingstilfelleBit = null,
+            virksomhetsnummerList = emptyList(),
         )
+}
+
+fun List<OppfolgingstilfelleBit>.findPriorityOppfolgingstilfelleBitAndVirksomheter(): Pair<OppfolgingstilfelleBit, List<String>>? {
+    val virksomhetsnummerListe = this.mapNotNull { bit -> bit.virksomhetsnummer }.distinct()
+    return this.findPriorityOppfolgingstilfelleBitOrNull()?.let { bit -> Pair(bit, virksomhetsnummerListe) }
 }
 
 fun List<OppfolgingstilfelleBit>.findPriorityOppfolgingstilfelleBitOrNull(): OppfolgingstilfelleBit? {

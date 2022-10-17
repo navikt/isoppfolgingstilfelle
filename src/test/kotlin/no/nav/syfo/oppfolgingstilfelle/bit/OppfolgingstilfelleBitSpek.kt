@@ -55,6 +55,36 @@ class OppfolgingstilfelleBitSpek : Spek({
             tilfelleDuration shouldBeEqualTo 16
         }
 
+        it("should return 1 Oppfolgingstilfelle with two virksomheter if biter from different virksomheter") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                    virksomhetsnummer = "987654320",
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.size shouldBeEqualTo 1
+
+            val tilfelleDuration = Period.between(
+                oppfolgingstilfelleList.first().start,
+                oppfolgingstilfelleList.first().end,
+            ).days
+            tilfelleDuration shouldBeEqualTo 16
+            oppfolgingstilfelleList.first().virksomhetsnummerList.size shouldBeEqualTo 2
+        }
+
         it("should return 1 Oppfolgingstilfelle, if person only has Ferie/Permisjon between 2 Sykedag") {
             val oppfolgingstilfelleBitList = listOf(
                 defaultBit.copy(

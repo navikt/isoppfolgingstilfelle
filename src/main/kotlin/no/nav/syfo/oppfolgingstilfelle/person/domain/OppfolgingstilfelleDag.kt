@@ -9,6 +9,7 @@ import java.time.LocalDate
 class OppfolgingstilfelleDag(
     val dag: LocalDate,
     val priorityOppfolgingstilfelleBit: OppfolgingstilfelleBit?,
+    val virksomhetsnummerList: List<String>,
 )
 
 fun List<OppfolgingstilfelleDag>.groupOppfolgingstilfelleList(): List<Oppfolgingstilfelle> {
@@ -59,9 +60,9 @@ fun List<OppfolgingstilfelleDag>.isArbeidstakerAtTilfelleEnd() =
     }.priorityOppfolgingstilfelleBit?.isArbeidstakerBit() ?: false
 
 fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelle(): Oppfolgingstilfelle {
-    val virksomhetsnummerList = this.mapNotNull {
-        it.priorityOppfolgingstilfelleBit?.virksomhetsnummer
-    }.distinct().map { virksomhetsnummer ->
+    val virksomhetsnummerList = this.map {
+        it.virksomhetsnummerList
+    }.flatten().distinct().map { virksomhetsnummer ->
         Virksomhetsnummer(virksomhetsnummer)
     }
     return Oppfolgingstilfelle(
