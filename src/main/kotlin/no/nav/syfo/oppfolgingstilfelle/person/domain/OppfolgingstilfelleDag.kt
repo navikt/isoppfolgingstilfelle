@@ -60,18 +60,20 @@ fun List<OppfolgingstilfelleDag>.isArbeidstakerAtTilfelleEnd() =
     }.priorityOppfolgingstilfelleBit?.isArbeidstakerBit() ?: false
 
 fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelle(): Oppfolgingstilfelle {
-    val virksomhetsnummerList = this.map {
-        it.virksomhetsnummerList
-    }.flatten().distinct().map { virksomhetsnummer ->
-        Virksomhetsnummer(virksomhetsnummer)
-    }
     return Oppfolgingstilfelle(
         arbeidstakerAtTilfelleEnd = this.isArbeidstakerAtTilfelleEnd(),
         start = this.first().dag,
         end = this.last().dag,
-        virksomhetsnummerList = virksomhetsnummerList,
+        virksomhetsnummerList = this.toVirksomhetsnummerList(),
     )
 }
+
+fun List<OppfolgingstilfelleDag>.toVirksomhetsnummerList() =
+    this.map {
+        it.virksomhetsnummerList
+    }.flatten().distinct().map { virksomhetsnummer ->
+        Virksomhetsnummer(virksomhetsnummer)
+    }
 
 fun OppfolgingstilfelleDag.isArbeidsdag() =
     priorityOppfolgingstilfelleBit
