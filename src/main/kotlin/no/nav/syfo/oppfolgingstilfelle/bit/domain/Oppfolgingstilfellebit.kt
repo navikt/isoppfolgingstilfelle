@@ -139,7 +139,6 @@ fun List<OppfolgingstilfelleBit>.pickOppfolgingstilfelleDag(
 fun List<OppfolgingstilfelleBit>.findPriorityOppfolgingstilfelleBitAndVirksomheter() =
     this.findPriorityOppfolgingstilfelleBitOrNull()?.let { bit -> Pair(bit, this.getVirksomhetsnummerList()) }
 
-
 fun List<OppfolgingstilfelleBit>.getVirksomhetsnummerList() =
     this.mapNotNull { bit -> bit.virksomhetsnummer }.distinct()
 

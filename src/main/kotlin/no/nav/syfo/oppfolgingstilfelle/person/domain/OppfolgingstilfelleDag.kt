@@ -59,14 +59,13 @@ fun List<OppfolgingstilfelleDag>.isArbeidstakerAtTilfelleEnd() =
         it.priorityOppfolgingstilfelleBit != null
     }.priorityOppfolgingstilfelleBit?.isArbeidstakerBit() ?: false
 
-fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelle(): Oppfolgingstilfelle {
-    return Oppfolgingstilfelle(
+fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelle() =
+    Oppfolgingstilfelle(
         arbeidstakerAtTilfelleEnd = this.isArbeidstakerAtTilfelleEnd(),
         start = this.first().dag,
         end = this.last().dag,
         virksomhetsnummerList = this.toVirksomhetsnummerList(),
     )
-}
 
 fun List<OppfolgingstilfelleDag>.toVirksomhetsnummerList() =
     this.map {
