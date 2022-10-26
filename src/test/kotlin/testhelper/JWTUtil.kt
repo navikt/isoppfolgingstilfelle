@@ -4,6 +4,7 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jose.jwk.RSAKey
+import no.nav.syfo.application.api.authentication.JWT_CLAIM_AZP
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -18,6 +19,7 @@ const val keyId = "localhost-signer"
 // Mock of JWT-token supplied by AzureAD. KeyId must match kid i jwkset.json
 fun generateJWT(
     audience: String,
+    azp: String,
     issuer: String,
     subject: String? = null,
     expiry: LocalDateTime? = LocalDateTime.now().plusHours(1),
@@ -40,6 +42,7 @@ fun generateJWT(
         .withClaim("iat", now)
         .withClaim("exp", Date.from(expiry?.atZone(ZoneId.systemDefault())?.toInstant()))
         .withClaim("pid", pid)
+        .withClaim(JWT_CLAIM_AZP, azp)
         .sign(alg)
 }
 

@@ -5,6 +5,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.routing.*
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.Environment
+import no.nav.syfo.application.api.access.APIConsumerAccessService
 import no.nav.syfo.application.api.authentication.*
 import no.nav.syfo.application.cache.RedisStore
 import no.nav.syfo.application.database.DatabaseInterface
@@ -19,6 +20,7 @@ import no.nav.syfo.narmesteleder.NarmesteLederAccessService
 import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
 import no.nav.syfo.narmesteleder.api.registerOppfolgingstilfelleNarmesteLederApi
 import no.nav.syfo.oppfolgingstilfelle.person.api.registerOppfolgingstilfelleApi
+import no.nav.syfo.oppfolgingstilfelle.person.api.registerOppfolgingstilfelleSystemApi
 
 fun Application.apiModule(
     applicationState: ApplicationState,
@@ -79,6 +81,9 @@ fun Application.apiModule(
         azureAdClient = azureAdClient,
         clientEnvironment = environment.clients.syfotilgangskontroll,
     )
+    val apiConsumerAccessService = APIConsumerAccessService(
+        azureAppPreAuthorizedApps = environment.azure.appPreAuthorizedApps,
+    )
 
     routing {
         registerPodApi(
@@ -90,6 +95,11 @@ fun Application.apiModule(
             registerOppfolgingstilfelleApi(
                 oppfolgingstilfelleService = oppfolgingstilfelleService,
                 veilederTilgangskontrollClient = veilederTilgangskontrollClient,
+            )
+            registerOppfolgingstilfelleSystemApi(
+                apiConsumerAccessService = apiConsumerAccessService,
+                authorizedApplicationNameList = environment.systemAPIAuthorizedConsumerApplicationNameList,
+                oppfolgingstilfelleService = oppfolgingstilfelleService,
             )
         }
         authenticate(JwtIssuerType.SELVBETJENING.name) {

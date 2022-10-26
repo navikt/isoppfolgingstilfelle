@@ -38,6 +38,7 @@ class OppfolgingstilfelleNarmesteLederApiSpek : Spek({
             describe("$oppfolgingstilfelleApiV1Path") {
                 val validToken = generateJWT(
                     audience = externalMockEnvironment.environment.tokenx.clientId,
+                    azp = testIsnarmesteLederClientId,
                     issuer = externalMockEnvironment.wellKnownSelvbetjening.issuer,
                 )
 

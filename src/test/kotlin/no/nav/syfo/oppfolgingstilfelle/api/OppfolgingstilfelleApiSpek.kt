@@ -148,6 +148,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                 val url = "$oppfolgingstilfelleApiV1Path$oppfolgingstilfelleApiPersonIdentPath"
                 val validToken = generateJWT(
                     audience = externalMockEnvironment.environment.azure.appClientId,
+                    azp = testIsdialogmoteClientId,
                     issuer = externalMockEnvironment.wellKnownInternalAzureAD.issuer,
                 )
 
