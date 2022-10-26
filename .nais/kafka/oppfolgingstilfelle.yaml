@@ -31,3 +31,6 @@ spec:
     - team: team-esyfo
       application: syfomotebehov
       access: read
+    - team: teamsykefravr
+      application: isaktivitetskrav
+      access: read
