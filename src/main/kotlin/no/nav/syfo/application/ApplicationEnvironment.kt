@@ -15,6 +15,7 @@ data class Environment(
     val azure: AzureEnvironment = AzureEnvironment(
         appClientId = getEnvVar("AZURE_APP_CLIENT_ID"),
         appClientSecret = getEnvVar("AZURE_APP_CLIENT_SECRET"),
+        appPreAuthorizedApps = getEnvVar("AZURE_APP_PRE_AUTHORIZED_APPS"),
         appWellKnownUrl = getEnvVar("AZURE_APP_WELL_KNOWN_URL"),
         openidConfigTokenEndpoint = getEnvVar("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
     ),
@@ -63,7 +64,11 @@ data class Environment(
             baseUrl = getEnvVar("NARMESTELEDER_URL"),
             clientId = getEnvVar("NARMESTELEDER_CLIENT_ID")
         )
-    )
+    ),
+    private val isdialogmoteApplicationName: String = "isdialogmote",
+    val systemAPIAuthorizedConsumerApplicationNames: List<String> = listOf(
+        isdialogmoteApplicationName,
+    ),
 )
 
 fun getEnvVar(

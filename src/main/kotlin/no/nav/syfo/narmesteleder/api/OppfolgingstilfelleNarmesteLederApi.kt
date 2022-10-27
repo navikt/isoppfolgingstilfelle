@@ -53,7 +53,7 @@ fun Route.registerOppfolgingstilfelleNarmesteLederApi(
             )
 
             val oppfolgingstilfelleList =
-                oppfolgingstilfelleService.oppfolgingstilfelleList(
+                oppfolgingstilfelleService.getOppfolgingstilfeller(
                     callId = getCallId(),
                     personIdent = arbeidstakerPersonIdent,
                 )

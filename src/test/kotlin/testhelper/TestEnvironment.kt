@@ -2,6 +2,7 @@ package testhelper
 
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.Environment
+import no.nav.syfo.application.api.access.PreAuthorizedClient
 import no.nav.syfo.application.api.authentication.TokenxEnvironment
 import no.nav.syfo.application.cache.RedisEnvironment
 import no.nav.syfo.application.database.DatabaseEnvironment
@@ -9,6 +10,7 @@ import no.nav.syfo.application.kafka.KafkaEnvironment
 import no.nav.syfo.client.ClientEnvironment
 import no.nav.syfo.client.ClientsEnvironment
 import no.nav.syfo.client.azuread.AzureEnvironment
+import no.nav.syfo.util.configuredJacksonMapper
 import java.net.ServerSocket
 
 fun testEnvironment(
@@ -22,6 +24,7 @@ fun testEnvironment(
     azure = AzureEnvironment(
         appClientId = "isoppfolgingstilfelle-client-id",
         appClientSecret = "isoppfolgingstilfelle-secret",
+        appPreAuthorizedApps = configuredJacksonMapper().writeValueAsString(testAzureAppPreAuthorizedApps),
         appWellKnownUrl = "wellknown",
         openidConfigTokenEndpoint = azureOpenIdTokenEndpoint,
     ),
@@ -75,3 +78,13 @@ fun testAppState() = ApplicationState(
 fun getRandomPort() = ServerSocket(0).use {
     it.localPort
 }
+
+const val testIsdialogmoteClientId = "isdialogmote-client-id"
+const val testIsnarmesteLederClientId = "isnarmesteleder-client-id"
+
+val testAzureAppPreAuthorizedApps = listOf(
+    PreAuthorizedClient(
+        name = "dev-gcp:teamsykefravr:isdialogmote",
+        clientId = testIsdialogmoteClientId,
+    ),
+)
