@@ -98,7 +98,7 @@ fun Application.apiModule(
             )
             registerOppfolgingstilfelleSystemApi(
                 apiConsumerAccessService = apiConsumerAccessService,
-                authorizedApplicationNameList = environment.systemAPIAuthorizedConsumerApplicationNameList,
+                authorizedApplicationNames = environment.systemAPIAuthorizedConsumerApplicationNames,
                 oppfolgingstilfelleService = oppfolgingstilfelleService,
             )
         }

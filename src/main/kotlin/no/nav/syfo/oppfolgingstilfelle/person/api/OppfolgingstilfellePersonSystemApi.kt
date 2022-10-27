@@ -14,7 +14,7 @@ const val oppfolgingstilfelleSystemApiPersonIdentPath = "/personident"
 
 fun Route.registerOppfolgingstilfelleSystemApi(
     apiConsumerAccessService: APIConsumerAccessService,
-    authorizedApplicationNameList: List<String>,
+    authorizedApplicationNames: List<String>,
     oppfolgingstilfelleService: OppfolgingstilfelleService,
 ) {
     route(oppfolgingstilfelleSystemApiV1Path) {
@@ -22,14 +22,14 @@ fun Route.registerOppfolgingstilfelleSystemApi(
             val token = this.getBearerHeader()
                 ?: throw IllegalArgumentException("Failed to retrieve oppfolgingstilfelle: No token supplied in request header")
             apiConsumerAccessService.validateConsumerApplicationAZP(
-                authorizedApplicationNameList = authorizedApplicationNameList,
+                authorizedApplicationNames = authorizedApplicationNames,
                 token = token,
             )
             val personIdent = personIdentHeader()?.let { personIdent ->
                 PersonIdentNumber(personIdent)
             } ?: throw IllegalArgumentException("Failed to retrieve OppfolgingstilfelleDTO: No $NAV_PERSONIDENT_HEADER supplied in request header")
 
-            val oppfolgingstilfellePersonDTO = oppfolgingstilfelleService.oppfolgingstilfelleList(
+            val oppfolgingstilfellePersonDTO = oppfolgingstilfelleService.getOppfolgingstilfeller(
                 callId = getCallId(),
                 personIdent = personIdent,
             ).toOppfolgingstilfellePersonDTO(

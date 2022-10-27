@@ -66,7 +66,7 @@ data class Environment(
         )
     ),
     private val isdialogmoteApplicationName: String = "isdialogmote",
-    val systemAPIAuthorizedConsumerApplicationNameList: List<String> = listOf(
+    val systemAPIAuthorizedConsumerApplicationNames: List<String> = listOf(
         isdialogmoteApplicationName,
     ),
 )

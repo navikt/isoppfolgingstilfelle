@@ -28,7 +28,7 @@ fun Route.registerOppfolgingstilfelleApi(
                 personIdentToAccess = personIdent,
                 veilederTilgangskontrollClient = veilederTilgangskontrollClient,
             ) {
-                val oppfolgingstilfellePersonDTO = oppfolgingstilfelleService.oppfolgingstilfelleList(
+                val oppfolgingstilfellePersonDTO = oppfolgingstilfelleService.getOppfolgingstilfeller(
                     callId = getCallId(),
                     personIdent = personIdent,
                 ).toOppfolgingstilfellePersonDTO(

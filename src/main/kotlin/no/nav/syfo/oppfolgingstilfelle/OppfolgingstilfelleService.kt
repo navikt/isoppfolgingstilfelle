@@ -12,7 +12,7 @@ class OppfolgingstilfelleService(
     val database: DatabaseInterface,
     val pdlClient: PdlClient,
 ) {
-    suspend fun oppfolgingstilfelleList(
+    suspend fun getOppfolgingstilfeller(
         callId: String,
         personIdent: PersonIdentNumber,
     ): List<Oppfolgingstilfelle> {
