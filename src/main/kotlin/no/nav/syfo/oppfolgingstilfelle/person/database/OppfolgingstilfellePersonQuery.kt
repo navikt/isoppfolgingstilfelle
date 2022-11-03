@@ -56,7 +56,7 @@ const val queryGetOppfolgingstilfellePerson =
         SELECT * 
         FROM OPPFOLGINGSTILFELLE_PERSON
         WHERE personident = ?
-        ORDER BY referanse_tilfelle_bit_inntruffet DESC;
+        ORDER BY referanse_tilfelle_bit_inntruffet DESC, id DESC;
     """
 
 fun DatabaseInterface.getOppfolgingstilfellePerson(
