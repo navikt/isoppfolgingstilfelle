@@ -1,7 +1,6 @@
 package testhelper.generator
 
-import no.nav.syfo.oppfolgingstilfelle.person.domain.Oppfolgingstilfelle
-import no.nav.syfo.oppfolgingstilfelle.person.domain.OppfolgingstilfellePerson
+import no.nav.syfo.oppfolgingstilfelle.person.domain.*
 import no.nav.syfo.util.nowUTC
 import testhelper.UserConstants
 import java.time.LocalDate
@@ -16,7 +15,8 @@ fun generateOppfolgingstilfellePerson() = OppfolgingstilfellePerson(
             arbeidstakerAtTilfelleEnd = false,
             start = LocalDate.now().minusMonths(6),
             end = LocalDate.now().minusMonths(2),
-            virksomhetsnummerList = listOf()
+            virksomhetsnummerList = listOf(),
+            gradertAtTilfelleEnd = false,
         )
     ),
     referanseTilfelleBitUuid = UUID.randomUUID(),

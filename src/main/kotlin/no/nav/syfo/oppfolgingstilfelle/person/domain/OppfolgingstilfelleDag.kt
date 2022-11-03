@@ -59,12 +59,18 @@ fun List<OppfolgingstilfelleDag>.isArbeidstakerAtTilfelleEnd() =
         it.priorityOppfolgingstilfelleBit != null
     }.priorityOppfolgingstilfelleBit?.isArbeidstakerBit() ?: false
 
+fun List<OppfolgingstilfelleDag>.gradertAtTilfelleEnd() =
+    this.last {
+        it.priorityOppfolgingstilfelleBit != null
+    }.isGradert() ?: false
+
 fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelle() =
     Oppfolgingstilfelle(
         arbeidstakerAtTilfelleEnd = this.isArbeidstakerAtTilfelleEnd(),
         start = this.first().dag,
         end = this.last().dag,
         virksomhetsnummerList = this.toVirksomhetsnummerList(),
+        gradertAtTilfelleEnd = this.gradertAtTilfelleEnd(),
     )
 
 fun List<OppfolgingstilfelleDag>.toVirksomhetsnummerList() =
@@ -73,6 +79,8 @@ fun List<OppfolgingstilfelleDag>.toVirksomhetsnummerList() =
     }.flatten().distinct().map { virksomhetsnummer ->
         Virksomhetsnummer(virksomhetsnummer)
     }
+
+fun OppfolgingstilfelleDag.isGradert() = priorityOppfolgingstilfelleBit?.isGradert() ?: false
 
 fun OppfolgingstilfelleDag.isArbeidsdag() =
     priorityOppfolgingstilfelleBit
