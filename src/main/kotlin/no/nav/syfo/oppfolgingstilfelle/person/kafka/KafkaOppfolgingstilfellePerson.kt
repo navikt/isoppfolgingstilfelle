@@ -13,6 +13,7 @@ data class KafkaOppfolgingstilfellePerson(
 )
 
 data class KafkaOppfolgingstilfelle(
+    val gradertAtTilfelleEnd: Boolean,
     val arbeidstakerAtTilfelleEnd: Boolean,
     val start: LocalDate,
     val end: LocalDate,
