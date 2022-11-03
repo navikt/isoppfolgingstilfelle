@@ -23,8 +23,10 @@ const val queryCreateOppfolgingstilfellebit =
         tags,
         virksomhetsnummer,
         fom,
-        tom
-        ) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        tom,
+        ready,
+        processed
+        ) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         RETURNING id
     """
 
@@ -42,6 +44,8 @@ fun Connection.createOppfolgingstilfelleBit(
         it.setString(7, oppfolgingstilfelleBit.virksomhetsnummer)
         it.setDate(8, Date.valueOf(oppfolgingstilfelleBit.fom))
         it.setDate(9, Date.valueOf(oppfolgingstilfelleBit.tom))
+        it.setBoolean(10, oppfolgingstilfelleBit.ready)
+        it.setBoolean(11, oppfolgingstilfelleBit.processed)
         it.executeQuery().toList { getInt("id") }
     }
 
@@ -103,4 +107,6 @@ fun ResultSet.toPOppfolgingstilfelleBit(): POppfolgingstilfelleBit =
         ressursId = getString("ressurs_id"),
         fom = getDate("fom").toLocalDate(),
         tom = getDate("tom").toLocalDate(),
+        ready = getBoolean("ready"),
+        processed = getBoolean("processed"),
     )
