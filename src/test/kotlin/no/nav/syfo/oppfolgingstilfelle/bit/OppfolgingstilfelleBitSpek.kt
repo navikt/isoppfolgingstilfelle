@@ -1,10 +1,9 @@
 package no.nav.syfo.oppfolgingstilfelle.bit
 
-import no.nav.syfo.oppfolgingstilfelle.bit.domain.OppfolgingstilfelleBit
+import no.nav.syfo.oppfolgingstilfelle.bit.domain.*
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.Tag.*
-import no.nav.syfo.oppfolgingstilfelle.bit.domain.generateOppfolgingstilfelleList
-import no.nav.syfo.util.defaultZoneOffset
-import no.nav.syfo.util.nowUTC
+import no.nav.syfo.util.*
+import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -53,6 +52,76 @@ class OppfolgingstilfelleBitSpek : Spek({
                 oppfolgingstilfelleList.first().end,
             ).days
             tilfelleDuration shouldBeEqualTo 16
+        }
+
+        it("returns Oppfolgingstilfelle with gradertAtTilfelleEnd=false if no biter gradert") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, BEHANDLINGSDAGER),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now().minusDays(16),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT),
+                    fom = LocalDate.now(),
+                    tom = LocalDate.now().plusDays(6),
+                ),
+            )
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBe false
+        }
+
+        it("returns Oppfolgingstilfelle with gradertAtTilfelleEnd=true if latest bit gradert aktivitet") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, BEHANDLINGSDAGER),
+                    fom = LocalDate.now(),
+                    tom = LocalDate.now().plusDays(6),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, GRADERT_AKTIVITET),
+                    fom = LocalDate.now().plusDays(6),
+                    tom = LocalDate.now().plusDays(15),
+                ),
+            )
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBe true
+        }
+
+        it("returns Oppfolgingstilfelle with gradertAtTilfelleEnd=false if latest bit ingen aktivitet") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, BEHANDLINGSDAGER),
+                    fom = LocalDate.now(),
+                    tom = LocalDate.now().plusDays(6),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, GRADERT_AKTIVITET),
+                    fom = LocalDate.now().plusDays(6),
+                    tom = LocalDate.now().plusDays(15),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.now().plusDays(16),
+                    tom = LocalDate.now().plusDays(25),
+                )
+            )
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBe false
         }
 
         it("should return 1 Oppfolgingstilfelle with two virksomheter if biter from different virksomheter") {
