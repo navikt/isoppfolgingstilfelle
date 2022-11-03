@@ -52,8 +52,6 @@ data class OppfolgingstilfelleBit(
     val ressursId: String,
     val fom: LocalDate,
     val tom: LocalDate,
-    val ready: Boolean = true,
-    val processed: Boolean = true,
 ) {
     companion object {
         val TAG_PRIORITY: List<ListContainsPredicate<Tag>> = listOf(
