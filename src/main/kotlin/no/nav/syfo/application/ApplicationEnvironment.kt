@@ -43,7 +43,7 @@ data class Environment(
         aivenTruststoreLocation = getEnvVar("KAFKA_TRUSTSTORE_PATH"),
     ),
 
-    val kafkaSyketilfellebitProcessingEnabled: Boolean = getEnvVar("TOGGLE_KAFKA_SYKETILFELLEBIT_PROCESSING_ENABLED").toBoolean(),
+    val cronjobSyketilfellebitProcessingEnabled: Boolean = getEnvVar("TOGGLE_CRONJOB_SYKETILFELLEBIT_PROCESSING_ENABLED").toBoolean(),
 
     val redis: RedisEnvironment = RedisEnvironment(
         host = getEnvVar("REDIS_HOST"),
@@ -65,6 +65,7 @@ data class Environment(
             clientId = getEnvVar("NARMESTELEDER_CLIENT_ID")
         )
     ),
+    val electorPath: String = getEnvVar("ELECTOR_PATH"),
     private val isdialogmoteApplicationName: String = "isdialogmote",
     val systemAPIAuthorizedConsumerApplicationNames: List<String> = listOf(
         isdialogmoteApplicationName,

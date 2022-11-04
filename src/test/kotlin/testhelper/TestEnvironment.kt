@@ -48,7 +48,7 @@ fun testEnvironment(
         aivenSecurityProtocol = "SSL",
         aivenTruststoreLocation = "truststore",
     ),
-    kafkaSyketilfellebitProcessingEnabled = true,
+    cronjobSyketilfellebitProcessingEnabled = false,
     clients = ClientsEnvironment(
         pdl = ClientEnvironment(
             baseUrl = pdlUrl,

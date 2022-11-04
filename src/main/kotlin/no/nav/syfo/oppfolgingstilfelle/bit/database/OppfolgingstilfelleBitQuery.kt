@@ -78,22 +78,53 @@ const val queryGetOppfolgingstilfelleBitList =
     """
     SELECT *
     FROM TILFELLE_BIT
-    WHERE personident = ?
+    WHERE personident = ? AND processed
     ORDER BY inntruffet DESC;
     """
 
-fun DatabaseInterface.getOppfolgingstilfelleBitList(
+fun Connection.getOppfolgingstilfelleBitList(
     personIdentNumber: PersonIdentNumber,
-): List<POppfolgingstilfelleBit> {
-    return this.connection.use { connection ->
-        connection.prepareStatement(queryGetOppfolgingstilfelleBitList).use {
-            it.setString(1, personIdentNumber.value)
+): List<POppfolgingstilfelleBit> =
+    this.prepareStatement(queryGetOppfolgingstilfelleBitList).use {
+        it.setString(1, personIdentNumber.value)
+        it.executeQuery().toList {
+            toPOppfolgingstilfelleBit()
+        }
+    }
+
+const val queryGetUnprocessedOppfolgingstilfelleBitList =
+    """
+    SELECT *
+    FROM TILFELLE_BIT
+    WHERE ready AND NOT processed
+    ORDER BY inntruffet ASC, id ASC;
+    """
+
+fun DatabaseInterface.getUnprocessedOppfolgingstilfelleBitList() =
+    this.connection.use { connection ->
+        connection.prepareStatement(queryGetUnprocessedOppfolgingstilfelleBitList).use {
             it.executeQuery().toList {
                 toPOppfolgingstilfelleBit()
             }
         }
     }
-}
+
+const val querySetProcessedOppfolgingstilfelleBit =
+    """
+    UPDATE TILFELLE_BIT 
+    SET processed=true
+    WHERE uuid=?
+    """
+
+fun Connection.setProcessedOppfolgingstilfelleBit(uuid: UUID) =
+    this.prepareStatement(querySetProcessedOppfolgingstilfelleBit).use {
+        it.setString(1, uuid.toString())
+        it.executeUpdate()
+    }.also { updateCount ->
+        if (updateCount != 1) {
+            throw RuntimeException("Unexpected update count: $updateCount")
+        }
+    }
 
 fun ResultSet.toPOppfolgingstilfelleBit(): POppfolgingstilfelleBit =
     POppfolgingstilfelleBit(

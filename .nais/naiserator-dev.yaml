@@ -76,7 +76,7 @@ spec:
   env:
     - name: KTOR_ENV
       value: "production"
-    - name: TOGGLE_KAFKA_SYKETILFELLEBIT_PROCESSING_ENABLED
+    - name: TOGGLE_CRONJOB_SYKETILFELLEBIT_PROCESSING_ENABLED
       value: "true"
     - name: PDL_CLIENT_ID
       value: "dev-fss.pdl.pdl-api"

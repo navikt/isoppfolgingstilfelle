@@ -18,13 +18,16 @@ class OppfolgingstilfelleBitService(
 ) {
     fun oppfolgingstilfelleBitList(
         personIdentNumber: PersonIdentNumber,
-    ) = database.getOppfolgingstilfelleBitList(
-        personIdentNumber = personIdentNumber,
-    ).toOppfolgingstilfelleBitList()
+    ) = database.connection.use { connection ->
+        connection.getOppfolgingstilfelleBitList(
+            personIdentNumber = personIdentNumber,
+        ).toOppfolgingstilfelleBitList()
+    }
 
     fun createOppfolgingstilfelleBitList(
         connection: Connection,
-        oppfolgingstilfelleBitList: List<OppfolgingstilfelleBit>
+        oppfolgingstilfelleBitList: List<OppfolgingstilfelleBit>,
+        cronjobEnabled: Boolean,
     ) {
         val oppfolgingstilfelleBitInPollCreatedList = mutableListOf<OppfolgingstilfelleBit>()
         oppfolgingstilfelleBitList.forEach { oppfolgingstilfelleBit ->
@@ -42,23 +45,24 @@ class OppfolgingstilfelleBitService(
                     commit = false,
                     oppfolgingstilfelleBit = oppfolgingstilfelleBit,
                 )
-                oppfolgingstilfelleBitInPollCreatedList.add(oppfolgingstilfelleBit)
+                if (!cronjobEnabled) {
+                    oppfolgingstilfelleBitInPollCreatedList.add(oppfolgingstilfelleBit)
 
-                val oppfolgingstilfelleBitInPollCreatedForPersonList =
-                    oppfolgingstilfelleBitInPollCreatedList.filter { createdBit ->
-                        createdBit.personIdentNumber.value == oppfolgingstilfelleBit.personIdentNumber.value
-                    }
+                    val oppfolgingstilfelleBitInPollCreatedForPersonList =
+                        oppfolgingstilfelleBitInPollCreatedList.filter { createdBit ->
+                            createdBit.personIdentNumber.value == oppfolgingstilfelleBit.personIdentNumber.value
+                        }
 
-                val oppfolgingstilfelleBitForPersonList = allCreatedOppfolgingstilfelleBit(
-                    oppfolgingstilfelleBitInPollCreatedForPersonList = oppfolgingstilfelleBitInPollCreatedForPersonList
-                )
+                    val oppfolgingstilfelleBitForPersonList = allCreatedOppfolgingstilfelleBit(
+                        oppfolgingstilfelleBitInPollCreatedForPersonList = oppfolgingstilfelleBitInPollCreatedForPersonList
+                    )
 
-                oppfolgingstilfellePersonService.createOppfolgingstilfellePerson(
-                    connection = connection,
-                    oppfolgingstilfelleBit = oppfolgingstilfelleBit,
-                    oppfolgingstilfelleBitForPersonList = oppfolgingstilfelleBitForPersonList,
-
-                )
+                    oppfolgingstilfellePersonService.createOppfolgingstilfellePerson(
+                        connection = connection,
+                        oppfolgingstilfelleBit = oppfolgingstilfelleBit,
+                        oppfolgingstilfelleBitForPersonList = oppfolgingstilfelleBitForPersonList,
+                    )
+                }
                 COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_CREATED.increment()
             }
         }
@@ -70,11 +74,9 @@ class OppfolgingstilfelleBitService(
         val oppfolgingstilfelleBitListCreatedBeforePoll = oppfolgingstilfelleBitList(
             personIdentNumber = oppfolgingstilfelleBitInPollCreatedForPersonList.first().personIdentNumber
         )
-        val oppfolgingstilfelleBitForPersonList = oppfolgingstilfelleBitListCreatedBeforePoll
-            .toMutableList()
+        val oppfolgingstilfelleBitForPersonList = oppfolgingstilfelleBitListCreatedBeforePoll.toMutableList()
         oppfolgingstilfelleBitForPersonList.addAll(oppfolgingstilfelleBitInPollCreatedForPersonList)
-        oppfolgingstilfelleBitForPersonList.sortedByDescending { bit -> bit.inntruffet }
-        return oppfolgingstilfelleBitForPersonList
+        return oppfolgingstilfelleBitForPersonList.sortedByDescending { bit -> bit.inntruffet }
     }
 
     companion object {

@@ -147,7 +147,7 @@ fun OppfolgingstilfelleBit.tagsToString() = this.tagList.joinToString(",")
 
 fun String.toTagList(): List<Tag> = split(',').map(String::trim).map(Tag::valueOf)
 
-fun KafkaSyketilfellebit.toOppfolgingstilfelleBit(): OppfolgingstilfelleBit {
+fun KafkaSyketilfellebit.toOppfolgingstilfelleBit(cronjobEnabled: Boolean): OppfolgingstilfelleBit {
     return OppfolgingstilfelleBit(
         uuid = UUID.fromString(this.id),
         personIdentNumber = PersonIdentNumber(this.fnr),
@@ -158,6 +158,7 @@ fun KafkaSyketilfellebit.toOppfolgingstilfelleBit(): OppfolgingstilfelleBit {
         ressursId = this.ressursId,
         fom = this.fom,
         tom = this.tom,
+        processed = !cronjobEnabled,
     )
 }
 
