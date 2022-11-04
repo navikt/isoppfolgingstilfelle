@@ -63,6 +63,7 @@ fun testEnvironment(
             clientId = "narmestelederClientId",
         )
     ),
+    electorPath = "electorPath",
     redis = RedisEnvironment(
         host = "localhost",
         port = 6379,
