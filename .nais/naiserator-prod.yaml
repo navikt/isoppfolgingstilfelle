@@ -16,7 +16,7 @@ spec:
     path: /internal/is_ready
     periodSeconds: 5
     timeout: 5
-    failureThreshold: 30
+    failureThreshold: 300
   liveness:
     path: /internal/is_alive
     periodSeconds: 5

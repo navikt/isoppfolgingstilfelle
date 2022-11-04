@@ -18,6 +18,8 @@ data class POppfolgingstilfelleBit(
     val ressursId: String,
     val fom: LocalDate,
     val tom: LocalDate,
+    val ready: Boolean = true,
+    val processed: Boolean = true,
 )
 
 fun List<POppfolgingstilfelleBit>.toOppfolgingstilfelleBitList() = this.map { it.toOppfolgingstilfelleBit() }
@@ -32,4 +34,6 @@ fun POppfolgingstilfelleBit.toOppfolgingstilfelleBit() = OppfolgingstilfelleBit(
     ressursId = this.ressursId,
     fom = this.fom,
     tom = this.tom,
+    ready = this.ready,
+    processed = this.processed,
 )
