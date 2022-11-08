@@ -19,7 +19,7 @@ class OppfolgingstilfelleBitService(
     fun oppfolgingstilfelleBitList(
         personIdentNumber: PersonIdentNumber,
     ) = database.connection.use { connection ->
-        connection.getOppfolgingstilfelleBitList(
+        connection.getProcessedOppfolgingstilfelleBitList(
             personIdentNumber = personIdentNumber,
         ).toOppfolgingstilfelleBitList()
     }

@@ -30,7 +30,7 @@ class OppfolgingstilfelleCronjob(
         unprocessed.forEach { oppfolgingstilfelleBit ->
             try {
                 database.connection.use { connection ->
-                    val oppfolgingstilfelleBitForPersonList = connection.getOppfolgingstilfelleBitList(
+                    val oppfolgingstilfelleBitForPersonList = connection.getProcessedOppfolgingstilfelleBitList(
                         personIdentNumber = oppfolgingstilfelleBit.personIdentNumber,
                     ).toOppfolgingstilfelleBitList().toMutableList()
 
