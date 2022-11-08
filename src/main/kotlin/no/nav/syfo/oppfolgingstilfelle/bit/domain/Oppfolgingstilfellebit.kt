@@ -115,45 +115,33 @@ fun List<OppfolgingstilfelleBit>.pickOppfolgingstilfelleDag(
 ): OppfolgingstilfelleDag {
     val bitListForDag = this.filter { bit ->
         dag in (bit.fom..(bit.tom))
+    }.toMutableList().apply {
+        sortByDescending { bit -> bit.inntruffet }
+        sortByTagPriority()
     }
-    return bitListForDag
-        .groupBy { bit -> bit.inntruffet.toLocalDateOslo() }
-        .toSortedMap()
-        .mapValues { entryDagBitList: Map.Entry<LocalDate, List<OppfolgingstilfelleBit>> ->
-            entryDagBitList.value.findPriorityOppfolgingstilfelleBitAndVirksomheter()
-        }
-        .mapNotNull(Map.Entry<LocalDate, Pair<OppfolgingstilfelleBit, List<String>>?>::value)
-        .map { bitPair ->
-            OppfolgingstilfelleDag(
-                dag = dag,
-                priorityOppfolgingstilfelleBit = bitPair.first,
-                virksomhetsnummerList = bitPair.second,
-            )
-        }
-        .lastOrNull()
-        ?: OppfolgingstilfelleDag(
-            dag = dag,
-            priorityOppfolgingstilfelleBit = null,
-            virksomhetsnummerList = emptyList(),
-        )
+    return OppfolgingstilfelleDag(
+        dag = dag,
+        priorityOppfolgingstilfelleBit = bitListForDag.firstOrNull(),
+        virksomhetsnummerList = bitListForDag.getVirksomhetsnummerList(),
+    )
 }
-
-fun List<OppfolgingstilfelleBit>.findPriorityOppfolgingstilfelleBitAndVirksomheter() =
-    this.findPriorityOppfolgingstilfelleBitOrNull()?.let { bit -> Pair(bit, this.getVirksomhetsnummerList()) }
 
 fun List<OppfolgingstilfelleBit>.getVirksomhetsnummerList() =
     this.mapNotNull { bit -> bit.virksomhetsnummer }.distinct()
 
-fun List<OppfolgingstilfelleBit>.findPriorityOppfolgingstilfelleBitOrNull(): OppfolgingstilfelleBit? {
-    TAG_PRIORITY.forEach { tagPriorityElement ->
-        this.find { bit ->
-            bit.tagList in tagPriorityElement
-        }?.let { bit ->
-            return bit
-        }
-    }
-    return null
+fun MutableList<OppfolgingstilfelleBit>.sortByTagPriority() {
+    this.sortBy { bit -> bit.findTagPriority() }
 }
+
+fun OppfolgingstilfelleBit.findTagPriority() =
+    this.findTagPriorityElementOrNull()?.let {
+        TAG_PRIORITY.indexOf(it)
+    } ?: TAG_PRIORITY.size
+
+fun OppfolgingstilfelleBit.findTagPriorityElementOrNull() =
+    TAG_PRIORITY.find { tagPriorityElement ->
+        this.tagList in tagPriorityElement
+    }
 
 fun OppfolgingstilfelleBit.tagsToString() = this.tagList.joinToString(",")
 
