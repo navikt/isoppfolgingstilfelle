@@ -15,6 +15,7 @@ import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.KafkaSyketilfellebitService
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.launchKafkaTaskSyketilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.person.OppfolgingstilfellePersonService
+import no.nav.syfo.application.cronjob.launchCronjobModule
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.OppfolgingstilfellePersonProducer
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.kafkaOppfolgingstilfelleProducerConfig
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -42,6 +43,7 @@ fun main() {
     )
 
     lateinit var oppfolgingstilfelleBitService: OppfolgingstilfelleBitService
+    lateinit var oppfolgingstilfellePersonService: OppfolgingstilfellePersonService
 
     val applicationEngineEnvironment = applicationEngineEnvironment {
         log = LoggerFactory.getLogger("ktor.application")
@@ -57,7 +59,7 @@ fun main() {
             databaseModule(
                 databaseEnvironment = environment.database,
             )
-            val oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
+            oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
                 database = applicationDatabase,
                 oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
             )
@@ -81,21 +83,30 @@ fun main() {
         val kafkaSyketilfellebitService = KafkaSyketilfellebitService(
             database = applicationDatabase,
             oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
+            cronjobEnabled = environment.cronjobSyketilfellebitProcessingEnabled,
         )
 
-        if (environment.kafkaSyketilfellebitProcessingEnabled) {
-            launchKafkaTaskSyketilfelleBit(
-                applicationState = applicationState,
-                kafkaEnvironment = environment.kafka,
-                kafkaSyketilfellebitService = kafkaSyketilfellebitService,
-            )
-        }
+        launchKafkaTaskSyketilfelleBit(
+            applicationState = applicationState,
+            kafkaEnvironment = environment.kafka,
+            kafkaSyketilfellebitService = kafkaSyketilfellebitService,
+        )
+        launchCronjobModule(
+            applicationState = applicationState,
+            environment = environment,
+            database = applicationDatabase,
+            oppfolgingstilfellePersonService = oppfolgingstilfellePersonService,
+        )
     }
 
     val server = embeddedServer(
         factory = Netty,
         environment = applicationEngineEnvironment,
-    )
+    ) {
+        connectionGroupSize = 8
+        workerGroupSize = 8
+        callGroupSize = 16
+    }
 
     Runtime.getRuntime().addShutdownHook(
         Thread {

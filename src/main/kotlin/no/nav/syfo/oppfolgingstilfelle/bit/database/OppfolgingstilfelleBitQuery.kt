@@ -74,26 +74,57 @@ fun Connection.getOppfolgingstilfelleBitForUUID(
     }
 }.firstOrNull()
 
-const val queryGetOppfolgingstilfelleBitList =
+const val queryGetProcessedOppfolgingstilfelleBitList =
     """
     SELECT *
     FROM TILFELLE_BIT
-    WHERE personident = ?
-    ORDER BY inntruffet DESC;
+    WHERE personident = ? AND processed
+    ORDER BY inntruffet DESC, id DESC;
     """
 
-fun DatabaseInterface.getOppfolgingstilfelleBitList(
+fun Connection.getProcessedOppfolgingstilfelleBitList(
     personIdentNumber: PersonIdentNumber,
-): List<POppfolgingstilfelleBit> {
-    return this.connection.use { connection ->
-        connection.prepareStatement(queryGetOppfolgingstilfelleBitList).use {
-            it.setString(1, personIdentNumber.value)
+): List<POppfolgingstilfelleBit> =
+    this.prepareStatement(queryGetProcessedOppfolgingstilfelleBitList).use {
+        it.setString(1, personIdentNumber.value)
+        it.executeQuery().toList {
+            toPOppfolgingstilfelleBit()
+        }
+    }
+
+const val queryGetUnprocessedOppfolgingstilfelleBitList =
+    """
+    SELECT *
+    FROM TILFELLE_BIT
+    WHERE ready AND NOT processed
+    ORDER BY inntruffet ASC, id ASC;
+    """
+
+fun DatabaseInterface.getUnprocessedOppfolgingstilfelleBitList() =
+    this.connection.use { connection ->
+        connection.prepareStatement(queryGetUnprocessedOppfolgingstilfelleBitList).use {
             it.executeQuery().toList {
                 toPOppfolgingstilfelleBit()
             }
         }
     }
-}
+
+const val querySetProcessedOppfolgingstilfelleBit =
+    """
+    UPDATE TILFELLE_BIT 
+    SET processed=true
+    WHERE uuid=?
+    """
+
+fun Connection.setProcessedOppfolgingstilfelleBit(uuid: UUID) =
+    this.prepareStatement(querySetProcessedOppfolgingstilfelleBit).use {
+        it.setString(1, uuid.toString())
+        it.executeUpdate()
+    }.also { updateCount ->
+        if (updateCount != 1) {
+            throw RuntimeException("Unexpected update count: $updateCount")
+        }
+    }
 
 fun ResultSet.toPOppfolgingstilfelleBit(): POppfolgingstilfelleBit =
     POppfolgingstilfelleBit(

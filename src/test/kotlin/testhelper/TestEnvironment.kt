@@ -48,7 +48,7 @@ fun testEnvironment(
         aivenSecurityProtocol = "SSL",
         aivenTruststoreLocation = "truststore",
     ),
-    kafkaSyketilfellebitProcessingEnabled = true,
+    cronjobSyketilfellebitProcessingEnabled = false,
     clients = ClientsEnvironment(
         pdl = ClientEnvironment(
             baseUrl = pdlUrl,
@@ -63,6 +63,7 @@ fun testEnvironment(
             clientId = "narmestelederClientId",
         )
     ),
+    electorPath = "electorPath",
     redis = RedisEnvironment(
         host = "localhost",
         port = 6379,

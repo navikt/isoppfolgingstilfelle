@@ -56,6 +56,7 @@ class OppfolgingstilfelleApiSpek : Spek({
         val kafkaSyketilfellebitService = KafkaSyketilfellebitService(
             database = database,
             oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
+            cronjobEnabled = externalMockEnvironment.environment.cronjobSyketilfellebitProcessingEnabled,
         )
         val personIdentDefault = PERSONIDENTNUMBER_DEFAULT.toHistoricalPersonIdentNumber()
 
