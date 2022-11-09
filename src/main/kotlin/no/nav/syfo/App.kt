@@ -65,7 +65,6 @@ fun main() {
             )
             oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(
                 database = applicationDatabase,
-                oppfolgingstilfellePersonService = oppfolgingstilfellePersonService,
             )
             apiModule(
                 applicationState = applicationState,
@@ -83,7 +82,6 @@ fun main() {
         val kafkaSyketilfellebitService = KafkaSyketilfellebitService(
             database = applicationDatabase,
             oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
-            cronjobEnabled = environment.cronjobSyketilfellebitProcessingEnabled,
         )
 
         launchKafkaTaskSyketilfelleBit(

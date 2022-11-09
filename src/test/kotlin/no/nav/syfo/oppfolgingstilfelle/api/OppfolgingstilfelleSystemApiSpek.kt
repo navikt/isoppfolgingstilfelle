@@ -9,7 +9,6 @@ import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.OppfolgingstilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.Tag
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.*
-import no.nav.syfo.oppfolgingstilfelle.person.OppfolgingstilfellePersonService
 import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfellePersonDTO
 import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleSystemApiPersonIdentPath
 import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleSystemApiV1Path
@@ -39,13 +38,8 @@ class OppfolgingstilfelleSystemApiSpek : Spek({
         val database = externalMockEnvironment.database
 
         val oppfolgingstilfellePersonProducer = mockk<OppfolgingstilfellePersonProducer>()
-        val oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
-            database = database,
-            oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
-        )
         val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(
             database = database,
-            oppfolgingstilfellePersonService = oppfolgingstilfellePersonService,
         )
 
         application.testApiModule(
@@ -55,7 +49,6 @@ class OppfolgingstilfelleSystemApiSpek : Spek({
         val kafkaSyketilfellebitService = KafkaSyketilfellebitService(
             database = database,
             oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
-            cronjobEnabled = externalMockEnvironment.environment.cronjobSyketilfellebitProcessingEnabled,
         )
         val personIdentDefault = PERSONIDENTNUMBER_DEFAULT.toHistoricalPersonIdentNumber()
 

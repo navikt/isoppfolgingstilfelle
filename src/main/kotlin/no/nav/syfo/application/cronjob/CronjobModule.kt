@@ -26,13 +26,11 @@ fun launchCronjobModule(
         oppfolgingstilfellePersonService = oppfolgingstilfellePersonService,
     )
 
-    if (environment.cronjobSyketilfellebitProcessingEnabled) {
-        launchBackgroundTask(
-            applicationState = applicationState,
-        ) {
-            cronjobRunner.start(
-                cronjob = oppfolgingstilfelleCronjob,
-            )
-        }
+    launchBackgroundTask(
+        applicationState = applicationState,
+    ) {
+        cronjobRunner.start(
+            cronjob = oppfolgingstilfelleCronjob,
+        )
     }
 }

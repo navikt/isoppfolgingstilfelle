@@ -43,8 +43,6 @@ data class Environment(
         aivenTruststoreLocation = getEnvVar("KAFKA_TRUSTSTORE_PATH"),
     ),
 
-    val cronjobSyketilfellebitProcessingEnabled: Boolean = getEnvVar("TOGGLE_CRONJOB_SYKETILFELLEBIT_PROCESSING_ENABLED").toBoolean(),
-
     val redis: RedisEnvironment = RedisEnvironment(
         host = getEnvVar("REDIS_HOST"),
         port = getEnvVar("REDIS_PORT", "6379").toInt(),
