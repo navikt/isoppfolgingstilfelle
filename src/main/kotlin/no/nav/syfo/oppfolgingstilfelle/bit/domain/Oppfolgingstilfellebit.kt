@@ -40,6 +40,8 @@ enum class Tag {
     REDUSERT_ARBEIDSGIVERPERIODE,
     REISETILSKUDD,
     AVVENTENDE,
+    INNTEKTSMELDING,
+    ARBEIDSGIVERPERIODE,
 }
 
 data class OppfolgingstilfelleBit(

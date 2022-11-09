@@ -75,3 +75,16 @@ fun generateKafkaSyketilfellebitNotRelevantSykmeldingNy(
         Tag.NY,
     ).map { tag -> tag.name },
 )
+
+fun generateKafkaSyketilfellebitInntektsmelding(
+    personIdentNumber: PersonIdentNumber = UserConstants.PERSONIDENTNUMBER_DEFAULT,
+    virksomhetsnummer: Virksomhetsnummer = UserConstants.VIRKSOMHETSNUMMER_DEFAULT,
+) = generateKafkaSyketilfellebitRelevantVirksomhet(
+    personIdent = personIdentNumber,
+    virksomhetsnummer = virksomhetsnummer
+).copy(
+    tags = listOf(
+        Tag.INNTEKTSMELDING,
+        Tag.ARBEIDSGIVERPERIODE,
+    ).map { tag -> tag.name },
+)
