@@ -17,12 +17,11 @@ class OppfolgingstilfelleBitService(
         oppfolgingstilfelleBitList: List<OppfolgingstilfelleBit>,
     ) {
         oppfolgingstilfelleBitList.forEach { oppfolgingstilfelleBit ->
-            log.info("Received relevant ${OppfolgingstilfelleBit::class.java.simpleName}: inntruffet=${oppfolgingstilfelleBit.inntruffet}, callId=${kafkaCallId()}")
-
             val isDuplicate = connection.getOppfolgingstilfelleBitForUUID(oppfolgingstilfelleBit.uuid) != null
             if (isDuplicate) {
                 COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_DUPLICATE.increment()
             } else {
+                log.info("Received relevant ${OppfolgingstilfelleBit::class.java.simpleName}: inntruffet=${oppfolgingstilfelleBit.inntruffet}, callId=${kafkaCallId()}")
                 connection.createOppfolgingstilfelleBit(
                     commit = false,
                     oppfolgingstilfelleBit = oppfolgingstilfelleBit,
