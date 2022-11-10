@@ -42,7 +42,6 @@ fun main() {
         )
     )
 
-    lateinit var oppfolgingstilfelleBitService: OppfolgingstilfelleBitService
     lateinit var oppfolgingstilfellePersonService: OppfolgingstilfellePersonService
 
     val applicationEngineEnvironment = applicationEngineEnvironment {
@@ -63,9 +62,6 @@ fun main() {
                 database = applicationDatabase,
                 oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
             )
-            oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(
-                database = applicationDatabase,
-            )
             apiModule(
                 applicationState = applicationState,
                 database = applicationDatabase,
@@ -81,7 +77,7 @@ fun main() {
         application.environment.log.info("Application is ready, running Java VM ${Runtime.version()}")
         val kafkaSyketilfellebitService = KafkaSyketilfellebitService(
             database = applicationDatabase,
-            oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
+            oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(),
         )
 
         launchKafkaTaskSyketilfelleBit(

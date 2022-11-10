@@ -42,9 +42,7 @@ class OppfolgingstilfelleApiSpek : Spek({
         val database = externalMockEnvironment.database
 
         val oppfolgingstilfellePersonProducer = mockk<OppfolgingstilfellePersonProducer>()
-        val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(
-            database = database,
-        )
+        val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService()
 
         application.testApiModule(
             externalMockEnvironment = externalMockEnvironment,

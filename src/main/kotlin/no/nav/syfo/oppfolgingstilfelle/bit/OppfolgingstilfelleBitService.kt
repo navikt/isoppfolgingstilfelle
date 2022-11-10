@@ -1,6 +1,5 @@
 package no.nav.syfo.oppfolgingstilfelle.bit
 
-import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.oppfolgingstilfelle.bit.database.*
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.OppfolgingstilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_CREATED
@@ -9,9 +8,7 @@ import no.nav.syfo.util.kafkaCallId
 import org.slf4j.LoggerFactory
 import java.sql.Connection
 
-class OppfolgingstilfelleBitService(
-    val database: DatabaseInterface,
-) {
+class OppfolgingstilfelleBitService() {
     fun createOppfolgingstilfelleBitList(
         connection: Connection,
         oppfolgingstilfelleBitList: List<OppfolgingstilfelleBit>,
