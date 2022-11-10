@@ -10,6 +10,7 @@ import org.spekframework.spek2.style.specification.describe
 import testhelper.generator.generateOppfolgingstilfelleBit
 import java.time.LocalDate
 import java.time.Period
+import java.util.UUID
 
 class OppfolgingstilfelleBitSpek : Spek({
     val mondayLocal = LocalDate.of(2018, 11, 26)
@@ -42,6 +43,39 @@ class OppfolgingstilfelleBitSpek : Spek({
                     fom = LocalDate.now(),
                     tom = LocalDate.now(),
                 ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.size shouldBeEqualTo 1
+
+            val tilfelleDuration = Period.between(
+                oppfolgingstilfelleList.first().start,
+                oppfolgingstilfelleList.first().end,
+            ).days
+            tilfelleDuration shouldBeEqualTo 16
+        }
+
+        it("should return 1 Oppfolgingstilfelle if person only has days with Sykedag from korrigert bit") {
+            val feilsendtBit = defaultBit.copy(
+                createdAt = nowUTC(),
+                inntruffet = nowUTC().minusSeconds(60),
+                tagList = listOf(SYKEPENGESOKNAD, SENDT, ARBEID_GJENNOPPTATT),
+                fom = LocalDate.now().minusDays(26),
+                tom = LocalDate.now(),
+                ressursId = UUID.randomUUID().toString(),
+            )
+            val korrigerendeBit = defaultBit.copy(
+                createdAt = nowUTC(),
+                inntruffet = nowUTC(),
+                tagList = listOf(SYKEPENGESOKNAD, SENDT),
+                fom = LocalDate.now().minusDays(16),
+                tom = LocalDate.now(),
+                ressursId = UUID.randomUUID().toString(),
+                korrigerer = feilsendtBit.ressursId,
+            )
+            val oppfolgingstilfelleBitList = listOf(
+                feilsendtBit,
+                korrigerendeBit,
             )
 
             val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()

@@ -56,6 +56,7 @@ data class OppfolgingstilfelleBit(
     val tom: LocalDate,
     val ready: Boolean = true,
     val processed: Boolean = true,
+    val korrigerer: String?,
 ) {
     companion object {
         val TAG_PRIORITY: List<ListContainsPredicate<Tag>> = listOf(
@@ -82,12 +83,18 @@ data class OppfolgingstilfelleBit(
 }
 
 fun List<OppfolgingstilfelleBit>.generateOppfolgingstilfelleList(): List<Oppfolgingstilfelle> {
-    return if (this.isEmpty()) {
+    val filtrertOppfolgingstilfelleList = this.filtrerOppfolgingstilfelleList()
+    return if (filtrertOppfolgingstilfelleList.isEmpty()) {
         emptyList()
     } else {
-        this.toOppfolgingstilfelleDagList()
+        filtrertOppfolgingstilfelleList.toOppfolgingstilfelleDagList()
             .groupOppfolgingstilfelleList()
     }
+}
+
+private fun List<OppfolgingstilfelleBit>.filtrerOppfolgingstilfelleList(): List<OppfolgingstilfelleBit> {
+    val korrigerte = this.mapNotNull { bit -> bit.korrigerer }
+    return this.filter { bit -> !korrigerte.contains(bit.ressursId) }
 }
 
 private fun List<OppfolgingstilfelleBit>.toOppfolgingstilfelleDagList(): List<OppfolgingstilfelleDag> {
@@ -161,6 +168,7 @@ fun KafkaSyketilfellebit.toOppfolgingstilfelleBit(): OppfolgingstilfelleBit {
         fom = this.fom,
         tom = this.tom,
         processed = false,
+        korrigerer = this.korrigererSendtSoknad,
     )
 }
 

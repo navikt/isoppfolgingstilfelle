@@ -20,4 +20,5 @@ fun generateOppfolgingstilfelleBit() = OppfolgingstilfelleBit(
         Tag.SENDT,
     ),
     ressursId = UUID.randomUUID().toString(),
+    korrigerer = null,
 )
