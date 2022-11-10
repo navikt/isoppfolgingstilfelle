@@ -61,7 +61,7 @@ class OppfolgingstilfelleBitSpek : Spek({
                 inntruffet = nowUTC().minusSeconds(60),
                 tagList = listOf(SYKEPENGESOKNAD, SENDT, ARBEID_GJENNOPPTATT),
                 fom = LocalDate.now().minusDays(26),
-                tom = LocalDate.now().minusDays(0),
+                tom = LocalDate.now(),
                 ressursId = UUID.randomUUID().toString(),
             )
             val korrigerendeBit = defaultBit.copy(
@@ -69,7 +69,7 @@ class OppfolgingstilfelleBitSpek : Spek({
                 inntruffet = nowUTC(),
                 tagList = listOf(SYKEPENGESOKNAD, SENDT),
                 fom = LocalDate.now().minusDays(16),
-                tom = LocalDate.now().minusDays(0),
+                tom = LocalDate.now(),
                 ressursId = UUID.randomUUID().toString(),
                 korrigerer = feilsendtBit.ressursId,
             )
