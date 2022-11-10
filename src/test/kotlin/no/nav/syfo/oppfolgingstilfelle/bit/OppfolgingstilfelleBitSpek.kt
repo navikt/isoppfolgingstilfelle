@@ -75,7 +75,7 @@ class OppfolgingstilfelleBitSpek : Spek({
             )
             val oppfolgingstilfelleBitList = listOf(
                 feilsendtBit,
-                korrigerendeBit
+                korrigerendeBit,
             )
 
             val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
