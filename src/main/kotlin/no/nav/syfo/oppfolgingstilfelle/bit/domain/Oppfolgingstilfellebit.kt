@@ -169,6 +169,7 @@ fun KafkaSyketilfellebit.toOppfolgingstilfelleBit(): OppfolgingstilfelleBit {
         ressursId = this.ressursId,
         fom = this.fom,
         tom = this.tom,
+        ready = !this.tags.containsAll(listOf(Tag.SYKMELDING.name, Tag.NY.name)),
         processed = false,
         korrigerer = this.korrigererSendtSoknad,
     )

@@ -20,4 +20,5 @@ data class KafkaSyketilfellebit(
 // TODO: Beskrive hva dette er: Bit for bekreftet sykmelding er for en person som er arbeidsledig, permittert, frilanser, selvstendig næringsdrivene eller annet(hvor fellesnevner er at det ikke er snakk om en arbeidstaker)
 fun KafkaSyketilfellebit.isRelevantForOppfolgingstilfelle(): Boolean =
     (this.orgnummer != null && !this.tags.contains(Tag.INNTEKTSMELDING.name)) ||
-        this.tags.containsAll(listOf(Tag.SYKMELDING.name, Tag.BEKREFTET.name))
+        this.tags.containsAll(listOf(Tag.SYKMELDING.name, Tag.BEKREFTET.name)) ||
+        this.tags.containsAll(listOf(Tag.SYKMELDING.name, Tag.NY.name))
