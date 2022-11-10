@@ -61,7 +61,11 @@ data class Environment(
         narmesteLeder = ClientEnvironment(
             baseUrl = getEnvVar("NARMESTELEDER_URL"),
             clientId = getEnvVar("NARMESTELEDER_CLIENT_ID")
-        )
+        ),
+        arbeidsforhold = ClientEnvironment(
+            baseUrl = getEnvVar("ARBEIDSFORHOLD_URL"),
+            clientId = getEnvVar("ARBEIDSFORHOLD_CLIENT_ID"),
+        ),
     ),
     val electorPath: String = getEnvVar("ELECTOR_PATH"),
     private val isdialogmoteApplicationName: String = "isdialogmote",

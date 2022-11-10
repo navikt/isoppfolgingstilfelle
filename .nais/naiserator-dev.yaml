@@ -90,3 +90,7 @@ spec:
       value: "https://isnarmesteleder.dev.intern.nav.no"
     - name: NARMESTELEDER_CLIENT_ID
       value: "dev-gcp.teamsykefravr.isnarmesteleder"
+    - name: ARBEIDSFORHOLD_URL
+      value: "https://aareg-services-q1.dev-fss-pub.nais.io"
+    - name: ARBEIDSFORHOLD_CLIENT_ID
+      value: "dev-fss.arbeidsforhold.aareg-services-nais-q1"
