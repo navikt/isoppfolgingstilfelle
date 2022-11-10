@@ -5,7 +5,9 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.mockk.*
+import kotlinx.coroutines.runBlocking
 import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
+import no.nav.syfo.oppfolgingstilfelle.bit.cronjob.OppfolgingstilfelleCronjob
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.OppfolgingstilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.Tag
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.*
@@ -39,14 +41,7 @@ class OppfolgingstilfelleSystemApiSpek : Spek({
         val database = externalMockEnvironment.database
 
         val oppfolgingstilfellePersonProducer = mockk<OppfolgingstilfellePersonProducer>()
-        val oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
-            database = database,
-            oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
-        )
-        val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(
-            database = database,
-            oppfolgingstilfellePersonService = oppfolgingstilfellePersonService,
-        )
+        val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService()
 
         application.testApiModule(
             externalMockEnvironment = externalMockEnvironment,
@@ -55,7 +50,6 @@ class OppfolgingstilfelleSystemApiSpek : Spek({
         val kafkaSyketilfellebitService = KafkaSyketilfellebitService(
             database = database,
             oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
-            cronjobEnabled = externalMockEnvironment.environment.cronjobSyketilfellebitProcessingEnabled,
         )
         val personIdentDefault = PERSONIDENTNUMBER_DEFAULT.toHistoricalPersonIdentNumber()
 
@@ -93,6 +87,14 @@ class OppfolgingstilfelleSystemApiSpek : Spek({
 
         val mockKafkaConsumerSyketilfelleBit = mockk<KafkaConsumer<String, KafkaSyketilfellebit>>()
 
+        val oppfolgingstilfelleCronjob = OppfolgingstilfelleCronjob(
+            database = database,
+            oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
+                database = database,
+                oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
+            )
+        )
+
         beforeEachTest {
             database.dropData()
 
@@ -125,6 +127,11 @@ class OppfolgingstilfelleSystemApiSpek : Spek({
                         kafkaSyketilfellebitService.pollAndProcessRecords(
                             kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
                         )
+                        runBlocking {
+                            val result = oppfolgingstilfelleCronjob.runJob()
+                            result.failed shouldBeEqualTo 0
+                            result.updated shouldBeEqualTo 1
+                        }
 
                         verify(exactly = 1) {
                             mockKafkaConsumerSyketilfelleBit.commitSync()

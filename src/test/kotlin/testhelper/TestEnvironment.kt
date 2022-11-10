@@ -48,7 +48,6 @@ fun testEnvironment(
         aivenSecurityProtocol = "SSL",
         aivenTruststoreLocation = "truststore",
     ),
-    cronjobSyketilfellebitProcessingEnabled = false,
     clients = ClientsEnvironment(
         pdl = ClientEnvironment(
             baseUrl = pdlUrl,

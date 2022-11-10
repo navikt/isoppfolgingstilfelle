@@ -11,7 +11,6 @@ import java.time.Duration
 class KafkaSyketilfellebitService(
     val database: DatabaseInterface,
     val oppfolgingstilfelleBitService: OppfolgingstilfelleBitService,
-    val cronjobEnabled: Boolean,
 ) {
     fun pollAndProcessRecords(
         kafkaConsumerSyketilfelleBit: KafkaConsumer<String, KafkaSyketilfellebit>,
@@ -67,12 +66,11 @@ class KafkaSyketilfellebitService(
         relevantRecordList: List<ConsumerRecord<String, KafkaSyketilfellebit>>,
     ) {
         val relevantOppfolgingstilfelleBitList = relevantRecordList.map {
-            it.value().toOppfolgingstilfelleBit(cronjobEnabled)
+            it.value().toOppfolgingstilfelleBit()
         }
         oppfolgingstilfelleBitService.createOppfolgingstilfelleBitList(
             connection = connection,
             oppfolgingstilfelleBitList = relevantOppfolgingstilfelleBitList,
-            cronjobEnabled = cronjobEnabled,
         )
     }
 
