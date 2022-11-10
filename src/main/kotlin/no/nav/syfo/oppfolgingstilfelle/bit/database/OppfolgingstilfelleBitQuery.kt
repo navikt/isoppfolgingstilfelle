@@ -25,8 +25,9 @@ const val queryCreateOppfolgingstilfellebit =
         fom,
         tom,
         ready,
-        processed
-        ) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        processed,
+        korrigerer
+        ) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         RETURNING id
     """
 
@@ -46,6 +47,7 @@ fun Connection.createOppfolgingstilfelleBit(
         it.setDate(9, Date.valueOf(oppfolgingstilfelleBit.tom))
         it.setBoolean(10, oppfolgingstilfelleBit.ready)
         it.setBoolean(11, oppfolgingstilfelleBit.processed)
+        it.setString(12, oppfolgingstilfelleBit.korrigerer)
         it.executeQuery().toList { getInt("id") }
     }
 
@@ -140,4 +142,5 @@ fun ResultSet.toPOppfolgingstilfelleBit(): POppfolgingstilfelleBit =
         tom = getDate("tom").toLocalDate(),
         ready = getBoolean("ready"),
         processed = getBoolean("processed"),
+        korrigerer = getString("korrigerer"),
     )

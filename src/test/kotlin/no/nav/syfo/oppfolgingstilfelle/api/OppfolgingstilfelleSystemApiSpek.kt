@@ -66,6 +66,7 @@ class OppfolgingstilfelleSystemApiSpek : Spek({
                 Tag.SENDT,
             ),
             ressursId = UUID.randomUUID().toString(),
+            korrigerer = null,
         )
 
         val partition = 0
