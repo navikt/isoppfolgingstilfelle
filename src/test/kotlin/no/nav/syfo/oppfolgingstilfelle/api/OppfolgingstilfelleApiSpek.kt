@@ -125,6 +125,16 @@ class OppfolgingstilfelleApiSpek : Spek({
             "key4",
             kafkaSyketilfellebitNotRelevant2,
         )
+        val kafkaSyketilfellebitInntektsmelding = generateKafkaSyketilfellebitInntektsmelding(
+            personIdentNumber = personIdentDefault,
+        )
+        val kafkaSyketilfellebitRecordInntektsmelding = ConsumerRecord(
+            SYKETILFELLEBIT_TOPIC,
+            partition,
+            4,
+            "key5",
+            kafkaSyketilfellebitInntektsmelding,
+        )
 
         val mockKafkaConsumerSyketilfelleBit = mockk<KafkaConsumer<String, KafkaSyketilfellebit>>()
 
@@ -426,6 +436,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                                 syketilfellebitTopicPartition to listOf(
                                     kafkaSyketilfellebitRecordNotRelevant1,
                                     kafkaSyketilfellebitRecordNotRelevant2,
+                                    kafkaSyketilfellebitRecordInntektsmelding,
                                 )
                             )
                         )
