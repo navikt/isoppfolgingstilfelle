@@ -6,7 +6,7 @@ data class AaregArbeidsforhold(
     val navArbeidsforholdId: Int,
     val arbeidssted: Arbeidssted,
     val opplysningspliktig: Opplysningspliktig,
-    val ansettelsesperiode: Ansettelsesperiode
+    val ansettelsesperiode: Ansettelsesperiode,
 )
 
 data class Arbeidssted(
@@ -33,18 +33,21 @@ data class Opplysningspliktig(
 data class Ident(
     val type: IdentType,
     val ident: String,
-    val gjeldende: Boolean
+    val gjeldende: Boolean,
 )
 
 data class Ansettelsesperiode(
     val startdato: LocalDate,
-    val sluttdato: LocalDate?
+    val sluttdato: LocalDate?,
 )
 
 enum class ArbeidsstedType {
-    Underenhet, Person
+    Underenhet,
+    Person,
 }
 
 enum class IdentType {
-    AKTORID, FOLKEREGISTERIDENT, ORGANISASJONSNUMMER
+    AKTORID,
+    FOLKEREGISTERIDENT,
+    ORGANISASJONSNUMMER,
 }

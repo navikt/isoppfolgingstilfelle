@@ -1,7 +1,6 @@
 package testhelper.mock
 
 import io.ktor.server.application.call
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.netty.NettyApplicationEngine
@@ -57,7 +56,7 @@ class ArbeidsforholdMock {
             routing {
                 get(ArbeidsforholdClient.ARBEIDSFORHOLD_PATH) {
                     if (call.request.headers[NAV_PERSONIDENT_HEADER] == ARBEIDSTAKER_VIRKSOMHET_NO_NARMESTELEDER.value) {
-                        call.respond(HttpStatusCode.NotFound)
+                        call.respond(emptyList<AaregArbeidsforhold>())
                     } else {
                         call.respond(
                             listOf(

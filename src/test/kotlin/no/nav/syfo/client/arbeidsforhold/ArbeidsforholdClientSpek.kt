@@ -45,6 +45,14 @@ class ArbeidsforholdClientSpek : Spek({
                         UserConstants.VIRKSOMHETSNUMMER_HAS_NARMESTELEDER.value
                 }
             }
+            it("no arbeidsforhold") {
+                runBlocking {
+                    val response = client.getArbeidsforhold(
+                        personIdent = UserConstants.ARBEIDSTAKER_VIRKSOMHET_NO_NARMESTELEDER,
+                    )
+                    response.size shouldBeEqualTo 0
+                }
+            }
         }
     }
 })
