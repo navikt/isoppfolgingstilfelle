@@ -59,6 +59,7 @@ spec:
       external:
         - host: "pdl-api.prod-fss-pub.nais.io"
         - host: "syfo-tilgangskontroll.prod-fss-pub.nais.io"
+        - host: "aareg-services.prod-fss-pub.nais.io"
       rules:
         - application: isoppfolgingstilfelle-redis
   azure:
