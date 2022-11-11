@@ -19,7 +19,8 @@ fun testEnvironment(
     pdlUrl: String,
     syfoTilgangskontrollUrl: String,
     narmestelederUrl: String,
-    tokendingsUrl: String
+    tokendingsUrl: String,
+    arbeidsforholdUrl: String,
 ) = Environment(
     azure = AzureEnvironment(
         appClientId = "isoppfolgingstilfelle-client-id",
@@ -60,7 +61,11 @@ fun testEnvironment(
         narmesteLeder = ClientEnvironment(
             baseUrl = narmestelederUrl,
             clientId = "narmestelederClientId",
-        )
+        ),
+        arbeidsforhold = ClientEnvironment(
+            baseUrl = arbeidsforholdUrl,
+            clientId = "aaregClientId",
+        ),
     ),
     electorPath = "electorPath",
     redis = RedisEnvironment(
