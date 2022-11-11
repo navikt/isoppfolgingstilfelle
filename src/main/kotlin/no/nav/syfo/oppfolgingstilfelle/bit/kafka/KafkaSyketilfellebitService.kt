@@ -11,6 +11,7 @@ import java.time.Duration
 class KafkaSyketilfellebitService(
     val database: DatabaseInterface,
     val oppfolgingstilfelleBitService: OppfolgingstilfelleBitService,
+    val lesSykmeldingNy: Boolean,
 ) {
     fun pollAndProcessRecords(
         kafkaConsumerSyketilfelleBit: KafkaConsumer<String, KafkaSyketilfellebit>,
@@ -38,7 +39,7 @@ class KafkaSyketilfellebitService(
             )
 
             val (relevantRecordList, notRelevantRecordList) = recordsValid.partition {
-                it.value().isRelevantForOppfolgingstilfelle()
+                it.value().isRelevantForOppfolgingstilfelle(lesSykmeldingNy)
             }
 
             processRelevantRecordList(

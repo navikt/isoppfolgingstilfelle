@@ -68,6 +68,7 @@ fun testEnvironment(
         ),
     ),
     electorPath = "electorPath",
+    lesSykmeldingNy = true,
     redis = RedisEnvironment(
         host = "localhost",
         port = 6379,
