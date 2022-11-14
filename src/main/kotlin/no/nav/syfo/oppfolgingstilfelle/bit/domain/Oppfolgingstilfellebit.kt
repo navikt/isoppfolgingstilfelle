@@ -143,10 +143,10 @@ fun List<OppfolgingstilfelleBit>.getVirksomhetsnummerList() =
 fun List<OppfolgingstilfelleBit>.containsSendtSykmeldingBit(
     oppfolgingstilfelleBit: OppfolgingstilfelleBit,
 ) = this.any { bit ->
-        bit.ressursId == oppfolgingstilfelleBit.ressursId &&
-            bit.tagList.contains(Tag.SYKMELDING) &&
-            (bit.tagList.contains(Tag.SENDT) || bit.tagList.contains(Tag.BEKREFTET))
-    }
+    bit.ressursId == oppfolgingstilfelleBit.ressursId &&
+        bit.tagList.contains(Tag.SYKMELDING) &&
+        (bit.tagList.contains(Tag.SENDT) || bit.tagList.contains(Tag.BEKREFTET))
+}
 
 fun MutableList<OppfolgingstilfelleBit>.sortByTagPriority() {
     this.sortBy { bit -> bit.findTagPriority() }
