@@ -140,6 +140,14 @@ fun List<OppfolgingstilfelleBit>.pickOppfolgingstilfelleDag(
 fun List<OppfolgingstilfelleBit>.getVirksomhetsnummerList() =
     this.mapNotNull { bit -> bit.virksomhetsnummer }.distinct()
 
+fun List<OppfolgingstilfelleBit>.containsSendtSykmeldingBit(
+    oppfolgingstilfelleBit: OppfolgingstilfelleBit,
+) = this.any { bit ->
+        bit.ressursId == oppfolgingstilfelleBit.ressursId &&
+            bit.tagList.contains(Tag.SYKMELDING) &&
+            (bit.tagList.contains(Tag.SENDT) || bit.tagList.contains(Tag.BEKREFTET))
+    }
+
 fun MutableList<OppfolgingstilfelleBit>.sortByTagPriority() {
     this.sortBy { bit -> bit.findTagPriority() }
 }

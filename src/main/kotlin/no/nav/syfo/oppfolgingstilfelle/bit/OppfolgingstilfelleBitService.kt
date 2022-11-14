@@ -2,8 +2,7 @@ package no.nav.syfo.oppfolgingstilfelle.bit
 
 import no.nav.syfo.oppfolgingstilfelle.bit.database.*
 import no.nav.syfo.oppfolgingstilfelle.bit.database.domain.toOppfolgingstilfelleBitList
-import no.nav.syfo.oppfolgingstilfelle.bit.domain.OppfolgingstilfelleBit
-import no.nav.syfo.oppfolgingstilfelle.bit.domain.Tag
+import no.nav.syfo.oppfolgingstilfelle.bit.domain.*
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.*
 import org.slf4j.LoggerFactory
 import java.sql.Connection
@@ -18,19 +17,15 @@ class OppfolgingstilfelleBitService() {
             if (isDuplicate) {
                 COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_DUPLICATE.increment()
             } else {
-                val shouldCreate = if (oppfolgingstilfelleBit.ready) {
+                val isRelevant = if (oppfolgingstilfelleBit.ready) {
                     true
                 } else {
                     val existing = connection.getProcessedOppfolgingstilfelleBitList(
                         personIdentNumber = oppfolgingstilfelleBit.personIdentNumber
                     ).toOppfolgingstilfelleBitList()
-                    existing.none { bit ->
-                        bit.ressursId == oppfolgingstilfelleBit.ressursId &&
-                            bit.tagList.contains(Tag.SYKMELDING) &&
-                            (bit.tagList.contains(Tag.SENDT) || bit.tagList.contains(Tag.BEKREFTET))
-                    }
+                    !existing.containsSendtSykmeldingBit(oppfolgingstilfelleBit)
                 }
-                if (shouldCreate) {
+                if (isRelevant) {
                     log.info("Received relevant ${OppfolgingstilfelleBit::class.java.simpleName}: inntruffet=${oppfolgingstilfelleBit.inntruffet}, tags=${oppfolgingstilfelleBit.tagList}")
                     connection.createOppfolgingstilfelleBit(
                         commit = false,
