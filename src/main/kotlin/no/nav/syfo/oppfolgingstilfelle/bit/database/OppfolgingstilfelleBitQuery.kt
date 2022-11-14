@@ -111,6 +111,23 @@ fun DatabaseInterface.getUnprocessedOppfolgingstilfelleBitList() =
         }
     }
 
+const val querySetReadyOppfolgingstilfelleBit =
+    """
+    UPDATE TILFELLE_BIT 
+    SET ready=true
+    WHERE uuid=?
+    """
+
+fun Connection.setReadyOppfolgingstilfelleBit(uuid: UUID) =
+    this.prepareStatement(querySetReadyOppfolgingstilfelleBit).use {
+        it.setString(1, uuid.toString())
+        it.executeUpdate()
+    }.also { updateCount ->
+        if (updateCount != 1) {
+            throw RuntimeException("Unexpected update count: $updateCount")
+        }
+    }
+
 const val querySetProcessedOppfolgingstilfelleBit =
     """
     UPDATE TILFELLE_BIT 

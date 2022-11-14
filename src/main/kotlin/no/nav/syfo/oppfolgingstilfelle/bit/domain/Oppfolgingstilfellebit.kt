@@ -140,6 +140,13 @@ fun List<OppfolgingstilfelleBit>.pickOppfolgingstilfelleDag(
 fun List<OppfolgingstilfelleBit>.getVirksomhetsnummerList() =
     this.mapNotNull { bit -> bit.virksomhetsnummer }.distinct()
 
+fun List<OppfolgingstilfelleBit>.containsSendtSykmeldingBit(
+    oppfolgingstilfelleBit: OppfolgingstilfelleBit,
+) = this.any { bit ->
+    bit.ressursId == oppfolgingstilfelleBit.ressursId &&
+        bit.tagList in (Tag.SYKMELDING and (Tag.SENDT or Tag.BEKREFTET))
+}
+
 fun MutableList<OppfolgingstilfelleBit>.sortByTagPriority() {
     this.sortBy { bit -> bit.findTagPriority() }
 }
@@ -169,6 +176,7 @@ fun KafkaSyketilfellebit.toOppfolgingstilfelleBit(): OppfolgingstilfelleBit {
         ressursId = this.ressursId,
         fom = this.fom,
         tom = this.tom,
+        ready = !this.tags.containsAll(listOf(Tag.SYKMELDING.name, Tag.NY.name)),
         processed = false,
         korrigerer = this.korrigererSendtSoknad,
     )

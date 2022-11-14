@@ -68,6 +68,7 @@ data class Environment(
         ),
     ),
     val electorPath: String = getEnvVar("ELECTOR_PATH"),
+    val lesSykmeldingNy: Boolean = getEnvVar("TOGGLE_LES_SYKMELDING_NY").toBoolean(),
     private val isdialogmoteApplicationName: String = "isdialogmote",
     val systemAPIAuthorizedConsumerApplicationNames: List<String> = listOf(
         isdialogmoteApplicationName,
