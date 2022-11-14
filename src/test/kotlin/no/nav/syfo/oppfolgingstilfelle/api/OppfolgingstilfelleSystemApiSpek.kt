@@ -6,8 +6,12 @@ import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
+import no.nav.syfo.application.cache.RedisStore
+import no.nav.syfo.client.arbeidsforhold.ArbeidsforholdClient
+import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
 import no.nav.syfo.oppfolgingstilfelle.bit.cronjob.OppfolgingstilfelleCronjob
+import no.nav.syfo.oppfolgingstilfelle.bit.cronjob.SykmeldingNyCronjob
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.OppfolgingstilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.Tag
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.*
@@ -89,6 +93,19 @@ class OppfolgingstilfelleSystemApiSpek : Spek({
 
         val mockKafkaConsumerSyketilfelleBit = mockk<KafkaConsumer<String, KafkaSyketilfellebit>>()
 
+        val sykmeldingNyCronJob = SykmeldingNyCronjob(
+            database = database,
+            arbeidsforholdClient = ArbeidsforholdClient(
+                azureAdClient = AzureAdClient(
+                    azureEnviroment = externalMockEnvironment.environment.azure,
+                    redisStore = RedisStore(
+                        redisEnvironment = externalMockEnvironment.environment.redis,
+                    )
+                ),
+                clientEnvironment = externalMockEnvironment.environment.clients.arbeidsforhold,
+            )
+        )
+
         val oppfolgingstilfelleCronjob = OppfolgingstilfelleCronjob(
             database = database,
             oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
@@ -129,6 +146,11 @@ class OppfolgingstilfelleSystemApiSpek : Spek({
                         kafkaSyketilfellebitService.pollAndProcessRecords(
                             kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
                         )
+                        runBlocking {
+                            val result = sykmeldingNyCronJob.runJob()
+                            result.failed shouldBeEqualTo 0
+                            result.updated shouldBeEqualTo 0
+                        }
                         runBlocking {
                             val result = oppfolgingstilfelleCronjob.runJob()
                             result.failed shouldBeEqualTo 0

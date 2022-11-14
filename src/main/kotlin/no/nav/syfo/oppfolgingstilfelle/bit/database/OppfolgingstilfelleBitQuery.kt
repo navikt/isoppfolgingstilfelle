@@ -111,6 +111,44 @@ fun DatabaseInterface.getUnprocessedOppfolgingstilfelleBitList() =
         }
     }
 
+const val queryGetNotReadyOppfolgingstilfelleBitList =
+    """
+    SELECT *
+    FROM TILFELLE_BIT
+    WHERE NOT ready
+    ORDER BY inntruffet ASC, id ASC;
+    """
+
+fun DatabaseInterface.getNotReadyOppfolgingstilfelleBitList() =
+    this.connection.use { connection ->
+        connection.prepareStatement(queryGetNotReadyOppfolgingstilfelleBitList).use {
+            it.executeQuery().toList {
+                toPOppfolgingstilfelleBit()
+            }
+        }
+    }
+
+const val querySetOrgNrOppfolgingstilfelleBit =
+    """
+    UPDATE TILFELLE_BIT 
+    SET virksomhetsnummer=?
+    WHERE uuid=?
+    """
+
+fun Connection.setOrgNrOppfolgingstilfelleBit(
+    uuid: UUID,
+    orgnr: String,
+) =
+    this.prepareStatement(querySetOrgNrOppfolgingstilfelleBit).use {
+        it.setString(1, orgnr)
+        it.setString(2, uuid.toString())
+        it.executeUpdate()
+    }.also { updateCount ->
+        if (updateCount != 1) {
+            throw RuntimeException("Unexpected update count: $updateCount")
+        }
+    }
+
 const val querySetReadyOppfolgingstilfelleBit =
     """
     UPDATE TILFELLE_BIT 

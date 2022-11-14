@@ -71,7 +71,7 @@ fun testEnvironment(
     lesSykmeldingNy = true,
     redis = RedisEnvironment(
         host = "localhost",
-        port = 6379,
+        port = 6376,
         secret = "password",
     ),
 )

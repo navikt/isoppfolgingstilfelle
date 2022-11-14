@@ -8,6 +8,7 @@ import io.ktor.server.netty.*
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.Environment
 import no.nav.syfo.application.api.apiModule
+import no.nav.syfo.application.cache.RedisStore
 import no.nav.syfo.application.database.applicationDatabase
 import no.nav.syfo.application.database.databaseModule
 import no.nav.syfo.client.wellknown.getWellKnown
@@ -32,6 +33,9 @@ fun main() {
     )
     val wellKnownSelvbetjening = getWellKnown(
         wellKnownUrl = environment.tokenx.wellKnownUrl
+    )
+    val redisStore = RedisStore(
+        redisEnvironment = environment.redis,
     )
 
     val oppfolgingstilfellePersonProducer = OppfolgingstilfellePersonProducer(
@@ -68,6 +72,7 @@ fun main() {
                 environment = environment,
                 wellKnownInternalAzureAD = wellKnownInternalAzureAD,
                 wellKnownSelvbetjening = wellKnownSelvbetjening,
+                redisStore = redisStore,
             )
         }
     }
@@ -91,6 +96,7 @@ fun main() {
             environment = environment,
             database = applicationDatabase,
             oppfolgingstilfellePersonService = oppfolgingstilfellePersonService,
+            redisStore = redisStore,
         )
     }
 
