@@ -10,6 +10,7 @@ import org.spekframework.spek2.style.specification.describe
 import testhelper.generator.generateOppfolgingstilfelleBit
 import java.time.LocalDate
 import java.time.Period
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class OppfolgingstilfelleBitSpek : Spek({
@@ -88,6 +89,40 @@ class OppfolgingstilfelleBitSpek : Spek({
             tilfelleDuration shouldBeEqualTo 16
         }
 
+        it("should return 1 Oppfolgingstilfelle if person only has days with Sykedag - utdanning-bit should be ignored") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now().minusDays(8),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT),
+                    fom = LocalDate.now().minusDays(7),
+                    tom = LocalDate.now(),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT, UTDANNING, DELTID),
+                    fom = LocalDate.now().minusDays(160),
+                    tom = LocalDate.now(),
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.size shouldBeEqualTo 1
+
+            val tilfelleDuration = ChronoUnit.DAYS.between(
+                oppfolgingstilfelleList.first().start,
+                oppfolgingstilfelleList.first().end,
+            )
+            tilfelleDuration shouldBeEqualTo 16
+        }
         it("returns Oppfolgingstilfelle with gradertAtTilfelleEnd=false if no biter gradert") {
             val oppfolgingstilfelleBitList = listOf(
                 defaultBit.copy(

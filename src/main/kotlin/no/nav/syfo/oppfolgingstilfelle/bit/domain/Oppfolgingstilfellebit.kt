@@ -124,6 +124,8 @@ fun List<OppfolgingstilfelleBit>.pickOppfolgingstilfelleDag(
 ): OppfolgingstilfelleDag {
     val bitListForDag = this.filter { bit ->
         dag in (bit.fom..(bit.tom))
+    }.filter { bit ->
+        bit.findTagPriorityElementOrNull() != null
     }.toMutableList().apply {
         sortByDescending { bit -> bit.inntruffet }
         sortByTagPriority()
