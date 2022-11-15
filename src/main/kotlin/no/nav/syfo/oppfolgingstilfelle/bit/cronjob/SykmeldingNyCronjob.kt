@@ -38,7 +38,7 @@ class SykmeldingNyCronjob(
                             (periode.sluttdato == null || periode.sluttdato.isAfter(oppfolgingstilfelleBit.tom))
                     }?.arbeidssted?.getOrgnummer()
                     orgnr?.let {
-                        connection.setOrgNrOppfolgingstilfelleBit(
+                        connection.setVirksomhetsnummerOppfolgingstilfelleBit(
                             uuid = oppfolgingstilfelleBit.uuid,
                             orgnr = it,
                         )

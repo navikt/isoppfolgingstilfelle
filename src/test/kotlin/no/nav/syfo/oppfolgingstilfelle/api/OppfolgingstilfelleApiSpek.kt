@@ -529,6 +529,8 @@ class OppfolgingstilfelleApiSpek : Spek({
                             oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList.size shouldBeEqualTo 1
                             val oppfolgingstilfelle = oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList[0]
                             oppfolgingstilfelle.arbeidstakerAtTilfelleEnd shouldBeEqualTo true
+                            oppfolgingstilfelle.virksomhetsnummerList.size shouldBeEqualTo 1
+                            oppfolgingstilfelle.virksomhetsnummerList[0] shouldBeEqualTo UserConstants.VIRKSOMHETSNUMMER_HAS_NARMESTELEDER.value
                             oppfolgingstilfelle.start shouldBeEqualTo kafkaSyketilfellebitSykmeldingNy.fom
                             oppfolgingstilfelle.end shouldBeEqualTo kafkaSyketilfellebitSykmeldingNy.tom
                         }
@@ -547,6 +549,11 @@ class OppfolgingstilfelleApiSpek : Spek({
                             kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
                         )
                         runBlocking {
+                            val result = oppfolgingstilfelleCronjob.runJob()
+                            result.failed shouldBeEqualTo 0
+                            result.updated shouldBeEqualTo 0 // since bit not ready
+                        }
+                        runBlocking {
                             val result = sykmeldingNyCronJob.runJob()
                             result.failed shouldBeEqualTo 0
                             result.updated shouldBeEqualTo 1
@@ -554,7 +561,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                         runBlocking {
                             val result = oppfolgingstilfelleCronjob.runJob()
                             result.failed shouldBeEqualTo 0
-                            result.updated shouldBeEqualTo 1
+                            result.updated shouldBeEqualTo 1 // since bit is ready
                         }
 
                         verify(exactly = 1) {

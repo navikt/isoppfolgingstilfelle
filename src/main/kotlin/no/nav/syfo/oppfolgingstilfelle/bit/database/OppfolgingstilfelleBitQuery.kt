@@ -128,18 +128,17 @@ fun DatabaseInterface.getNotReadyOppfolgingstilfelleBitList() =
         }
     }
 
-const val querySetOrgNrOppfolgingstilfelleBit =
+const val querySetVirksomhetsnummerOppfolgingstilfelleBit =
     """
     UPDATE TILFELLE_BIT 
     SET virksomhetsnummer=?
     WHERE uuid=?
     """
 
-fun Connection.setOrgNrOppfolgingstilfelleBit(
+fun Connection.setVirksomhetsnummerOppfolgingstilfelleBit(
     uuid: UUID,
     orgnr: String,
-) =
-    this.prepareStatement(querySetOrgNrOppfolgingstilfelleBit).use {
+) = this.prepareStatement(querySetVirksomhetsnummerOppfolgingstilfelleBit).use {
         it.setString(1, orgnr)
         it.setString(2, uuid.toString())
         it.executeUpdate()
