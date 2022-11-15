@@ -139,14 +139,14 @@ fun Connection.setVirksomhetsnummerOppfolgingstilfelleBit(
     uuid: UUID,
     orgnr: String,
 ) = this.prepareStatement(querySetVirksomhetsnummerOppfolgingstilfelleBit).use {
-        it.setString(1, orgnr)
-        it.setString(2, uuid.toString())
-        it.executeUpdate()
-    }.also { updateCount ->
-        if (updateCount != 1) {
-            throw RuntimeException("Unexpected update count: $updateCount")
-        }
+    it.setString(1, orgnr)
+    it.setString(2, uuid.toString())
+    it.executeUpdate()
+}.also { updateCount ->
+    if (updateCount != 1) {
+        throw RuntimeException("Unexpected update count: $updateCount")
     }
+}
 
 const val querySetReadyOppfolgingstilfelleBit =
     """
