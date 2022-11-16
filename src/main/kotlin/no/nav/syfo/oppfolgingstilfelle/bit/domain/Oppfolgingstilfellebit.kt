@@ -133,11 +133,16 @@ fun List<OppfolgingstilfelleBit>.pickOppfolgingstilfelleDag(
     return OppfolgingstilfelleDag(
         dag = dag,
         priorityOppfolgingstilfelleBit = bitListForDag.firstOrNull(),
-        virksomhetsnummerList = bitListForDag.getVirksomhetsnummerList(),
+        virksomhetsnummerPreferred = bitListForDag.getVirksomhetsnummerPreferred(),
+        virksomhetsnummerAll = bitListForDag.getVirksomhetsnummerAll(),
     )
 }
 
-fun List<OppfolgingstilfelleBit>.getVirksomhetsnummerList() =
+fun List<OppfolgingstilfelleBit>.getVirksomhetsnummerPreferred() =
+    this.filter { bit -> !(bit.tagList in (Tag.SYKMELDING and Tag.NY)) }
+        .mapNotNull { bit -> bit.virksomhetsnummer }.distinct()
+
+fun List<OppfolgingstilfelleBit>.getVirksomhetsnummerAll() =
     this.mapNotNull { bit -> bit.virksomhetsnummer }.distinct()
 
 fun List<OppfolgingstilfelleBit>.containsSendtSykmeldingBit(

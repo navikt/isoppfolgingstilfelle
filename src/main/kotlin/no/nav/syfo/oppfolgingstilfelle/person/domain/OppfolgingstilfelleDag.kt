@@ -9,7 +9,8 @@ import java.time.LocalDate
 class OppfolgingstilfelleDag(
     val dag: LocalDate,
     val priorityOppfolgingstilfelleBit: OppfolgingstilfelleBit?,
-    val virksomhetsnummerList: List<String>,
+    val virksomhetsnummerPreferred: List<String>,
+    val virksomhetsnummerAll: List<String>,
 )
 
 fun List<OppfolgingstilfelleDag>.groupOppfolgingstilfelleList(): List<Oppfolgingstilfelle> {
@@ -62,20 +63,27 @@ fun List<OppfolgingstilfelleDag>.isArbeidstakerAtTilfelleEnd() =
 fun List<OppfolgingstilfelleDag>.gradertAtTilfelleEnd() =
     this.last {
         it.priorityOppfolgingstilfelleBit != null
-    }.isGradert() ?: false
+    }.isGradert()
 
 fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelle() =
     Oppfolgingstilfelle(
         arbeidstakerAtTilfelleEnd = this.isArbeidstakerAtTilfelleEnd(),
         start = this.first().dag,
         end = this.last().dag,
-        virksomhetsnummerList = this.toVirksomhetsnummerList(),
+        virksomhetsnummerList = this.toVirksomhetsnummerPreferred().ifEmpty { this.toVirksomhetsnummerAll() },
         gradertAtTilfelleEnd = this.gradertAtTilfelleEnd(),
     )
 
-fun List<OppfolgingstilfelleDag>.toVirksomhetsnummerList() =
+fun List<OppfolgingstilfelleDag>.toVirksomhetsnummerPreferred() =
     this.map {
-        it.virksomhetsnummerList
+        it.virksomhetsnummerPreferred
+    }.flatten().distinct().map { virksomhetsnummer ->
+        Virksomhetsnummer(virksomhetsnummer)
+    }
+
+fun List<OppfolgingstilfelleDag>.toVirksomhetsnummerAll() =
+    this.map {
+        it.virksomhetsnummerAll
     }.flatten().distinct().map { virksomhetsnummer ->
         Virksomhetsnummer(virksomhetsnummer)
     }
