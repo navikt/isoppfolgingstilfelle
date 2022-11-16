@@ -69,6 +69,7 @@ data class OppfolgingstilfelleBit(
             Tag.SYKEPENGESOKNAD and Tag.SENDT and ListContainsPredicate.tagsSize(2),
             Tag.SYKEPENGESOKNAD and Tag.SENDT and Tag.BEHANDLINGSDAG,
             Tag.SYKEPENGESOKNAD and Tag.SENDT and Tag.BEHANDLINGSDAGER,
+            Tag.INNTEKTSMELDING and Tag.ARBEIDSGIVERPERIODE,
             Tag.SYKMELDING and (Tag.SENDT or Tag.BEKREFTET) and Tag.PERIODE and Tag.BEHANDLINGSDAGER,
             Tag.SYKMELDING and (Tag.SENDT or Tag.BEKREFTET) and Tag.PERIODE and Tag.FULL_AKTIVITET,
             Tag.SYKMELDING and (Tag.SENDT or Tag.BEKREFTET) and Tag.PERIODE and (Tag.GRADERT_AKTIVITET or Tag.INGEN_AKTIVITET),

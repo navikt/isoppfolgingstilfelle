@@ -536,6 +536,58 @@ class OppfolgingstilfelleApiSpek : Spek({
                         }
                     }
 
+                    it("should create OppfolgingstilfelleBit and OppfolgingstilfellePerson if bit is inntekstmelding") {
+                        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+                            mapOf(
+                                syketilfellebitTopicPartition to listOf(
+                                    kafkaSyketilfellebitRecordInntektsmelding,
+                                )
+                            )
+                        )
+
+                        kafkaSyketilfellebitService.pollAndProcessRecords(
+                            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                        )
+                        runBlocking {
+                            val result = sykmeldingNyCronJob.runJob()
+                            result.failed shouldBeEqualTo 0
+                            result.updated shouldBeEqualTo 0
+                        }
+                        runBlocking {
+                            val result = oppfolgingstilfelleCronjob.runJob()
+                            result.failed shouldBeEqualTo 0
+                            result.updated shouldBeEqualTo 1
+                        }
+
+                        verify(exactly = 1) {
+                            mockKafkaConsumerSyketilfelleBit.commitSync()
+                        }
+                        verify(exactly = 1) {
+                            oppfolgingstilfellePersonProducer.sendOppfolgingstilfellePerson(any())
+                        }
+
+                        with(
+                            handleRequest(HttpMethod.Get, url) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                            val oppfolgingstilfelleArbeidstakerDTO: OppfolgingstilfellePersonDTO =
+                                objectMapper.readValue(response.content!!)
+
+                            oppfolgingstilfelleArbeidstakerDTO.personIdent shouldBeEqualTo kafkaSyketilfellebitInntektsmelding.fnr
+                            oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList.size shouldBeEqualTo 1
+                            val oppfolgingstilfelle = oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList[0]
+                            oppfolgingstilfelle.arbeidstakerAtTilfelleEnd shouldBeEqualTo true
+                            oppfolgingstilfelle.virksomhetsnummerList.size shouldBeEqualTo 1
+                            oppfolgingstilfelle.virksomhetsnummerList[0] shouldBeEqualTo kafkaSyketilfellebitInntektsmelding.orgnummer
+                            oppfolgingstilfelle.start shouldBeEqualTo kafkaSyketilfellebitInntektsmelding.fom
+                            oppfolgingstilfelle.end shouldBeEqualTo kafkaSyketilfellebitInntektsmelding.tom
+                        }
+                    }
+
                     it("should create OppfolgingstilfelleBit and OppfolgingstilfellePerson if SyketilfelleBit is sykmelding ny and orgnr missing") {
                         every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
                             mapOf(
@@ -596,7 +648,6 @@ class OppfolgingstilfelleApiSpek : Spek({
                             mapOf(
                                 syketilfellebitTopicPartition to listOf(
                                     kafkaSyketilfellebitRecordNotRelevant1,
-                                    kafkaSyketilfellebitRecordInntektsmelding,
                                 )
                             )
                         )
