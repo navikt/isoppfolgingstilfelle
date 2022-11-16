@@ -27,7 +27,8 @@ fun Application.apiModule(
     database: DatabaseInterface,
     environment: Environment,
     wellKnownInternalAzureAD: WellKnown,
-    wellKnownSelvbetjening: WellKnown
+    wellKnownSelvbetjening: WellKnown,
+    redisStore: RedisStore,
 ) {
     installMetrics()
     installCallId()
@@ -47,10 +48,6 @@ fun Application.apiModule(
         ),
     )
     installStatusPages()
-
-    val redisStore = RedisStore(
-        redisEnvironment = environment.redis,
-    )
 
     val azureAdClient = AzureAdClient(
         azureEnviroment = environment.azure,

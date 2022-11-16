@@ -6,8 +6,12 @@ import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
+import no.nav.syfo.application.cache.RedisStore
+import no.nav.syfo.client.arbeidsforhold.ArbeidsforholdClient
+import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
 import no.nav.syfo.oppfolgingstilfelle.bit.cronjob.OppfolgingstilfelleCronjob
+import no.nav.syfo.oppfolgingstilfelle.bit.cronjob.SykmeldingNyCronjob
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.OppfolgingstilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.Tag
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.*
@@ -23,6 +27,7 @@ import org.apache.kafka.common.TopicPartition
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import testhelper.*
+import testhelper.UserConstants.ARBEIDSTAKER_VIRKSOMHET_NO_NARMESTELEDER
 import testhelper.UserConstants.PERSONIDENTNUMBER_DEFAULT
 import testhelper.UserConstants.PERSONIDENTNUMBER_VEILEDER_NO_ACCESS
 import testhelper.UserConstants.VIRKSOMHETSNUMMER_DEFAULT
@@ -117,15 +122,25 @@ class OppfolgingstilfelleApiSpek : Spek({
             "key3",
             kafkaSyketilfellebitNotRelevant1,
         )
-        val kafkaSyketilfellebitNotRelevant2 = generateKafkaSyketilfellebitNotRelevantSykmeldingNy(
+        val kafkaSyketilfellebitSykmeldingNy = generateKafkaSyketilfellebitSykmeldingNy(
             personIdentNumber = personIdentDefault,
         )
-        val kafkaSyketilfellebitRecordNotRelevant2 = ConsumerRecord(
+        val kafkaSyketilfellebitRecordSykmeldingNy = ConsumerRecord(
             SYKETILFELLEBIT_TOPIC,
             partition,
             4,
             "key4",
-            kafkaSyketilfellebitNotRelevant2,
+            kafkaSyketilfellebitSykmeldingNy,
+        )
+        val kafkaSyketilfellebitSykmeldingNyNoOrgNr = generateKafkaSyketilfellebitSykmeldingNy(
+            personIdentNumber = ARBEIDSTAKER_VIRKSOMHET_NO_NARMESTELEDER,
+        )
+        val kafkaSyketilfellebitRecordSykmeldingNyNoOrgNr = ConsumerRecord(
+            SYKETILFELLEBIT_TOPIC,
+            partition,
+            5,
+            "key5",
+            kafkaSyketilfellebitSykmeldingNyNoOrgNr,
         )
         val kafkaSyketilfellebitInntektsmelding = generateKafkaSyketilfellebitInntektsmelding(
             personIdentNumber = personIdentDefault,
@@ -133,13 +148,25 @@ class OppfolgingstilfelleApiSpek : Spek({
         val kafkaSyketilfellebitRecordInntektsmelding = ConsumerRecord(
             SYKETILFELLEBIT_TOPIC,
             partition,
-            4,
-            "key5",
+            6,
+            "key6",
             kafkaSyketilfellebitInntektsmelding,
         )
 
         val mockKafkaConsumerSyketilfelleBit = mockk<KafkaConsumer<String, KafkaSyketilfellebit>>()
 
+        val sykmeldingNyCronJob = SykmeldingNyCronjob(
+            database = database,
+            arbeidsforholdClient = ArbeidsforholdClient(
+                azureAdClient = AzureAdClient(
+                    azureEnviroment = externalMockEnvironment.environment.azure,
+                    redisStore = RedisStore(
+                        redisEnvironment = externalMockEnvironment.environment.redis,
+                    )
+                ),
+                clientEnvironment = externalMockEnvironment.environment.clients.arbeidsforhold,
+            )
+        )
         val oppfolgingstilfelleCronjob = OppfolgingstilfelleCronjob(
             database = database,
             oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
@@ -180,6 +207,11 @@ class OppfolgingstilfelleApiSpek : Spek({
                         kafkaSyketilfellebitService.pollAndProcessRecords(
                             kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
                         )
+                        runBlocking {
+                            val result = sykmeldingNyCronJob.runJob()
+                            result.failed shouldBeEqualTo 0
+                            result.updated shouldBeEqualTo 0
+                        }
                         runBlocking {
                             val result = oppfolgingstilfelleCronjob.runJob()
                             result.failed shouldBeEqualTo 0
@@ -230,6 +262,11 @@ class OppfolgingstilfelleApiSpek : Spek({
                         kafkaSyketilfellebitService.pollAndProcessRecords(
                             kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
                         )
+                        runBlocking {
+                            val result = sykmeldingNyCronJob.runJob()
+                            result.failed shouldBeEqualTo 0
+                            result.updated shouldBeEqualTo 0
+                        }
                         runBlocking {
                             val result = oppfolgingstilfelleCronjob.runJob()
                             result.failed shouldBeEqualTo 0
@@ -285,6 +322,11 @@ class OppfolgingstilfelleApiSpek : Spek({
                             kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
                         )
                         runBlocking {
+                            val result = sykmeldingNyCronJob.runJob()
+                            result.failed shouldBeEqualTo 0
+                            result.updated shouldBeEqualTo 0
+                        }
+                        runBlocking {
                             val result = oppfolgingstilfelleCronjob.runJob()
                             result.failed shouldBeEqualTo 0
                             result.updated shouldBeEqualTo 1
@@ -334,6 +376,11 @@ class OppfolgingstilfelleApiSpek : Spek({
                         kafkaSyketilfellebitService.pollAndProcessRecords(
                             kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
                         )
+                        runBlocking {
+                            val result = sykmeldingNyCronJob.runJob()
+                            result.failed shouldBeEqualTo 0
+                            result.updated shouldBeEqualTo 0
+                        }
                         runBlocking {
                             val result = oppfolgingstilfelleCronjob.runJob()
                             result.failed shouldBeEqualTo 0
@@ -395,6 +442,11 @@ class OppfolgingstilfelleApiSpek : Spek({
                             kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
                         )
                         runBlocking {
+                            val result = sykmeldingNyCronJob.runJob()
+                            result.failed shouldBeEqualTo 0
+                            result.updated shouldBeEqualTo 0
+                        }
+                        runBlocking {
                             val result = oppfolgingstilfelleCronjob.runJob()
                             result.failed shouldBeEqualTo 0
                             result.updated shouldBeEqualTo 2
@@ -432,12 +484,118 @@ class OppfolgingstilfelleApiSpek : Spek({
                         }
                     }
 
+                    it("should create OppfolgingstilfelleBit and OppfolgingstilfellePerson if SyketilfelleBit is sykmelding ny") {
+                        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+                            mapOf(
+                                syketilfellebitTopicPartition to listOf(
+                                    kafkaSyketilfellebitRecordSykmeldingNy,
+                                )
+                            )
+                        )
+
+                        kafkaSyketilfellebitService.pollAndProcessRecords(
+                            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                        )
+                        runBlocking {
+                            val result = sykmeldingNyCronJob.runJob()
+                            result.failed shouldBeEqualTo 0
+                            result.updated shouldBeEqualTo 1
+                        }
+                        runBlocking {
+                            val result = oppfolgingstilfelleCronjob.runJob()
+                            result.failed shouldBeEqualTo 0
+                            result.updated shouldBeEqualTo 1
+                        }
+
+                        verify(exactly = 1) {
+                            mockKafkaConsumerSyketilfelleBit.commitSync()
+                        }
+                        verify(exactly = 1) {
+                            oppfolgingstilfellePersonProducer.sendOppfolgingstilfellePerson(any())
+                        }
+
+                        with(
+                            handleRequest(HttpMethod.Get, url) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                            val oppfolgingstilfelleArbeidstakerDTO: OppfolgingstilfellePersonDTO =
+                                objectMapper.readValue(response.content!!)
+
+                            oppfolgingstilfelleArbeidstakerDTO.personIdent shouldBeEqualTo oppfolgingstilfelleBit.personIdentNumber.value
+                            oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList.size shouldBeEqualTo 1
+                            val oppfolgingstilfelle = oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList[0]
+                            oppfolgingstilfelle.arbeidstakerAtTilfelleEnd shouldBeEqualTo true
+                            oppfolgingstilfelle.virksomhetsnummerList.size shouldBeEqualTo 1
+                            oppfolgingstilfelle.virksomhetsnummerList[0] shouldBeEqualTo UserConstants.VIRKSOMHETSNUMMER_HAS_NARMESTELEDER.value
+                            oppfolgingstilfelle.start shouldBeEqualTo kafkaSyketilfellebitSykmeldingNy.fom
+                            oppfolgingstilfelle.end shouldBeEqualTo kafkaSyketilfellebitSykmeldingNy.tom
+                        }
+                    }
+
+                    it("should create OppfolgingstilfelleBit and OppfolgingstilfellePerson if SyketilfelleBit is sykmelding ny and orgnr missing") {
+                        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+                            mapOf(
+                                syketilfellebitTopicPartition to listOf(
+                                    kafkaSyketilfellebitRecordSykmeldingNyNoOrgNr,
+                                )
+                            )
+                        )
+
+                        kafkaSyketilfellebitService.pollAndProcessRecords(
+                            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                        )
+                        runBlocking {
+                            val result = oppfolgingstilfelleCronjob.runJob()
+                            result.failed shouldBeEqualTo 0
+                            result.updated shouldBeEqualTo 0 // since bit not ready
+                        }
+                        runBlocking {
+                            val result = sykmeldingNyCronJob.runJob()
+                            result.failed shouldBeEqualTo 0
+                            result.updated shouldBeEqualTo 1
+                        }
+                        runBlocking {
+                            val result = oppfolgingstilfelleCronjob.runJob()
+                            result.failed shouldBeEqualTo 0
+                            result.updated shouldBeEqualTo 1 // since bit is ready
+                        }
+
+                        verify(exactly = 1) {
+                            mockKafkaConsumerSyketilfelleBit.commitSync()
+                        }
+                        verify(exactly = 1) {
+                            oppfolgingstilfellePersonProducer.sendOppfolgingstilfellePerson(any())
+                        }
+
+                        with(
+                            handleRequest(HttpMethod.Get, url) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(NAV_PERSONIDENT_HEADER, ARBEIDSTAKER_VIRKSOMHET_NO_NARMESTELEDER.value)
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                            val oppfolgingstilfelleArbeidstakerDTO: OppfolgingstilfellePersonDTO =
+                                objectMapper.readValue(response.content!!)
+
+                            oppfolgingstilfelleArbeidstakerDTO.personIdent shouldBeEqualTo ARBEIDSTAKER_VIRKSOMHET_NO_NARMESTELEDER.value
+                            oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList.size shouldBeEqualTo 1
+                            val oppfolgingstilfelle = oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList[0]
+                            oppfolgingstilfelle.arbeidstakerAtTilfelleEnd shouldBeEqualTo false
+                            oppfolgingstilfelle.start shouldBeEqualTo kafkaSyketilfellebitSykmeldingNyNoOrgNr.fom
+                            oppfolgingstilfelle.end shouldBeEqualTo kafkaSyketilfellebitSykmeldingNyNoOrgNr.tom
+                        }
+                    }
+
                     it("should not create OppfolgingstilfelleBit or OppfolgingstilfellePerson if SyketilfelleBit is not relevant") {
                         every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
                             mapOf(
                                 syketilfellebitTopicPartition to listOf(
                                     kafkaSyketilfellebitRecordNotRelevant1,
-                                    kafkaSyketilfellebitRecordNotRelevant2,
                                     kafkaSyketilfellebitRecordInntektsmelding,
                                 )
                             )
@@ -446,6 +604,11 @@ class OppfolgingstilfelleApiSpek : Spek({
                         kafkaSyketilfellebitService.pollAndProcessRecords(
                             kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
                         )
+                        runBlocking {
+                            val result = sykmeldingNyCronJob.runJob()
+                            result.failed shouldBeEqualTo 0
+                            result.updated shouldBeEqualTo 0
+                        }
                         runBlocking {
                             val result = oppfolgingstilfelleCronjob.runJob()
                             result.failed shouldBeEqualTo 0
@@ -488,6 +651,11 @@ class OppfolgingstilfelleApiSpek : Spek({
                         kafkaSyketilfellebitService.pollAndProcessRecords(
                             kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
                         )
+                        runBlocking {
+                            val result = sykmeldingNyCronJob.runJob()
+                            result.failed shouldBeEqualTo 0
+                            result.updated shouldBeEqualTo 0
+                        }
                         runBlocking {
                             val result = oppfolgingstilfelleCronjob.runJob()
                             result.failed shouldBeEqualTo 0

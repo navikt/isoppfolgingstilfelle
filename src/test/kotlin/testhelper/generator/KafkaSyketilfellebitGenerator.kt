@@ -11,11 +11,11 @@ import java.util.*
 
 fun generateKafkaSyketilfellebitRelevantVirksomhet(
     personIdent: PersonIdentNumber = UserConstants.PERSONIDENTNUMBER_DEFAULT,
-    virksomhetsnummer: Virksomhetsnummer = UserConstants.VIRKSOMHETSNUMMER_DEFAULT,
+    virksomhetsnummer: Virksomhetsnummer? = UserConstants.VIRKSOMHETSNUMMER_DEFAULT,
 ) = KafkaSyketilfellebit(
     id = UUID.randomUUID().toString(),
     fnr = personIdent.value,
-    orgnummer = virksomhetsnummer.value,
+    orgnummer = virksomhetsnummer?.value,
     opprettet = nowUTC(),
     inntruffet = nowUTC().minusDays(1),
     tags = listOf(
@@ -62,17 +62,19 @@ fun generateKafkaSyketilfellebitNotRelevantNoVirksomhet(
     ).map { tag -> tag.name },
 )
 
-fun generateKafkaSyketilfellebitNotRelevantSykmeldingNy(
+fun generateKafkaSyketilfellebitSykmeldingNy(
     personIdentNumber: PersonIdentNumber = UserConstants.PERSONIDENTNUMBER_DEFAULT,
-    virksomhetsnummer: Virksomhetsnummer = UserConstants.VIRKSOMHETSNUMMER_DEFAULT,
 ) = generateKafkaSyketilfellebitRelevantVirksomhet(
     personIdent = personIdentNumber,
-    virksomhetsnummer = virksomhetsnummer
 ).copy(
     orgnummer = null,
+    fom = LocalDate.now(),
+    tom = LocalDate.now().plusDays(28),
     tags = listOf(
         Tag.SYKMELDING,
         Tag.NY,
+        Tag.PERIODE,
+        Tag.INGEN_AKTIVITET,
     ).map { tag -> tag.name },
 )
 
