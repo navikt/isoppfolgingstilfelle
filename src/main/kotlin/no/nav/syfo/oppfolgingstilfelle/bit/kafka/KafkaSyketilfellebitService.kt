@@ -29,7 +29,7 @@ class KafkaSyketilfellebitService(
         consumerRecords: ConsumerRecords<String, KafkaSyketilfellebit>,
     ) {
         database.connection.use { connection ->
-            COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_READ.increment()
+            COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_READ.increment(consumerRecords.count().toDouble())
 
             val (tombstoneRecordList, recordsValid) = consumerRecords.partition {
                 it.value() == null

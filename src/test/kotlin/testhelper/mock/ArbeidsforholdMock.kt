@@ -1,5 +1,6 @@
 package testhelper.mock
 
+import io.ktor.http.*
 import io.ktor.server.application.call
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
@@ -10,6 +11,7 @@ import no.nav.syfo.application.api.installContentNegotiation
 import no.nav.syfo.client.arbeidsforhold.*
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 import testhelper.UserConstants
+import testhelper.UserConstants.ARBEIDSTAKER_UNKNOWN_AAREG
 import testhelper.UserConstants.ARBEIDSTAKER_VIRKSOMHET_NO_NARMESTELEDER
 import testhelper.getRandomPort
 import java.time.*
@@ -57,6 +59,8 @@ class ArbeidsforholdMock {
                 get(ArbeidsforholdClient.ARBEIDSFORHOLD_PATH) {
                     if (call.request.headers[NAV_PERSONIDENT_HEADER] == ARBEIDSTAKER_VIRKSOMHET_NO_NARMESTELEDER.value) {
                         call.respond(emptyList<AaregArbeidsforhold>())
+                    } else if (call.request.headers[NAV_PERSONIDENT_HEADER] == ARBEIDSTAKER_UNKNOWN_AAREG.value) {
+                        call.respond(HttpStatusCode.NotFound, "Ukjent ident")
                     } else {
                         call.respond(
                             listOf(
