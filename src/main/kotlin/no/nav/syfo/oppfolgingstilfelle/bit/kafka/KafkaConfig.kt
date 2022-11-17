@@ -12,7 +12,7 @@ fun kafkaSyketilfelleBitConsumerConfig(
     return Properties().apply {
         putAll(commonKafkaAivenConfig(kafkaEnvironment))
 
-        this[ConsumerConfig.GROUP_ID_CONFIG] = "isoppfolgingstilfelle-v1"
+        this[ConsumerConfig.GROUP_ID_CONFIG] = "isoppfolgingstilfelle-v2"
         this[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java.canonicalName
         this[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] =
             KafkaSyketilfellebitDeserializer::class.java.canonicalName
