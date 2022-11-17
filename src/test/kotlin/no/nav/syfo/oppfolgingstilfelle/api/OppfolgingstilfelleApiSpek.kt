@@ -22,7 +22,6 @@ import org.apache.kafka.common.TopicPartition
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import testhelper.*
-import testhelper.UserConstants.ARBEIDSTAKER_VIRKSOMHET_NO_NARMESTELEDER
 import testhelper.UserConstants.PERSONIDENTNUMBER_DEFAULT
 import testhelper.UserConstants.PERSONIDENTNUMBER_VEILEDER_NO_ACCESS
 import testhelper.UserConstants.VIRKSOMHETSNUMMER_DEFAULT
@@ -51,7 +50,6 @@ class OppfolgingstilfelleApiSpek : Spek({
         val kafkaSyketilfellebitService = KafkaSyketilfellebitService(
             database = database,
             oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
-            lesSykmeldingNy = externalMockEnvironment.environment.lesSykmeldingNy,
         )
         val personIdentDefault = PERSONIDENTNUMBER_DEFAULT.toHistoricalPersonIdentNumber()
 
@@ -87,13 +85,6 @@ class OppfolgingstilfelleApiSpek : Spek({
             "key1",
             kafkaSyketilfellebitRelevantVirksomhet,
         )
-        val kafkaSyketilfellebitRecordRelevantVirksomhetDuplicate = ConsumerRecord(
-            SYKETILFELLEBIT_TOPIC,
-            partition,
-            1,
-            "key1",
-            kafkaSyketilfellebitRelevantVirksomhet,
-        )
         val kafkaSyketilfellebitRelevantSykmeldingBekreftet =
             generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
                 personIdentNumber = personIdentDefault,
@@ -106,46 +97,6 @@ class OppfolgingstilfelleApiSpek : Spek({
             2,
             "key2",
             kafkaSyketilfellebitRelevantSykmeldingBekreftet,
-        )
-        val kafkaSyketilfellebitNotRelevant1 = generateKafkaSyketilfellebitNotRelevantNoVirksomhet(
-            personIdentNumber = personIdentDefault,
-        )
-        val kafkaSyketilfellebitRecordNotRelevant1 = ConsumerRecord(
-            SYKETILFELLEBIT_TOPIC,
-            partition,
-            3,
-            "key3",
-            kafkaSyketilfellebitNotRelevant1,
-        )
-        val kafkaSyketilfellebitSykmeldingNy = generateKafkaSyketilfellebitSykmeldingNy(
-            personIdentNumber = personIdentDefault,
-        )
-        val kafkaSyketilfellebitRecordSykmeldingNy = ConsumerRecord(
-            SYKETILFELLEBIT_TOPIC,
-            partition,
-            4,
-            "key4",
-            kafkaSyketilfellebitSykmeldingNy,
-        )
-        val kafkaSyketilfellebitSykmeldingNyNoOrgNr = generateKafkaSyketilfellebitSykmeldingNy(
-            personIdentNumber = ARBEIDSTAKER_VIRKSOMHET_NO_NARMESTELEDER,
-        )
-        val kafkaSyketilfellebitRecordSykmeldingNyNoOrgNr = ConsumerRecord(
-            SYKETILFELLEBIT_TOPIC,
-            partition,
-            5,
-            "key5",
-            kafkaSyketilfellebitSykmeldingNyNoOrgNr,
-        )
-        val kafkaSyketilfellebitInntektsmelding = generateKafkaSyketilfellebitInntektsmelding(
-            personIdentNumber = personIdentDefault,
-        )
-        val kafkaSyketilfellebitRecordInntektsmelding = ConsumerRecord(
-            SYKETILFELLEBIT_TOPIC,
-            partition,
-            6,
-            "key6",
-            kafkaSyketilfellebitInntektsmelding,
         )
 
         val mockKafkaConsumerSyketilfelleBit = mockk<KafkaConsumer<String, KafkaSyketilfellebit>>()

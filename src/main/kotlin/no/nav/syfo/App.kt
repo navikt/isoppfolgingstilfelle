@@ -83,7 +83,6 @@ fun main() {
         val kafkaSyketilfellebitService = KafkaSyketilfellebitService(
             database = applicationDatabase,
             oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(),
-            lesSykmeldingNy = environment.lesSykmeldingNy,
         )
 
         launchKafkaTaskSyketilfelleBit(
