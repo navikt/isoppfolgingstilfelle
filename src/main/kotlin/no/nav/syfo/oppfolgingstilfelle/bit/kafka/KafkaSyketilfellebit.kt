@@ -21,6 +21,6 @@ data class KafkaSyketilfellebit(
 fun KafkaSyketilfellebit.isRelevantForOppfolgingstilfelle(
     lesSykmeldingNy: Boolean,
 ): Boolean =
-    (this.orgnummer != null && !this.tags.contains(Tag.INNTEKTSMELDING.name)) ||
+    (this.orgnummer != null) ||
         this.tags.containsAll(listOf(Tag.SYKMELDING.name, Tag.BEKREFTET.name)) ||
         (lesSykmeldingNy && this.tags.containsAll(listOf(Tag.SYKMELDING.name, Tag.NY.name)))
