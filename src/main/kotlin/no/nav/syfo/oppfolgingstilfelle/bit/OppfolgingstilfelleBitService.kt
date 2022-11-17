@@ -1,6 +1,7 @@
 package no.nav.syfo.oppfolgingstilfelle.bit
 
 import no.nav.syfo.oppfolgingstilfelle.bit.database.*
+import no.nav.syfo.oppfolgingstilfelle.bit.database.domain.toOppfolgingstilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.bit.database.domain.toOppfolgingstilfelleBitList
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.*
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.*
@@ -13,8 +14,14 @@ class OppfolgingstilfelleBitService() {
         oppfolgingstilfelleBitList: List<OppfolgingstilfelleBit>,
     ) {
         oppfolgingstilfelleBitList.forEach { oppfolgingstilfelleBit ->
-            val isDuplicate = connection.getOppfolgingstilfelleBitForUUID(oppfolgingstilfelleBit.uuid) != null
-            if (isDuplicate) {
+            val existingWithSameUuid = connection.getOppfolgingstilfelleBitForUUID(oppfolgingstilfelleBit.uuid)
+                ?.toOppfolgingstilfelleBit()
+            if (existingWithSameUuid != null) {
+                handleDuplicate(
+                    connection = connection,
+                    existing = existingWithSameUuid,
+                    incoming = oppfolgingstilfelleBit,
+                )
                 COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_DUPLICATE.increment()
             } else {
                 val isRelevant = if (oppfolgingstilfelleBit.ready) {
@@ -36,6 +43,19 @@ class OppfolgingstilfelleBitService() {
                     COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_SKIPPED_CREATE.increment()
                 }
             }
+        }
+    }
+
+    private fun handleDuplicate(
+        connection: Connection,
+        existing: OppfolgingstilfelleBit,
+        incoming: OppfolgingstilfelleBit,
+    ) {
+        if (existing.uuid == incoming.uuid && existing.korrigerer == null && incoming.korrigerer != null) {
+            connection.setKorrigererOppfolgingstilfelleBit(
+                uuid = existing.uuid,
+                korrigerer = incoming.korrigerer,
+            )
         }
     }
 

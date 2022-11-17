@@ -184,6 +184,26 @@ fun Connection.setProcessedOppfolgingstilfelleBit(uuid: UUID) =
         }
     }
 
+const val querySetKorrigererOppfolgingstilfelleBit =
+    """
+    UPDATE TILFELLE_BIT 
+    SET korrigerer=?
+    WHERE uuid=?
+    """
+
+fun Connection.setKorrigererOppfolgingstilfelleBit(
+    uuid: UUID,
+    korrigerer: String,
+) = this.prepareStatement(querySetKorrigererOppfolgingstilfelleBit).use {
+    it.setString(1, korrigerer)
+    it.setString(2, uuid.toString())
+    it.executeUpdate()
+}.also { updateCount ->
+    if (updateCount != 1) {
+        throw RuntimeException("Unexpected update count: $updateCount")
+    }
+}
+
 fun ResultSet.toPOppfolgingstilfelleBit(): POppfolgingstilfelleBit =
     POppfolgingstilfelleBit(
         id = getInt("id"),
