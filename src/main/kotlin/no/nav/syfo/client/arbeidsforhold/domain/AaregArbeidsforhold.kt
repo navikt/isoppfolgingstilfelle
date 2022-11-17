@@ -13,21 +13,19 @@ data class Arbeidssted(
     val type: ArbeidsstedType,
     val identer: List<Ident>
 ) {
-    fun getOrgnummer(): String {
-        return identer.first {
+    fun getOrgnummer() =
+        identer.firstOrNull {
             it.type == IdentType.ORGANISASJONSNUMMER
-        }.ident
-    }
+        }?.ident
 }
 
 data class Opplysningspliktig(
     val identer: List<Ident>
 ) {
-    fun getJuridiskOrgnummer(): String {
-        return identer.first {
+    fun getJuridiskOrgnummer() =
+        identer.firstOrNull {
             it.type == IdentType.ORGANISASJONSNUMMER
-        }.ident
-    }
+        }?.ident
 }
 
 data class Ident(

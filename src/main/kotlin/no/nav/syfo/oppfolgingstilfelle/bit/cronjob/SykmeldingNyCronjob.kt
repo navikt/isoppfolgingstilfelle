@@ -34,7 +34,8 @@ class SykmeldingNyCronjob(
 
                     val orgnr = arbeidsforhold.find {
                         val periode = it.ansettelsesperiode
-                        periode.startdato.isBefore(oppfolgingstilfelleBit.tom) &&
+                        it.arbeidssted.getOrgnummer() != null &&
+                            periode.startdato.isBefore(oppfolgingstilfelleBit.tom) &&
                             (periode.sluttdato == null || periode.sluttdato.isAfter(oppfolgingstilfelleBit.tom))
                     }?.arbeidssted?.getOrgnummer()
                     orgnr?.let {

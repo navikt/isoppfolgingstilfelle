@@ -53,6 +53,14 @@ class ArbeidsforholdClientSpek : Spek({
                     response.size shouldBeEqualTo 0
                 }
             }
+            it("unknown arbeidstaker") {
+                runBlocking {
+                    val response = client.getArbeidsforhold(
+                        personIdent = UserConstants.ARBEIDSTAKER_UNKNOWN_AAREG,
+                    )
+                    response.size shouldBeEqualTo 0
+                }
+            }
         }
     }
 })
