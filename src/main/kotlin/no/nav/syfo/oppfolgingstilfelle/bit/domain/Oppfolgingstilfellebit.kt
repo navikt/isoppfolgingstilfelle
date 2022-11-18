@@ -51,7 +51,7 @@ data class OppfolgingstilfelleBit(
     val createdAt: OffsetDateTime,
     val inntruffet: OffsetDateTime,
     val tagList: List<Tag>,
-    val ressursId: UUID,
+    val ressursId: String,
     val fom: LocalDate,
     val tom: LocalDate,
     val ready: Boolean = true,
@@ -94,7 +94,7 @@ fun List<OppfolgingstilfelleBit>.generateOppfolgingstilfelleList(): List<Oppfolg
 }
 
 private fun List<OppfolgingstilfelleBit>.filtrerOppfolgingstilfelleList(): List<OppfolgingstilfelleBit> {
-    val korrigerte = this.mapNotNull { bit -> bit.korrigerer }
+    val korrigerte = this.mapNotNull { bit -> bit.korrigerer?.toString() }
     return this.filter { bit -> !korrigerte.contains(bit.ressursId) }
 }
 
@@ -179,7 +179,7 @@ fun KafkaSyketilfellebit.toOppfolgingstilfelleBit(): OppfolgingstilfelleBit {
         createdAt = nowUTC(),
         inntruffet = this.inntruffet,
         tagList = this.tags.map { tag -> Tag.valueOf(tag) },
-        ressursId = UUID.fromString(this.ressursId),
+        ressursId = this.ressursId,
         fom = this.fom,
         tom = this.tom,
         ready = !this.tags.containsAll(listOf(Tag.SYKMELDING.name, Tag.NY.name)),
