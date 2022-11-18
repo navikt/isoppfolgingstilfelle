@@ -32,10 +32,10 @@ fun POppfolgingstilfelleBit.toOppfolgingstilfelleBit() = OppfolgingstilfelleBit(
     createdAt = this.createdAt,
     inntruffet = this.inntruffet,
     tagList = this.tagList,
-    ressursId = this.ressursId,
+    ressursId = UUID.fromString(this.ressursId),
     fom = this.fom,
     tom = this.tom,
     ready = this.ready,
     processed = this.processed,
-    korrigerer = this.korrigerer,
+    korrigerer = this.korrigerer?.let { UUID.fromString(it) },
 )

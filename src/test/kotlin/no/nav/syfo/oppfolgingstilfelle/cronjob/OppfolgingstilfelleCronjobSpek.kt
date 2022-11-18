@@ -12,6 +12,7 @@ import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
 import no.nav.syfo.oppfolgingstilfelle.bit.cronjob.OppfolgingstilfelleCronjob
 import no.nav.syfo.oppfolgingstilfelle.bit.cronjob.SykmeldingNyCronjob
+import no.nav.syfo.oppfolgingstilfelle.bit.database.getOppfolgingstilfelleBitForUUID
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.OppfolgingstilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.Tag
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.*
@@ -22,6 +23,7 @@ import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleApiV1Path
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.OppfolgingstilfellePersonProducer
 import no.nav.syfo.util.*
 import org.amshove.kluent.shouldBeEqualTo
+import org.amshove.kluent.shouldNotBeEqualTo
 import org.apache.kafka.clients.consumer.*
 import org.apache.kafka.common.TopicPartition
 import org.spekframework.spek2.Spek
@@ -71,7 +73,7 @@ class OppfolgingstilfelleCronjobSpek : Spek({
                 Tag.SYKEPENGESOKNAD,
                 Tag.SENDT,
             ),
-            ressursId = UUID.randomUUID().toString(),
+            ressursId = UUID.randomUUID(),
             korrigerer = null,
         )
 
@@ -416,6 +418,54 @@ class OppfolgingstilfelleCronjobSpek : Spek({
                         verify(exactly = 1) {
                             oppfolgingstilfellePersonProducer.sendOppfolgingstilfellePerson(any())
                         }
+                    }
+
+                    it("should update bit with korrigerer when processing duplicate") {
+                        val uuid = UUID.randomUUID()
+                        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+                            mapOf(
+                                syketilfellebitTopicPartition to listOf(
+                                    kafkaSyketilfellebitRecordRelevantVirksomhet,
+                                    ConsumerRecord(
+                                        SYKETILFELLEBIT_TOPIC,
+                                        partition,
+                                        1,
+                                        "key1",
+                                        kafkaSyketilfellebitRelevantVirksomhet.copy(
+                                            korrigererSendtSoknad = uuid.toString(),
+                                        ),
+                                    ),
+                                )
+                            )
+                        )
+
+                        kafkaSyketilfellebitService.pollAndProcessRecords(
+                            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                        )
+                        runBlocking {
+                            val result = sykmeldingNyCronJob.runJob()
+                            result.failed shouldBeEqualTo 0
+                            result.updated shouldBeEqualTo 0
+                        }
+                        runBlocking {
+                            val result = oppfolgingstilfelleCronjob.runJob()
+                            result.failed shouldBeEqualTo 0
+                            result.updated shouldBeEqualTo 1
+                        }
+
+                        verify(exactly = 1) {
+                            mockKafkaConsumerSyketilfelleBit.commitSync()
+                        }
+                        verify(exactly = 1) {
+                            oppfolgingstilfellePersonProducer.sendOppfolgingstilfellePerson(any())
+                        }
+                        val persisted = database.connection.use {
+                            it.getOppfolgingstilfelleBitForUUID(
+                                uuid = UUID.fromString(kafkaSyketilfellebitRecordRelevantVirksomhet.value().id)
+                            )
+                        }
+                        persisted shouldNotBeEqualTo null
+                        persisted!!.korrigerer shouldBeEqualTo uuid.toString()
                     }
                 }
             }
