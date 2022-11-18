@@ -2,9 +2,13 @@ package no.nav.syfo.oppfolgingstilfelle.person.domain
 
 import no.nav.syfo.domain.Virksomhetsnummer
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.*
+import no.nav.syfo.oppfolgingstilfelle.person.metric.SYKMELDING_NY_COUNTER
 import no.nav.syfo.util.and
 import no.nav.syfo.util.or
-import java.time.LocalDate
+import org.slf4j.LoggerFactory
+import java.time.*
+
+private val log = LoggerFactory.getLogger(OppfolgingstilfelleDag::class.java)
 
 class OppfolgingstilfelleDag(
     val dag: LocalDate,
@@ -65,14 +69,33 @@ fun List<OppfolgingstilfelleDag>.gradertAtTilfelleEnd() =
         it.priorityOppfolgingstilfelleBit != null
     }.isGradert()
 
-fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelle() =
-    Oppfolgingstilfelle(
+fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelle(): Oppfolgingstilfelle {
+    val onlySykmeldingNyOrInntektsmelding = this.all { dag ->
+        dag.priorityOppfolgingstilfelleBit?.tagList
+            ?.let { tagList ->
+                tagList in ((Tag.SYKMELDING and Tag.NY) or (Tag.INNTEKTSMELDING and Tag.ARBEIDSGIVERPERIODE))
+            }
+            ?: false
+    }
+    if (onlySykmeldingNyOrInntektsmelding && this.durationDays() > 118) {
+        val sampleUUID = this.mapNotNull { dag -> dag.priorityOppfolgingstilfelleBit}.firstOrNull()?.uuid
+        log.info("Created oppfolgingstilfelle with duration>118 days based on only sykmelding-ny, bit sample uuid: ${sampleUUID}")
+        SYKMELDING_NY_COUNTER.increment()
+    }
+    return Oppfolgingstilfelle(
         arbeidstakerAtTilfelleEnd = this.isArbeidstakerAtTilfelleEnd(),
         start = this.first().dag,
         end = this.last().dag,
         virksomhetsnummerList = this.toVirksomhetsnummerPreferred().ifEmpty { this.toVirksomhetsnummerAll() },
         gradertAtTilfelleEnd = this.gradertAtTilfelleEnd(),
     )
+}
+
+private fun List<OppfolgingstilfelleDag>.durationDays(): Long {
+    val start = this.first().dag.atStartOfDay()
+    val end = this.last().dag.atStartOfDay()
+    return Duration.between(start, end).toDays()
+}
 
 fun List<OppfolgingstilfelleDag>.toVirksomhetsnummerPreferred() =
     this.map {
