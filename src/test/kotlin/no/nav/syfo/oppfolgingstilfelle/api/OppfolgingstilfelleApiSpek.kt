@@ -67,7 +67,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                 Tag.SYKEPENGESOKNAD,
                 Tag.SENDT,
             ),
-            ressursId = UUID.randomUUID(),
+            ressursId = UUID.randomUUID().toString(),
             korrigerer = null,
         )
 
