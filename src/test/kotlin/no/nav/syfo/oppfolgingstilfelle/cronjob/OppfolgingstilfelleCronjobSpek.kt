@@ -73,7 +73,7 @@ class OppfolgingstilfelleCronjobSpek : Spek({
                 Tag.SYKEPENGESOKNAD,
                 Tag.SENDT,
             ),
-            ressursId = UUID.randomUUID().toString(),
+            ressursId = UUID.randomUUID(),
             korrigerer = null,
         )
 

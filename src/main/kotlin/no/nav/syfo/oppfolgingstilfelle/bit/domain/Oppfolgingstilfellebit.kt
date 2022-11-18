@@ -51,12 +51,12 @@ data class OppfolgingstilfelleBit(
     val createdAt: OffsetDateTime,
     val inntruffet: OffsetDateTime,
     val tagList: List<Tag>,
-    val ressursId: String,
+    val ressursId: UUID,
     val fom: LocalDate,
     val tom: LocalDate,
     val ready: Boolean = true,
     val processed: Boolean = true,
-    val korrigerer: String?,
+    val korrigerer: UUID?,
 ) {
     companion object {
         val TAG_PRIORITY: List<ListContainsPredicate<Tag>> = listOf(
@@ -179,12 +179,12 @@ fun KafkaSyketilfellebit.toOppfolgingstilfelleBit(): OppfolgingstilfelleBit {
         createdAt = nowUTC(),
         inntruffet = this.inntruffet,
         tagList = this.tags.map { tag -> Tag.valueOf(tag) },
-        ressursId = this.ressursId,
+        ressursId = UUID.fromString(this.ressursId),
         fom = this.fom,
         tom = this.tom,
         ready = !this.tags.containsAll(listOf(Tag.SYKMELDING.name, Tag.NY.name)),
         processed = false,
-        korrigerer = this.korrigererSendtSoknad,
+        korrigerer = this.korrigererSendtSoknad?.let { UUID.fromString(it) },
     )
 }
 

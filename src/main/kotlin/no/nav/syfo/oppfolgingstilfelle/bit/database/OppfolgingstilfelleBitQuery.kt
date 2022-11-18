@@ -40,14 +40,14 @@ fun Connection.createOppfolgingstilfelleBit(
         it.setTimestamp(2, Timestamp.from(oppfolgingstilfelleBit.createdAt.toInstant()))
         it.setTimestamp(3, Timestamp.from(oppfolgingstilfelleBit.inntruffet.toInstant()))
         it.setString(4, oppfolgingstilfelleBit.personIdentNumber.value)
-        it.setString(5, oppfolgingstilfelleBit.ressursId)
+        it.setString(5, oppfolgingstilfelleBit.ressursId.toString())
         it.setString(6, oppfolgingstilfelleBit.tagsToString())
         it.setString(7, oppfolgingstilfelleBit.virksomhetsnummer)
         it.setDate(8, Date.valueOf(oppfolgingstilfelleBit.fom))
         it.setDate(9, Date.valueOf(oppfolgingstilfelleBit.tom))
         it.setBoolean(10, oppfolgingstilfelleBit.ready)
         it.setBoolean(11, oppfolgingstilfelleBit.processed)
-        it.setString(12, oppfolgingstilfelleBit.korrigerer)
+        it.setString(12, oppfolgingstilfelleBit.korrigerer?.toString())
         it.executeQuery().toList { getInt("id") }
     }
 
@@ -193,9 +193,9 @@ const val querySetKorrigererOppfolgingstilfelleBit =
 
 fun Connection.setKorrigererOppfolgingstilfelleBit(
     uuid: UUID,
-    korrigerer: String,
+    korrigerer: UUID,
 ) = this.prepareStatement(querySetKorrigererOppfolgingstilfelleBit).use {
-    it.setString(1, korrigerer)
+    it.setString(1, korrigerer.toString())
     it.setString(2, uuid.toString())
     it.executeUpdate()
 }.also { updateCount ->
