@@ -78,8 +78,8 @@ fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelle(): Oppfolgingstilfelle {
             ?: false
     }
     if (onlySykmeldingNyOrInntektsmelding && this.durationDays() > 118) {
-        val sampleUUID = this.mapNotNull { dag -> dag.priorityOppfolgingstilfelleBit}.firstOrNull()?.uuid
-        log.info("Created oppfolgingstilfelle with duration>118 days based on only sykmelding-ny, bit sample uuid: ${sampleUUID}")
+        val sampleUUID = this.mapNotNull { dag -> dag.priorityOppfolgingstilfelleBit }.firstOrNull()?.uuid
+        log.info("Created oppfolgingstilfelle with duration>118 days based on only sykmelding-ny, bit sample uuid: $sampleUUID")
         SYKMELDING_NY_COUNTER.increment()
     }
     return Oppfolgingstilfelle(
