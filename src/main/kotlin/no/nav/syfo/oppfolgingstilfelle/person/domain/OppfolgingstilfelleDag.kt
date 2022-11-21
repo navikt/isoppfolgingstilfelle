@@ -70,15 +70,8 @@ fun List<OppfolgingstilfelleDag>.gradertAtTilfelleEnd() =
     }.isGradert()
 
 fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelle(): Oppfolgingstilfelle {
-    val onlySykmeldingNyOrInntektsmelding = this.all { dag ->
-        dag.priorityOppfolgingstilfelleBit?.tagList
-            ?.let { tagList ->
-                tagList in ((Tag.SYKMELDING and Tag.NY) or (Tag.INNTEKTSMELDING and Tag.ARBEIDSGIVERPERIODE))
-            }
-            ?: false
-    }
-    if (onlySykmeldingNyOrInntektsmelding && this.durationDays() > 118) {
-        val sampleUUID = this.mapNotNull { dag -> dag.priorityOppfolgingstilfelleBit }.firstOrNull()?.uuid
+    if (this.onlySykmeldingNyOrInntektsmelding() && this.durationDays() > 118) {
+        val sampleUUID = this.firstNotNullOfOrNull { dag -> dag.priorityOppfolgingstilfelleBit }?.uuid
         log.info("Created oppfolgingstilfelle with duration>118 days based on only sykmelding-ny, bit sample uuid: $sampleUUID")
         SYKMELDING_NY_COUNTER.increment()
     }
@@ -90,6 +83,15 @@ fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelle(): Oppfolgingstilfelle {
         gradertAtTilfelleEnd = this.gradertAtTilfelleEnd(),
     )
 }
+
+private fun List<OppfolgingstilfelleDag>.onlySykmeldingNyOrInntektsmelding() =
+    this.all { dag ->
+        dag.priorityOppfolgingstilfelleBit?.tagList
+            ?.let { tagList ->
+                tagList in ((Tag.SYKMELDING and Tag.NY) or (Tag.INNTEKTSMELDING and Tag.ARBEIDSGIVERPERIODE))
+            }
+            ?: false
+    }
 
 private fun List<OppfolgingstilfelleDag>.durationDays(): Long {
     val start = this.first().dag.atStartOfDay()
