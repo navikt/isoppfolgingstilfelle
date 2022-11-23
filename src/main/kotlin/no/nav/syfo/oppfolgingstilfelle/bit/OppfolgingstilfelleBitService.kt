@@ -7,6 +7,7 @@ import no.nav.syfo.oppfolgingstilfelle.bit.domain.*
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.*
 import org.slf4j.LoggerFactory
 import java.sql.Connection
+import java.time.LocalDate
 
 class OppfolgingstilfelleBitService() {
     fun createOppfolgingstilfelleBitList(
@@ -27,10 +28,14 @@ class OppfolgingstilfelleBitService() {
                 val isRelevant = if (oppfolgingstilfelleBit.ready) {
                     true
                 } else {
-                    val existing = connection.getProcessedOppfolgingstilfelleBitList(
-                        personIdentNumber = oppfolgingstilfelleBit.personIdentNumber
-                    ).toOppfolgingstilfelleBitList()
-                    !existing.containsSendtSykmeldingBit(oppfolgingstilfelleBit)
+                    if (oppfolgingstilfelleBit.fom.isBefore(ARENA_CUTOFF)) {
+                        false
+                    } else {
+                        val existing = connection.getProcessedOppfolgingstilfelleBitList(
+                            personIdentNumber = oppfolgingstilfelleBit.personIdentNumber
+                        ).toOppfolgingstilfelleBitList()
+                        !existing.containsSendtSykmeldingBit(oppfolgingstilfelleBit)
+                    }
                 }
                 if (isRelevant) {
                     log.info("Received relevant ${OppfolgingstilfelleBit::class.java.simpleName}: inntruffet=${oppfolgingstilfelleBit.inntruffet}, tags=${oppfolgingstilfelleBit.tagList}")
@@ -56,10 +61,12 @@ class OppfolgingstilfelleBitService() {
                 uuid = existing.uuid,
                 korrigerer = incoming.korrigerer,
             )
+            COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_KORRIGERER_UPDATED.increment()
         }
     }
 
     companion object {
         private val log = LoggerFactory.getLogger(OppfolgingstilfelleBitService::class.java)
+        private val ARENA_CUTOFF = LocalDate.of(2022, 5, 21)
     }
 }
