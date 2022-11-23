@@ -61,6 +61,7 @@ class OppfolgingstilfelleBitService() {
                 uuid = existing.uuid,
                 korrigerer = incoming.korrigerer,
             )
+            COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_KORRIGERER_UPDATED.increment()
         }
     }
 

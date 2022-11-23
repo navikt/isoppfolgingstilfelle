@@ -1,0 +1,5 @@
+DO $$
+BEGIN
+    ANALYZE TILFELLE_BIT;
+END
+$$;
