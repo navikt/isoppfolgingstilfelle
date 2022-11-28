@@ -40,7 +40,7 @@ fun Connection.createOppfolgingstilfelleBit(
         it.setTimestamp(2, Timestamp.from(oppfolgingstilfelleBit.createdAt.toInstant()))
         it.setTimestamp(3, Timestamp.from(oppfolgingstilfelleBit.inntruffet.toInstant()))
         it.setString(4, oppfolgingstilfelleBit.personIdentNumber.value)
-        it.setString(5, oppfolgingstilfelleBit.ressursId.toString())
+        it.setString(5, oppfolgingstilfelleBit.ressursId)
         it.setString(6, oppfolgingstilfelleBit.tagsToString())
         it.setString(7, oppfolgingstilfelleBit.virksomhetsnummer)
         it.setDate(8, Date.valueOf(oppfolgingstilfelleBit.fom))
@@ -118,7 +118,7 @@ const val queryGetNotReadyOppfolgingstilfelleBitList =
     FROM TILFELLE_BIT
     WHERE NOT ready
     ORDER BY inntruffet ASC, id ASC
-    LIMIT 2000;
+    LIMIT 4000;
     """
 
 fun DatabaseInterface.getNotReadyOppfolgingstilfelleBitList() =
@@ -183,26 +183,6 @@ fun Connection.setProcessedOppfolgingstilfelleBit(uuid: UUID) =
             throw RuntimeException("Unexpected update count: $updateCount")
         }
     }
-
-const val querySetKorrigererOppfolgingstilfelleBit =
-    """
-    UPDATE TILFELLE_BIT 
-    SET korrigerer=?
-    WHERE uuid=?
-    """
-
-fun Connection.setKorrigererOppfolgingstilfelleBit(
-    uuid: UUID,
-    korrigerer: UUID,
-) = this.prepareStatement(querySetKorrigererOppfolgingstilfelleBit).use {
-    it.setString(1, korrigerer.toString())
-    it.setString(2, uuid.toString())
-    it.executeUpdate()
-}.also { updateCount ->
-    if (updateCount != 1) {
-        throw RuntimeException("Unexpected update count: $updateCount")
-    }
-}
 
 fun ResultSet.toPOppfolgingstilfelleBit(): POppfolgingstilfelleBit =
     POppfolgingstilfelleBit(

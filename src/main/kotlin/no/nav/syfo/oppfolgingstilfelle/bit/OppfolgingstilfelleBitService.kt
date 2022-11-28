@@ -18,11 +18,6 @@ class OppfolgingstilfelleBitService() {
             val existingWithSameUuid = connection.getOppfolgingstilfelleBitForUUID(oppfolgingstilfelleBit.uuid)
                 ?.toOppfolgingstilfelleBit()
             if (existingWithSameUuid != null) {
-                handleDuplicate(
-                    connection = connection,
-                    existing = existingWithSameUuid,
-                    incoming = oppfolgingstilfelleBit,
-                )
                 COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_DUPLICATE.increment()
             } else {
                 val isRelevant = if (oppfolgingstilfelleBit.ready) {
@@ -48,20 +43,6 @@ class OppfolgingstilfelleBitService() {
                     COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_SKIPPED_CREATE.increment()
                 }
             }
-        }
-    }
-
-    private fun handleDuplicate(
-        connection: Connection,
-        existing: OppfolgingstilfelleBit,
-        incoming: OppfolgingstilfelleBit,
-    ) {
-        if (existing.uuid == incoming.uuid && existing.korrigerer == null && incoming.korrigerer != null) {
-            connection.setKorrigererOppfolgingstilfelleBit(
-                uuid = existing.uuid,
-                korrigerer = incoming.korrigerer,
-            )
-            COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_KORRIGERER_UPDATED.increment()
         }
     }
 

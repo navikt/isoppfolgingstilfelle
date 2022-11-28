@@ -9,8 +9,8 @@ spec:
   image: {{ image }}
   port: 8080
   replicas:
-    min: 4
-    max: 6
+    min: 2
+    max: 4
     cpuThresholdPercentage: 70
   startup:
     path: /internal/is_ready
