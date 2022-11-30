@@ -70,7 +70,7 @@ fun testEnvironment(
     electorPath = "electorPath",
     redis = RedisEnvironment(
         host = "localhost",
-        port = 6375,
+        port = 6379,
         secret = "password",
     ),
 )
