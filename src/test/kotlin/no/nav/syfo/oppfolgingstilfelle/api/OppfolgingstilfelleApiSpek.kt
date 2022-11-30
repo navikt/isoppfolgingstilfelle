@@ -7,8 +7,6 @@ import io.ktor.server.testing.*
 import io.mockk.*
 import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
 import no.nav.syfo.oppfolgingstilfelle.bit.cronjob.OppfolgingstilfelleCronjob
-import no.nav.syfo.oppfolgingstilfelle.bit.domain.OppfolgingstilfelleBit
-import no.nav.syfo.oppfolgingstilfelle.bit.domain.Tag
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.*
 import no.nav.syfo.oppfolgingstilfelle.person.OppfolgingstilfellePersonService
 import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfellePersonDTO
@@ -24,7 +22,6 @@ import org.spekframework.spek2.style.specification.describe
 import testhelper.*
 import testhelper.UserConstants.PERSONIDENTNUMBER_DEFAULT
 import testhelper.UserConstants.PERSONIDENTNUMBER_VEILEDER_NO_ACCESS
-import testhelper.UserConstants.VIRKSOMHETSNUMMER_DEFAULT
 import testhelper.generator.*
 import testhelper.mock.toHistoricalPersonIdentNumber
 import java.time.Duration
@@ -52,22 +49,6 @@ class OppfolgingstilfelleApiSpek : Spek({
             oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
         )
         val personIdentDefault = PERSONIDENTNUMBER_DEFAULT.toHistoricalPersonIdentNumber()
-
-        val oppfolgingstilfelleBit = OppfolgingstilfelleBit(
-            uuid = UUID.randomUUID(),
-            personIdentNumber = personIdentDefault,
-            virksomhetsnummer = VIRKSOMHETSNUMMER_DEFAULT.value,
-            createdAt = nowUTC(),
-            inntruffet = nowUTC().minusDays(1),
-            fom = LocalDate.now().minusDays(1),
-            tom = LocalDate.now().plusDays(1),
-            tagList = listOf(
-                Tag.SYKEPENGESOKNAD,
-                Tag.SENDT,
-            ),
-            ressursId = UUID.randomUUID().toString(),
-            korrigerer = null,
-        )
 
         val partition = 0
         val syketilfellebitTopicPartition = TopicPartition(
@@ -161,17 +142,73 @@ class OppfolgingstilfelleApiSpek : Spek({
                             val oppfolgingstilfellePersonDTO: OppfolgingstilfellePersonDTO =
                                 objectMapper.readValue(response.content!!)
 
-                            oppfolgingstilfellePersonDTO.personIdent shouldBeEqualTo oppfolgingstilfelleBit.personIdentNumber.value
+                            oppfolgingstilfellePersonDTO.personIdent shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.fnr
 
                             val oppfolgingstilfelleDTO =
                                 oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.first()
 
                             oppfolgingstilfelleDTO.virksomhetsnummerList.size shouldBeEqualTo 1
-                            oppfolgingstilfelleDTO.virksomhetsnummerList.first() shouldBeEqualTo oppfolgingstilfelleBit.virksomhetsnummer
+                            oppfolgingstilfelleDTO.virksomhetsnummerList.first() shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.orgnummer
 
                             oppfolgingstilfelleDTO.arbeidstakerAtTilfelleEnd shouldBeEqualTo true
-                            oppfolgingstilfelleDTO.start shouldBeEqualTo oppfolgingstilfelleBit.fom
-                            oppfolgingstilfelleDTO.end shouldBeEqualTo oppfolgingstilfelleBit.tom
+                            oppfolgingstilfelleDTO.start shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.fom
+                            oppfolgingstilfelleDTO.end shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.tom
+                        }
+                    }
+                    it("should not return future oppfolgingstilfelle when using get in api") {
+                        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+                            mapOf(
+                                syketilfellebitTopicPartition to listOf(
+                                    kafkaSyketilfellebitRecordRelevantVirksomhet,
+                                    ConsumerRecord(
+                                        SYKETILFELLEBIT_TOPIC,
+                                        partition,
+                                        2,
+                                        "key2",
+                                        kafkaSyketilfellebitRelevantVirksomhet.copy(
+                                            id = UUID.randomUUID().toString(),
+                                            fom = LocalDate.now().plusDays(20),
+                                            tom = LocalDate.now().plusDays(24),
+                                        ),
+                                    )
+                                )
+                            )
+                        )
+
+                        kafkaSyketilfellebitService.pollAndProcessRecords(
+                            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                        )
+                        oppfolgingstilfelleCronjob.runJob()
+
+                        verify(exactly = 1) {
+                            mockKafkaConsumerSyketilfelleBit.commitSync()
+                        }
+                        verify(exactly = 2) {
+                            oppfolgingstilfellePersonProducer.sendOppfolgingstilfellePerson(any())
+                        }
+
+                        with(
+                            handleRequest(HttpMethod.Get, url) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                            val oppfolgingstilfellePersonDTO: OppfolgingstilfellePersonDTO =
+                                objectMapper.readValue(response.content!!)
+
+                            oppfolgingstilfellePersonDTO.personIdent shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.fnr
+
+                            val oppfolgingstilfelleDTO =
+                                oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.first()
+
+                            oppfolgingstilfelleDTO.virksomhetsnummerList.size shouldBeEqualTo 1
+                            oppfolgingstilfelleDTO.virksomhetsnummerList.first() shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.orgnummer
+
+                            oppfolgingstilfelleDTO.arbeidstakerAtTilfelleEnd shouldBeEqualTo true
+                            oppfolgingstilfelleDTO.start shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.fom
+                            oppfolgingstilfelleDTO.end shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.tom
                         }
                     }
 
@@ -217,11 +254,11 @@ class OppfolgingstilfelleApiSpek : Spek({
                                 oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.first()
 
                             oppfolgingstilfelleDTO.virksomhetsnummerList.size shouldBeEqualTo 1
-                            oppfolgingstilfelleDTO.virksomhetsnummerList.first() shouldBeEqualTo oppfolgingstilfelleBit.virksomhetsnummer
+                            oppfolgingstilfelleDTO.virksomhetsnummerList.first() shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.orgnummer
 
                             oppfolgingstilfelleDTO.arbeidstakerAtTilfelleEnd shouldBeEqualTo true
-                            oppfolgingstilfelleDTO.start shouldBeEqualTo oppfolgingstilfelleBit.fom
-                            oppfolgingstilfelleDTO.end shouldBeEqualTo oppfolgingstilfelleBit.tom
+                            oppfolgingstilfelleDTO.start shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.fom
+                            oppfolgingstilfelleDTO.end shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.tom
                         }
                     }
 

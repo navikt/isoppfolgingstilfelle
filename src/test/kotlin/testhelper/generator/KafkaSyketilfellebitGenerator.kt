@@ -23,8 +23,8 @@ fun generateKafkaSyketilfellebitRelevantVirksomhet(
         Tag.SENDT,
     ).map { tag -> tag.name },
     ressursId = UUID.randomUUID().toString(),
-    fom = LocalDate.now().minusDays(1),
-    tom = LocalDate.now().plusDays(1),
+    fom = LocalDate.now().minusDays(16),
+    tom = LocalDate.now().minusDays(14),
     korrigererSendtSoknad = null,
 )
 
@@ -68,8 +68,8 @@ fun generateKafkaSyketilfellebitSykmeldingNy(
     personIdent = personIdentNumber,
 ).copy(
     orgnummer = null,
-    fom = LocalDate.now(),
-    tom = LocalDate.now().plusDays(28),
+    fom = LocalDate.now().minusDays(28),
+    tom = LocalDate.now(),
     tags = listOf(
         Tag.SYKMELDING,
         Tag.NY,
