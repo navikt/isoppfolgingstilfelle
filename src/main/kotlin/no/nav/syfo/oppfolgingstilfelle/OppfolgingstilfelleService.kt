@@ -27,7 +27,7 @@ class OppfolgingstilfelleService(
                 oppfolgingstilfellePerson(
                     personIdent = it,
                 )?.oppfolgingstilfelleList?.filter {
-                    it.start.isBefore(LocalDate.now())
+                    it.start.isBefore(tomorrow())
                 }
             if (!oppfolgingstilfelleList.isNullOrEmpty()) {
                 allOppfolgingstilfelleList.addAll(oppfolgingstilfelleList)
@@ -45,3 +45,5 @@ class OppfolgingstilfelleService(
         return oppfolgingstilfellePerson?.toOppfolgingstilfellePerson()
     }
 }
+
+fun tomorrow() = LocalDate.now().plusDays(1)
