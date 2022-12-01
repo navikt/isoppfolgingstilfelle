@@ -185,9 +185,9 @@ class OppfolgingstilfelleSystemApiSpek : Spek({
                                 objectMapper.readValue(response.content!!)
 
                             oppfolgingstilfellePersonDTO.personIdent shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.fnr
+                            oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.size shouldBeEqualTo 1
 
-                            val oppfolgingstilfelleDTO =
-                                oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.first()
+                            val oppfolgingstilfelleDTO = oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.first()
 
                             oppfolgingstilfelleDTO.virksomhetsnummerList.size shouldBeEqualTo 1
                             oppfolgingstilfelleDTO.virksomhetsnummerList.first() shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.orgnummer
