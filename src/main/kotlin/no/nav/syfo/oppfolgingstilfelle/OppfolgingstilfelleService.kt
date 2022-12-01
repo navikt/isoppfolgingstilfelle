@@ -8,7 +8,6 @@ import no.nav.syfo.oppfolgingstilfelle.person.database.toOppfolgingstilfellePers
 import no.nav.syfo.oppfolgingstilfelle.person.domain.Oppfolgingstilfelle
 import no.nav.syfo.oppfolgingstilfelle.person.domain.OppfolgingstilfellePerson
 import no.nav.syfo.util.tomorrow
-import java.time.LocalDate
 
 class OppfolgingstilfelleService(
     val database: DatabaseInterface,
