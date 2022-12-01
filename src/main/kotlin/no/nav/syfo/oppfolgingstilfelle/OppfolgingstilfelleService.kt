@@ -7,6 +7,7 @@ import no.nav.syfo.oppfolgingstilfelle.person.database.getOppfolgingstilfellePer
 import no.nav.syfo.oppfolgingstilfelle.person.database.toOppfolgingstilfellePerson
 import no.nav.syfo.oppfolgingstilfelle.person.domain.Oppfolgingstilfelle
 import no.nav.syfo.oppfolgingstilfelle.person.domain.OppfolgingstilfellePerson
+import no.nav.syfo.util.tomorrow
 import java.time.LocalDate
 
 class OppfolgingstilfelleService(
@@ -45,5 +46,3 @@ class OppfolgingstilfelleService(
         return oppfolgingstilfellePerson?.toOppfolgingstilfellePerson()
     }
 }
-
-fun tomorrow() = LocalDate.now().plusDays(1)
