@@ -18,3 +18,5 @@ fun Timestamp.toOffsetDateTimeUTC(): OffsetDateTime = this.toInstant().atOffset(
 fun LocalDate.isBeforeOrEqual(date: LocalDate) = !this.isAfter(date)
 
 fun LocalDate.isAfterOrEqual(date: LocalDate) = !this.isBefore(date)
+
+fun tomorrow() = LocalDate.now().plusDays(1)

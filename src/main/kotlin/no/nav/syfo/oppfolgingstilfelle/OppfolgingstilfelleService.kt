@@ -7,6 +7,7 @@ import no.nav.syfo.oppfolgingstilfelle.person.database.getOppfolgingstilfellePer
 import no.nav.syfo.oppfolgingstilfelle.person.database.toOppfolgingstilfellePerson
 import no.nav.syfo.oppfolgingstilfelle.person.domain.Oppfolgingstilfelle
 import no.nav.syfo.oppfolgingstilfelle.person.domain.OppfolgingstilfellePerson
+import no.nav.syfo.util.tomorrow
 
 class OppfolgingstilfelleService(
     val database: DatabaseInterface,
@@ -25,7 +26,9 @@ class OppfolgingstilfelleService(
             val oppfolgingstilfelleList: List<Oppfolgingstilfelle>? =
                 oppfolgingstilfellePerson(
                     personIdent = it,
-                )?.oppfolgingstilfelleList
+                )?.oppfolgingstilfelleList?.filter {
+                    it.start.isBefore(tomorrow())
+                }
             if (!oppfolgingstilfelleList.isNullOrEmpty()) {
                 allOppfolgingstilfelleList.addAll(oppfolgingstilfelleList)
             }
