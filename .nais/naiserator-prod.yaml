@@ -52,6 +52,9 @@ spec:
         - application: isdialogmote
           namespace: teamsykefravr
           cluster: prod-gcp
+        - application: isdialogmotekandidat
+          namespace: teamsykefravr
+          cluster: prod-gcp
         - application: syfomodiaperson
           namespace: teamsykefravr
           cluster: prod-fss
