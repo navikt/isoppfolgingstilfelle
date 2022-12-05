@@ -443,6 +443,21 @@ class OppfolgingstilfelleBitSpek : Spek({
             secondTilfelleDuration shouldBeEqualTo 1
         }
 
+        it("should return no Oppfolgingstilfelle, if person has only behandlingsdager") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, BEHANDLINGSDAGER),
+                    fom = LocalDate.now().minusDays(18),
+                    tom = LocalDate.now(),
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.size shouldBeEqualTo 0
+        }
+
         it("should return 2 Oppfolgingstilfelle, if person has at least 16 Arbeidsdag between 2 Sykedag") {
             val oppfolgingstilfelleBitList = listOf(
                 defaultBit.copy(
@@ -456,6 +471,47 @@ class OppfolgingstilfelleBitSpek : Spek({
                     createdAt = nowUTC(),
                     inntruffet = nowUTC(),
                     tagList = listOf(SYKEPENGESOKNAD, SENDT, ARBEID_GJENNOPPTATT),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now().minusDays(1),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT),
+                    fom = LocalDate.now(),
+                    tom = LocalDate.now(),
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.size shouldBeEqualTo 2
+
+            val firstTilfelleDuration = Period.between(
+                oppfolgingstilfelleList.first().start,
+                oppfolgingstilfelleList.first().end,
+            ).days
+            firstTilfelleDuration shouldBeEqualTo 0
+
+            val secondTilfelleDuration = Period.between(
+                oppfolgingstilfelleList.last().start,
+                oppfolgingstilfelleList.last().end,
+            ).days
+            secondTilfelleDuration shouldBeEqualTo 0
+        }
+
+        it("should return 2 Oppfolgingstilfelle, if person has at least 16 behandlingsdager between 2 Sykedag") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT),
+                    fom = LocalDate.now().minusDays(17),
+                    tom = LocalDate.now().minusDays(17),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, NY, PERIODE, BEHANDLINGSDAGER),
                     fom = LocalDate.now().minusDays(16),
                     tom = LocalDate.now().minusDays(1),
                 ),

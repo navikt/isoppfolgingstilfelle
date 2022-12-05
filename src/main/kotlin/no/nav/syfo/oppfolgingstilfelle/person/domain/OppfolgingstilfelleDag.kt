@@ -123,6 +123,7 @@ fun OppfolgingstilfelleDag.isArbeidsdag() =
                 (Tag.SYKMELDING and Tag.PERIODE and Tag.FULL_AKTIVITET)
                     or (Tag.SYKEPENGESOKNAD and Tag.ARBEID_GJENNOPPTATT)
                     or (Tag.SYKEPENGESOKNAD and Tag.BEHANDLINGSDAGER)
+                    or (Tag.SYKMELDING and Tag.BEHANDLINGSDAGER)
                 )
         }
         ?: true
