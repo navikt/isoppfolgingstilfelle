@@ -100,7 +100,7 @@ const val queryGetUnprocessedOppfolgingstilfelleBitList =
     FROM TILFELLE_BIT
     WHERE ready AND NOT processed
     ORDER BY inntruffet ASC, id ASC 
-    LIMIT 2000;
+    LIMIT 4000;
     """
 
 fun DatabaseInterface.getUnprocessedOppfolgingstilfelleBitList() =
