@@ -69,8 +69,10 @@ data class Environment(
     ),
     val electorPath: String = getEnvVar("ELECTOR_PATH"),
     private val isdialogmoteApplicationName: String = "isdialogmote",
+    private val isdialogmotekandidatApplicationName: String = "isdialogmotekandidat",
     val systemAPIAuthorizedConsumerApplicationNames: List<String> = listOf(
         isdialogmoteApplicationName,
+        isdialogmotekandidatApplicationName,
     ),
 )
 
