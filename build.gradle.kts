@@ -5,6 +5,7 @@ group = "no.nav.syfo"
 version = "1.0.0"
 
 object Versions {
+    const val confluent = "7.2.1"
     const val flyway = "8.5.13"
     const val hikari = "5.0.1"
     const val jackson = "2.13.3"
@@ -82,6 +83,7 @@ dependencies {
     val excludeLog4j = fun ExternalModuleDependency.() {
         exclude(group = "log4j")
     }
+    implementation("io.confluent:kafka-avro-serializer:${Versions.confluent}", excludeLog4j)
     implementation("org.apache.kafka:kafka_2.13:${Versions.kafka}", excludeLog4j)
     constraints {
         implementation("org.scala-lang:scala-library") {

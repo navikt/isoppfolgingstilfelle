@@ -17,6 +17,8 @@ import no.nav.syfo.oppfolgingstilfelle.bit.kafka.KafkaSyketilfellebitService
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.launchKafkaTaskSyketilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.person.OppfolgingstilfellePersonService
 import no.nav.syfo.application.cronjob.launchCronjobModule
+import no.nav.syfo.identhendelse.kafka.IdenthendelseConsumerService
+import no.nav.syfo.identhendelse.kafka.launchKafkaTaskIdenthendelse
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.OppfolgingstilfellePersonProducer
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.kafkaOppfolgingstilfelleProducerConfig
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -84,11 +86,17 @@ fun main() {
             database = applicationDatabase,
             oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(),
         )
+        val kafkaIdenthendelseConsumerService = IdenthendelseConsumerService()
 
         launchKafkaTaskSyketilfelleBit(
             applicationState = applicationState,
             kafkaEnvironment = environment.kafka,
             kafkaSyketilfellebitService = kafkaSyketilfellebitService,
+        )
+        launchKafkaTaskIdenthendelse(
+            applicationState = applicationState,
+            kafkaEnvironment = environment.kafka,
+            kafkaIdenthendelseConsumerService = kafkaIdenthendelseConsumerService,
         )
         launchCronjobModule(
             applicationState = applicationState,
