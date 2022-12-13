@@ -86,18 +86,20 @@ fun main() {
             database = applicationDatabase,
             oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(),
         )
-        val kafkaIdenthendelseConsumerService = IdenthendelseConsumerService()
 
         launchKafkaTaskSyketilfelleBit(
             applicationState = applicationState,
             kafkaEnvironment = environment.kafka,
             kafkaSyketilfellebitService = kafkaSyketilfellebitService,
         )
-        launchKafkaTaskIdenthendelse(
-            applicationState = applicationState,
-            kafkaEnvironment = environment.kafka,
-            kafkaIdenthendelseConsumerService = kafkaIdenthendelseConsumerService,
-        )
+        if (environment.kafkaIdenthendelseUpdatesEnabled) {
+            val kafkaIdenthendelseConsumerService = IdenthendelseConsumerService()
+            launchKafkaTaskIdenthendelse(
+                applicationState = applicationState,
+                kafkaEnvironment = environment.kafka,
+                kafkaIdenthendelseConsumerService = kafkaIdenthendelseConsumerService,
+            )
+        }
         launchCronjobModule(
             applicationState = applicationState,
             environment = environment,

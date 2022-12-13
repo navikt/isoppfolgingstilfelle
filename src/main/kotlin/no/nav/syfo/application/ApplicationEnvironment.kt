@@ -70,6 +70,9 @@ data class Environment(
             clientId = getEnvVar("ARBEIDSFORHOLD_CLIENT_ID"),
         ),
     ),
+
+    val kafkaIdenthendelseUpdatesEnabled: Boolean = getEnvVar("TOGGLE_KAFKA_IDENTHENDELSE_ENABLED").toBoolean(),
+
     val electorPath: String = getEnvVar("ELECTOR_PATH"),
     private val isdialogmoteApplicationName: String = "isdialogmote",
     val systemAPIAuthorizedConsumerApplicationNames: List<String> = listOf(
