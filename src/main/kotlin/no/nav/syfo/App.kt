@@ -19,6 +19,7 @@ import no.nav.syfo.oppfolgingstilfelle.person.OppfolgingstilfellePersonService
 import no.nav.syfo.application.cronjob.launchCronjobModule
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.pdl.PdlClient
+import no.nav.syfo.identhendelse.IdenthendelseService
 import no.nav.syfo.identhendelse.kafka.IdenthendelseConsumerService
 import no.nav.syfo.identhendelse.kafka.launchKafkaTaskIdenthendelse
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.OppfolgingstilfellePersonProducer
@@ -106,7 +107,14 @@ fun main() {
             kafkaSyketilfellebitService = kafkaSyketilfellebitService,
         )
         if (environment.kafkaIdenthendelseUpdatesEnabled) {
-            val kafkaIdenthendelseConsumerService = IdenthendelseConsumerService()
+            val identhendelseService = IdenthendelseService(
+                database = applicationDatabase,
+                pdlClient = pdlClient,
+            )
+
+            val kafkaIdenthendelseConsumerService = IdenthendelseConsumerService(
+                identhendelseService = identhendelseService,
+            )
             launchKafkaTaskIdenthendelse(
                 applicationState = applicationState,
                 kafkaEnvironment = environment.kafka,
