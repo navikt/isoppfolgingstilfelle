@@ -41,6 +41,9 @@ data class Environment(
         aivenKeystoreLocation = getEnvVar("KAFKA_KEYSTORE_PATH"),
         aivenSecurityProtocol = "SSL",
         aivenTruststoreLocation = getEnvVar("KAFKA_TRUSTSTORE_PATH"),
+        aivenSchemaRegistryUrl = getEnvVar("KAFKA_SCHEMA_REGISTRY"),
+        aivenRegistryUser = getEnvVar("KAFKA_SCHEMA_REGISTRY_USER"),
+        aivenRegistryPassword = getEnvVar("KAFKA_SCHEMA_REGISTRY_PASSWORD"),
     ),
 
     val redis: RedisEnvironment = RedisEnvironment(
@@ -67,6 +70,9 @@ data class Environment(
             clientId = getEnvVar("ARBEIDSFORHOLD_CLIENT_ID"),
         ),
     ),
+
+    val kafkaIdenthendelseUpdatesEnabled: Boolean = getEnvVar("TOGGLE_KAFKA_IDENTHENDELSE_ENABLED").toBoolean(),
+
     val electorPath: String = getEnvVar("ELECTOR_PATH"),
     private val isdialogmoteApplicationName: String = "isdialogmote",
     private val isdialogmotekandidatApplicationName: String = "isdialogmotekandidat",
