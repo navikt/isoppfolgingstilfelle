@@ -55,7 +55,9 @@ object IdenthendelseServiceSpek : Spek({
 
                     val newTilfelleBit = generateKafkaSyketilfellebitSykmeldingNy(
                         personIdentNumber = oldIdent,
-                    ).toOppfolgingstilfelleBit()
+                    ).toOppfolgingstilfelleBit().copy(
+                        processed = true
+                    )
 
                     database.connection.use { connection ->
                         connection.createOppfolgingstilfelleBit(
@@ -74,6 +76,7 @@ object IdenthendelseServiceSpek : Spek({
                     val updatedTilfelleBitList = database.getOppfolgingstilfelleBitForIdent(newIdent)
                     updatedTilfelleBitList.size shouldBeEqualTo 1
                     updatedTilfelleBitList.first().personIdentNumber.value shouldBeEqualTo newIdent.value
+                    updatedTilfelleBitList.first().processed shouldBeEqualTo false
 
                     val oldTilfelleBitList = database.getOppfolgingstilfelleBitForIdent(oldIdent)
                     oldTilfelleBitList.size shouldBeEqualTo 0

@@ -4,7 +4,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.client.pdl.PdlClient
 import no.nav.syfo.domain.PersonIdentNumber
-import no.nav.syfo.identhendelse.database.updateTilfelleBitFnr
+import no.nav.syfo.identhendelse.database.updateTilfelleBit
 import no.nav.syfo.identhendelse.kafka.COUNT_KAFKA_CONSUMER_PDL_AKTOR_UPDATES
 import no.nav.syfo.identhendelse.kafka.KafkaIdenthendelseDTO
 import no.nav.syfo.oppfolgingstilfelle.bit.database.getOppfolgingstilfelleBitForIdent
@@ -29,7 +29,7 @@ class IdenthendelseService(
 
                 if (tilfelleBitWithOldIdentList.isNotEmpty()) {
                     checkThatPdlIsUpdated(activeIdent)
-                    val numberOfUpdatedIdenter = database.updateTilfelleBitFnr(activeIdent, tilfelleBitWithOldIdentList)
+                    val numberOfUpdatedIdenter = database.updateTilfelleBit(activeIdent, tilfelleBitWithOldIdentList)
                     log.info("Identhendelse: Updated $numberOfUpdatedIdenter tilfellebiter based on Identhendelse from PDL")
                     COUNT_KAFKA_CONSUMER_PDL_AKTOR_UPDATES.increment(numberOfUpdatedIdenter.toDouble())
                 }

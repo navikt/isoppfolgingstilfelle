@@ -7,11 +7,11 @@ import no.nav.syfo.oppfolgingstilfelle.bit.database.domain.POppfolgingstilfelleB
 const val queryUpdateTilfelleBitFnr =
     """
         UPDATE TILFELLE_BIT
-        SET personident = ?
+        SET personident = ?, processed = FALSE
         WHERE personident = ?
     """
 
-fun DatabaseInterface.updateTilfelleBitFnr(nyPersonident: PersonIdentNumber, tilfelleBitWithOldIdentList: List<POppfolgingstilfelleBit>): Int {
+fun DatabaseInterface.updateTilfelleBit(nyPersonident: PersonIdentNumber, tilfelleBitWithOldIdentList: List<POppfolgingstilfelleBit>): Int {
     var updatedRows = 0
     this.connection.use { connection ->
         connection.prepareStatement(queryUpdateTilfelleBitFnr).use {
