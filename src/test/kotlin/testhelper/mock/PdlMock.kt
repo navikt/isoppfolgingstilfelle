@@ -9,6 +9,7 @@ import io.ktor.server.routing.*
 import no.nav.syfo.application.api.installContentNegotiation
 import no.nav.syfo.client.pdl.domain.*
 import no.nav.syfo.domain.PersonIdentNumber
+import testhelper.UserConstants
 import testhelper.getRandomPort
 
 fun PersonIdentNumber.toHistoricalPersonIdentNumber(): PersonIdentNumber {
@@ -56,10 +57,11 @@ class PdlMock {
             post {
                 val pdlRequest = call.receive<PdlHentIdenterRequest>()
                 val personIdentNumber = PersonIdentNumber(pdlRequest.variables.ident)
-                val response = generatePdlIdenterResponse(
-                    personIdentNumber = personIdentNumber,
-                )
-                call.respond(response)
+                if (personIdentNumber == UserConstants.ARBEIDSTAKER_3_FNR) {
+                    call.respond(generatePdlIdenterResponse(PersonIdentNumber("11111111111")))
+                } else {
+                    call.respond(generatePdlIdenterResponse(personIdentNumber))
+                }
             }
         }
     }

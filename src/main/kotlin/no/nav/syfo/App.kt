@@ -17,6 +17,9 @@ import no.nav.syfo.oppfolgingstilfelle.bit.kafka.KafkaSyketilfellebitService
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.launchKafkaTaskSyketilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.person.OppfolgingstilfellePersonService
 import no.nav.syfo.application.cronjob.launchCronjobModule
+import no.nav.syfo.client.azuread.AzureAdClient
+import no.nav.syfo.client.pdl.PdlClient
+import no.nav.syfo.identhendelse.IdenthendelseService
 import no.nav.syfo.identhendelse.kafka.IdenthendelseConsumerService
 import no.nav.syfo.identhendelse.kafka.launchKafkaTaskIdenthendelse
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.OppfolgingstilfellePersonProducer
@@ -38,6 +41,15 @@ fun main() {
     )
     val redisStore = RedisStore(
         redisEnvironment = environment.redis,
+    )
+    val azureAdClient = AzureAdClient(
+        azureEnviroment = environment.azure,
+        redisStore = redisStore,
+    )
+    val pdlClient = PdlClient(
+        azureAdClient = azureAdClient,
+        clientEnvironment = environment.clients.pdl,
+        redisStore = redisStore,
     )
 
     val oppfolgingstilfellePersonProducer = OppfolgingstilfellePersonProducer(
@@ -70,11 +82,13 @@ fun main() {
             )
             apiModule(
                 applicationState = applicationState,
+                azureAdClient = azureAdClient,
                 database = applicationDatabase,
                 environment = environment,
                 wellKnownInternalAzureAD = wellKnownInternalAzureAD,
                 wellKnownSelvbetjening = wellKnownSelvbetjening,
                 redisStore = redisStore,
+                pdlClient = pdlClient,
             )
         }
     }
@@ -93,7 +107,14 @@ fun main() {
             kafkaSyketilfellebitService = kafkaSyketilfellebitService,
         )
         if (environment.kafkaIdenthendelseUpdatesEnabled) {
-            val kafkaIdenthendelseConsumerService = IdenthendelseConsumerService()
+            val identhendelseService = IdenthendelseService(
+                database = applicationDatabase,
+                pdlClient = pdlClient,
+            )
+
+            val kafkaIdenthendelseConsumerService = IdenthendelseConsumerService(
+                identhendelseService = identhendelseService,
+            )
             launchKafkaTaskIdenthendelse(
                 applicationState = applicationState,
                 kafkaEnvironment = environment.kafka,

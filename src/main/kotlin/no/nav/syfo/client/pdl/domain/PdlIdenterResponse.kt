@@ -13,7 +13,11 @@ data class PdlHentIdenter(
 
 data class PdlIdenter(
     val identer: List<PdlIdent>,
-)
+) {
+    val aktivIdent: String? = identer.firstOrNull {
+        it.gruppe == IdentType.FOLKEREGISTERIDENT.name && !it.historisk
+    }?.ident
+}
 
 data class PdlIdent(
     val ident: String,

@@ -184,6 +184,23 @@ fun Connection.setProcessedOppfolgingstilfelleBit(uuid: UUID) =
         }
     }
 
+const val queryGetOppfolgingstilfelleBitForIdent =
+    """
+    SELECT *
+    FROM TILFELLE_BIT
+    WHERE personident = ?;
+    """
+
+fun DatabaseInterface.getOppfolgingstilfelleBitForIdent(personIdent: PersonIdentNumber): List<POppfolgingstilfelleBit> =
+    this.connection.use { connection ->
+        connection.prepareStatement(queryGetOppfolgingstilfelleBitForIdent).use {
+            it.setString(1, personIdent.value)
+            it.executeQuery().toList {
+                toPOppfolgingstilfelleBit()
+            }
+        }
+    }
+
 fun ResultSet.toPOppfolgingstilfelleBit(): POppfolgingstilfelleBit =
     POppfolgingstilfelleBit(
         id = getInt("id"),

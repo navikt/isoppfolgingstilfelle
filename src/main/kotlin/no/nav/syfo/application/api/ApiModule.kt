@@ -24,11 +24,13 @@ import no.nav.syfo.oppfolgingstilfelle.person.api.registerOppfolgingstilfelleSys
 
 fun Application.apiModule(
     applicationState: ApplicationState,
+    azureAdClient: AzureAdClient,
     database: DatabaseInterface,
     environment: Environment,
     wellKnownInternalAzureAD: WellKnown,
     wellKnownSelvbetjening: WellKnown,
     redisStore: RedisStore,
+    pdlClient: PdlClient,
 ) {
     installMetrics()
     installCallId()
@@ -49,10 +51,6 @@ fun Application.apiModule(
     )
     installStatusPages()
 
-    val azureAdClient = AzureAdClient(
-        azureEnviroment = environment.azure,
-        redisStore = redisStore,
-    )
     val tokendingsClient = TokendingsClient(
         tokenxClientId = environment.tokenx.clientId,
         tokenxEndpoint = environment.tokenx.endpoint,
@@ -65,11 +63,6 @@ fun Application.apiModule(
         redisStore = redisStore,
     )
     val narmesteLederAccessService = NarmesteLederAccessService(narmesteLederClient = narmesteLederClient)
-    val pdlClient = PdlClient(
-        azureAdClient = azureAdClient,
-        clientEnvironment = environment.clients.pdl,
-        redisStore = redisStore,
-    )
     val oppfolgingstilfelleService = OppfolgingstilfelleService(
         database = database,
         pdlClient = pdlClient,

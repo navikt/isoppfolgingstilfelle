@@ -51,9 +51,9 @@ class PdlClient(
         }
     }
 
-    private suspend fun pdlIdenter(
-        callId: String,
+    suspend fun pdlIdenter(
         personIdentNumber: PersonIdentNumber,
+        callId: String? = null,
     ): PdlHentIdenter? {
         val token = azureAdClient.getSystemToken(clientEnvironment.clientId)
             ?: throw RuntimeException("Failed to send PdlHentIdenterRequest to PDL: No token was found")
