@@ -59,10 +59,22 @@ fun List<OppfolgingstilfelleDag>.groupOppfolgingstilfelleList(): List<Oppfolging
     return oppfolgingstilfelleList
 }
 
-fun List<OppfolgingstilfelleDag>.isArbeidstakerAtTilfelleEnd() =
+fun List<OppfolgingstilfelleDag>.isArbeidstakerAtTilfelleEnd(): Boolean {
+    val last = findLastPriorityOppfolgingstilfelleBit()
+    return if (this.any { it.priorityOppfolgingstilfelleBit?.tagList?.contains(Tag.BEKREFTET) == true } &&
+        this.none { it.priorityOppfolgingstilfelleBit?.tagList?.contains(Tag.SENDT) == true } &&
+        this.none { it.priorityOppfolgingstilfelleBit?.tagList?.contains(Tag.INNTEKTSMELDING) == true } &&
+        last?.tagList?.contains(Tag.NY) == true) {
+        false
+    } else {
+        last?.isArbeidstakerBit() ?: false
+    }
+}
+
+private fun List<OppfolgingstilfelleDag>.findLastPriorityOppfolgingstilfelleBit() =
     this.last {
         it.priorityOppfolgingstilfelleBit != null
-    }.priorityOppfolgingstilfelleBit?.isArbeidstakerBit() ?: false
+    }.priorityOppfolgingstilfelleBit
 
 fun List<OppfolgingstilfelleDag>.gradertAtTilfelleEnd() =
     this.last {
@@ -75,11 +87,14 @@ fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelle(): Oppfolgingstilfelle {
         log.info("Created oppfolgingstilfelle with duration>118 days based on only sykmelding-ny, bit sample uuid: $sampleUUID")
         SYKMELDING_NY_COUNTER.increment()
     }
+    val arbeidstakerAtTilfelleEnd = this.isArbeidstakerAtTilfelleEnd()
     return Oppfolgingstilfelle(
-        arbeidstakerAtTilfelleEnd = this.isArbeidstakerAtTilfelleEnd(),
+        arbeidstakerAtTilfelleEnd = arbeidstakerAtTilfelleEnd,
         start = this.first().dag,
         end = this.last().dag,
-        virksomhetsnummerList = this.toVirksomhetsnummerPreferred().ifEmpty { this.toVirksomhetsnummerAll() },
+        virksomhetsnummerList = this.toVirksomhetsnummerPreferred().ifEmpty {
+            if (arbeidstakerAtTilfelleEnd) this.toVirksomhetsnummerAll() else emptyList()
+        },
         gradertAtTilfelleEnd = this.gradertAtTilfelleEnd(),
     )
 }

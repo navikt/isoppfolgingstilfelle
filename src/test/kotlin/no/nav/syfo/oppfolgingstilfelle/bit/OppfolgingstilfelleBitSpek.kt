@@ -332,6 +332,80 @@ class OppfolgingstilfelleBitSpek : Spek({
             oppfolgingstilfelle.arbeidstakerAtTilfelleEnd shouldBeEqualTo true
         }
 
+        it("should return 1 Oppfolgingstilfelle and not arbeidstaker when only sykmelding-ny and sykmelding-bekreftet") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, BEKREFTET, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now().minusDays(8),
+                    virksomhetsnummer = null,
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, NY, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.now().minusDays(6),
+                    tom = LocalDate.now(),
+                    virksomhetsnummer = "987654330",
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.size shouldBeEqualTo 1
+            val oppfolgingstilfelle = oppfolgingstilfelleList.first()
+
+            val tilfelleDuration = Period.between(
+                oppfolgingstilfelle.start,
+                oppfolgingstilfelle.end,
+            ).days
+            tilfelleDuration shouldBeEqualTo 16
+            oppfolgingstilfelle.virksomhetsnummerList.size shouldBeEqualTo 0
+            oppfolgingstilfelle.arbeidstakerAtTilfelleEnd shouldBeEqualTo false
+        }
+
+        it("should return 1 Oppfolgingstilfelle and arbeidstaker when sykmelding-ny, sykmelding-sendt and sykmelding-bekreftet") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, BEKREFTET, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now().minusDays(8),
+                    virksomhetsnummer = null,
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.now().minusDays(6),
+                    tom = LocalDate.now().minusDays(4),
+                    virksomhetsnummer = "987654330",
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, NY, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.now().minusDays(3),
+                    tom = LocalDate.now(),
+                    virksomhetsnummer = "987654330",
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.size shouldBeEqualTo 1
+            val oppfolgingstilfelle = oppfolgingstilfelleList.first()
+
+            val tilfelleDuration = Period.between(
+                oppfolgingstilfelle.start,
+                oppfolgingstilfelle.end,
+            ).days
+            tilfelleDuration shouldBeEqualTo 16
+            oppfolgingstilfelle.virksomhetsnummerList.size shouldBeEqualTo 1
+            oppfolgingstilfelle.arbeidstakerAtTilfelleEnd shouldBeEqualTo true
+        }
+
         it("should return 1 Oppfolgingstilfelle, if person only has Ferie/Permisjon between 2 Sykedag") {
             val oppfolgingstilfelleBitList = listOf(
                 defaultBit.copy(
