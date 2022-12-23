@@ -64,7 +64,8 @@ fun List<OppfolgingstilfelleDag>.isArbeidstakerAtTilfelleEnd(): Boolean {
     return if (this.any { it.priorityOppfolgingstilfelleBit?.tagList?.contains(Tag.BEKREFTET) == true } &&
         this.none { it.priorityOppfolgingstilfelleBit?.tagList?.contains(Tag.SENDT) == true } &&
         this.none { it.priorityOppfolgingstilfelleBit?.tagList?.contains(Tag.INNTEKTSMELDING) == true } &&
-        last?.tagList?.contains(Tag.NY) == true) {
+        last?.tagList?.contains(Tag.NY) == true
+    ) {
         false
     } else {
         last?.isArbeidstakerBit() ?: false
