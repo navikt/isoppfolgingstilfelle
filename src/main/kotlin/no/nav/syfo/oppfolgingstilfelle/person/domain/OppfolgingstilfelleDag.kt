@@ -59,18 +59,17 @@ fun List<OppfolgingstilfelleDag>.groupOppfolgingstilfelleList(): List<Oppfolging
     return oppfolgingstilfelleList
 }
 
-fun List<OppfolgingstilfelleDag>.isArbeidstakerAtTilfelleEnd(): Boolean {
-    val last = findLastPriorityOppfolgingstilfelleBit()
-    return if (this.any { it.priorityOppfolgingstilfelleBit?.tagList?.contains(Tag.BEKREFTET) == true } &&
-        this.none { it.priorityOppfolgingstilfelleBit?.tagList?.contains(Tag.SENDT) == true } &&
-        this.none { it.priorityOppfolgingstilfelleBit?.tagList?.contains(Tag.INNTEKTSMELDING) == true } &&
-        last?.tagList?.contains(Tag.NY) == true
-    ) {
+fun List<OppfolgingstilfelleDag>.isArbeidstakerAtTilfelleEnd() =
+    if (this.isNotArbeidstakerTilfelle()) {
         false
     } else {
-        last?.isArbeidstakerBit() ?: false
+        findLastPriorityOppfolgingstilfelleBit()?.isArbeidstakerBit() ?: false
     }
-}
+
+private fun List<OppfolgingstilfelleDag>.isNotArbeidstakerTilfelle() =
+    this.any { it.priorityOppfolgingstilfelleBit?.tagList?.contains(Tag.BEKREFTET) == true } &&
+        this.none { it.priorityOppfolgingstilfelleBit?.tagList?.contains(Tag.SENDT) == true } &&
+        this.none { it.priorityOppfolgingstilfelleBit?.tagList?.contains(Tag.INNTEKTSMELDING) == true }
 
 private fun List<OppfolgingstilfelleDag>.findLastPriorityOppfolgingstilfelleBit() =
     this.last {
@@ -78,9 +77,7 @@ private fun List<OppfolgingstilfelleDag>.findLastPriorityOppfolgingstilfelleBit(
     }.priorityOppfolgingstilfelleBit
 
 fun List<OppfolgingstilfelleDag>.gradertAtTilfelleEnd() =
-    this.last {
-        it.priorityOppfolgingstilfelleBit != null
-    }.isGradert()
+    this.findLastPriorityOppfolgingstilfelleBit()?.isGradert() ?: false
 
 fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelle(): Oppfolgingstilfelle {
     if (this.onlySykmeldingNyOrInntektsmelding() && this.durationDays() > 118) {
@@ -128,8 +125,6 @@ fun List<OppfolgingstilfelleDag>.toVirksomhetsnummerAll() =
     }.flatten().distinct().map { virksomhetsnummer ->
         Virksomhetsnummer(virksomhetsnummer)
     }
-
-fun OppfolgingstilfelleDag.isGradert() = priorityOppfolgingstilfelleBit?.isGradert() ?: false
 
 fun OppfolgingstilfelleDag.isArbeidsdag() =
     priorityOppfolgingstilfelleBit
