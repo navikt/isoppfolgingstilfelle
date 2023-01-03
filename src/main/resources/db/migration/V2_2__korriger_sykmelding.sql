@@ -1,0 +1,2 @@
+UPDATE TILFELLE_BIT SET tom='2022-03-18' where uuid='a61dde5b-8350-4116-9a13-07c837a8ab46';
+UPDATE TILFELLE_BIT SET processed=false where uuid='454b4846-48c6-43b4-a4d9-83c9f917a6bf';
