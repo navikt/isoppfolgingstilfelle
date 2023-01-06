@@ -98,7 +98,7 @@ dependencies {
         implementation("org.yaml:snakeyaml") {
             because("no.nav:kafka-embedded-env:${Versions.kafkaEmbedded} -> https://advisory.checkmarx.net/advisory/vulnerability/CVE-2022-25857/")
             version {
-                require("1.31")
+                require("1.33")
             }
         }
         implementation("org.eclipse.jetty.http2:http2-server") {
