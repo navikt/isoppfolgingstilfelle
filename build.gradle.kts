@@ -19,7 +19,7 @@ object Versions {
     const val mockk = "1.12.4"
     const val nimbusJoseJwt = "9.25.3"
     const val micrometerRegistry = "1.9.4"
-    const val postgres = "42.5.0"
+    const val postgres = "42.5.1"
     const val postgresEmbedded = "0.13.4"
     const val redisEmbedded = "0.7.3"
     const val scala = "2.13.9"
@@ -105,6 +105,12 @@ dependencies {
             because("no.nav:kafka-embedded-env:${Versions.kafkaEmbedded} -> https://advisory.checkmarx.net/advisory/vulnerability/CVE-2022-2048/")
             version {
                 require("9.4.48.v20220622")
+            }
+        }
+        implementation("com.google.protobuf:protobuf-java") {
+            because("no.nav:kafka-embedded-env:${Versions.kafkaEmbedded} -> https://cwe.mitre.org/data/definitions/400.html")
+            version {
+                require("3.21.7")
             }
         }
     }
