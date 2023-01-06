@@ -60,14 +60,24 @@ fun List<OppfolgingstilfelleDag>.groupOppfolgingstilfelleList(): List<Oppfolging
 }
 
 fun List<OppfolgingstilfelleDag>.isArbeidstakerAtTilfelleEnd() =
+    if (this.isNotArbeidstakerTilfelle()) {
+        false
+    } else {
+        findLastPriorityOppfolgingstilfelleBit()?.isArbeidstakerBit() ?: false
+    }
+
+private fun List<OppfolgingstilfelleDag>.isNotArbeidstakerTilfelle() =
+    this.any { it.priorityOppfolgingstilfelleBit?.tagList?.contains(Tag.BEKREFTET) == true } &&
+        this.none { it.priorityOppfolgingstilfelleBit?.tagList?.contains(Tag.SENDT) == true } &&
+        this.none { it.priorityOppfolgingstilfelleBit?.tagList?.contains(Tag.INNTEKTSMELDING) == true }
+
+private fun List<OppfolgingstilfelleDag>.findLastPriorityOppfolgingstilfelleBit() =
     this.last {
         it.priorityOppfolgingstilfelleBit != null
-    }.priorityOppfolgingstilfelleBit?.isArbeidstakerBit() ?: false
+    }.priorityOppfolgingstilfelleBit
 
 fun List<OppfolgingstilfelleDag>.gradertAtTilfelleEnd() =
-    this.last {
-        it.priorityOppfolgingstilfelleBit != null
-    }.isGradert()
+    this.findLastPriorityOppfolgingstilfelleBit()?.isGradert() ?: false
 
 fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelle(): Oppfolgingstilfelle {
     if (this.onlySykmeldingNyOrInntektsmelding() && this.durationDays() > 118) {
@@ -75,11 +85,14 @@ fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelle(): Oppfolgingstilfelle {
         log.info("Created oppfolgingstilfelle with duration>118 days based on only sykmelding-ny, bit sample uuid: $sampleUUID")
         SYKMELDING_NY_COUNTER.increment()
     }
+    val arbeidstakerAtTilfelleEnd = this.isArbeidstakerAtTilfelleEnd()
     return Oppfolgingstilfelle(
-        arbeidstakerAtTilfelleEnd = this.isArbeidstakerAtTilfelleEnd(),
+        arbeidstakerAtTilfelleEnd = arbeidstakerAtTilfelleEnd,
         start = this.first().dag,
         end = this.last().dag,
-        virksomhetsnummerList = this.toVirksomhetsnummerPreferred().ifEmpty { this.toVirksomhetsnummerAll() },
+        virksomhetsnummerList = this.toVirksomhetsnummerPreferred().ifEmpty {
+            if (arbeidstakerAtTilfelleEnd) this.toVirksomhetsnummerAll() else emptyList()
+        },
         gradertAtTilfelleEnd = this.gradertAtTilfelleEnd(),
     )
 }
@@ -112,8 +125,6 @@ fun List<OppfolgingstilfelleDag>.toVirksomhetsnummerAll() =
     }.flatten().distinct().map { virksomhetsnummer ->
         Virksomhetsnummer(virksomhetsnummer)
     }
-
-fun OppfolgingstilfelleDag.isGradert() = priorityOppfolgingstilfelleBit?.isGradert() ?: false
 
 fun OppfolgingstilfelleDag.isArbeidsdag() =
     priorityOppfolgingstilfelleBit
