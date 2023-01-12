@@ -47,6 +47,9 @@ fun DatabaseInterface.dropData() {
         """
         DELETE FROM OPPFOLGINGSTILFELLE_PERSON
         """.trimIndent(),
+        """
+        DELETE FROM PERSON
+        """.trimIndent(),
     )
     this.connection.use { connection ->
         queryList.forEach { query ->
