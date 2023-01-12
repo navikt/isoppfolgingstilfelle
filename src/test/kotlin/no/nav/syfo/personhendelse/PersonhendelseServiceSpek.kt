@@ -113,9 +113,35 @@ object PersonhendelseServiceSpek : Spek({
 
                     database.getDodsdato(personIdent) shouldBeEqualTo LocalDate.now()
                 }
-            }
+                it("Skal takle duplikat record") {
 
-            describe("Unhappy path") {
+                    val oppfolgingstilfellePerson = generateOppfolgingstilfellePerson(
+                        personIdent = personIdent,
+                    )
+
+                    database.connection.use { connection ->
+                        connection.createOppfolgingstilfellePerson(
+                            commit = true,
+                            oppfolgingstilfellePerson = oppfolgingstilfellePerson,
+                        )
+                    }
+                    every { mockKafkaConsumerPersonhendelse.poll(any<Duration>()) } returns ConsumerRecords(
+                        mapOf(
+                            personhendelseTopicPartition to listOf(
+                                kafkaPersonhendelseRecord,
+                            )
+                        )
+                    )
+                    runBlocking {
+                        kafkaPersonhendelseConsumerService.pollAndProcessRecords(mockKafkaConsumerPersonhendelse)
+                        kafkaPersonhendelseConsumerService.pollAndProcessRecords(mockKafkaConsumerPersonhendelse)
+                    }
+                    verify(exactly = 2) {
+                        mockKafkaConsumerPersonhendelse.commitSync()
+                    }
+
+                    database.getDodsdato(personIdent) shouldBeEqualTo LocalDate.now()
+                }
                 it("Skal ikke lagre dato for ukjent personident ") {
                     every { mockKafkaConsumerPersonhendelse.poll(any<Duration>()) } returns ConsumerRecords(
                         mapOf(
