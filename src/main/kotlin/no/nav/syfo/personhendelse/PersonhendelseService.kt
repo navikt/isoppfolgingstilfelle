@@ -5,10 +5,11 @@ import no.nav.person.pdl.leesah.Personhendelse
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
-import no.nav.syfo.personhendelse.db.addPerson
+import no.nav.syfo.personhendelse.db.createPerson
 import no.nav.syfo.personhendelse.db.getDodsdato
 import no.nav.syfo.util.kafkaCallId
 import org.slf4j.LoggerFactory
+import java.util.UUID
 
 class PersonhendelseService(
     private val database: DatabaseInterface,
@@ -20,11 +21,7 @@ class PersonhendelseService(
             personhendelse.personidenter
                 .mapNotNull { personIdent ->
                     try {
-                        if (personIdent.isNullOrEmpty() || personIdent.length != 11) {
-                            null
-                        } else {
-                            PersonIdentNumber(personIdent)
-                        }
+                        PersonIdentNumber(personIdent)
                     } catch (ex: IllegalArgumentException) {
                         log.warn("Invalid personident for Personhendelse", ex)
                         null
@@ -34,8 +31,8 @@ class PersonhendelseService(
                     if (isKnownPersonIdent(personIdent)) {
                         database.connection.use { connection ->
                             if (connection.getDodsdato(personIdent) == null) {
-                                connection.addPerson(
-                                    uuid = personhendelse.hendelseId,
+                                connection.createPerson(
+                                    uuid = UUID.fromString(personhendelse.hendelseId),
                                     personIdent = personIdent,
                                     dodsdato = personhendelse.doedsfall.doedsdato,
                                 )

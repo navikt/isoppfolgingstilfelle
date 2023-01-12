@@ -7,6 +7,7 @@ import java.sql.Connection
 import java.sql.Date
 import java.time.LocalDate
 import java.time.OffsetDateTime
+import java.util.UUID
 
 const val queryInsertPersonDodsdato =
     """
@@ -20,13 +21,13 @@ const val queryInsertPersonDodsdato =
     RETURNING id    
     """
 
-fun Connection.addPerson(
-    uuid: String,
+fun Connection.createPerson(
+    uuid: UUID,
     personIdent: PersonIdentNumber,
     dodsdato: LocalDate,
 ) {
     val idList = this.prepareStatement(queryInsertPersonDodsdato).use {
-        it.setString(1, uuid)
+        it.setString(1, uuid.toString())
         it.setObject(2, OffsetDateTime.now())
         it.setString(3, personIdent.value)
         it.setDate(4, Date.valueOf(dodsdato))
