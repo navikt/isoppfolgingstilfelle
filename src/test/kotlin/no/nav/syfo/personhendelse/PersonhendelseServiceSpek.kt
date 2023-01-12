@@ -103,7 +103,7 @@ object PersonhendelseServiceSpek : Spek({
                             )
                         )
                     )
-                    database.getDoedsdato(personIdent) shouldBe null
+                    database.getDodsdato(personIdent) shouldBe null
                     runBlocking {
                         kafkaPersonhendelseConsumerService.pollAndProcessRecords(mockKafkaConsumerPersonhendelse)
                     }
@@ -111,7 +111,7 @@ object PersonhendelseServiceSpek : Spek({
                         mockKafkaConsumerPersonhendelse.commitSync()
                     }
 
-                    database.getDoedsdato(personIdent) shouldBeEqualTo LocalDate.now()
+                    database.getDodsdato(personIdent) shouldBeEqualTo LocalDate.now()
                 }
             }
 
@@ -132,14 +132,14 @@ object PersonhendelseServiceSpek : Spek({
                         mockKafkaConsumerPersonhendelse.commitSync()
                     }
 
-                    database.getDoedsdato(personIdent) shouldBe null
+                    database.getDodsdato(personIdent) shouldBe null
                 }
             }
         }
     }
 })
 
-fun DatabaseInterface.getDoedsdato(
+fun DatabaseInterface.getDodsdato(
     personIdent: PersonIdentNumber
 ) = this.connection.use {
     it.getDodsdato(personIdent)
