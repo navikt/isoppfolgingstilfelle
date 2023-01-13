@@ -21,7 +21,12 @@ class PersonhendelseService(
             personhendelse.personidenter
                 .mapNotNull { personIdent ->
                     try {
-                        PersonIdentNumber(personIdent)
+                        if (personIdent.isNullOrEmpty() || personIdent.length == 13) {
+                            // ikke lag warning for aktoerid'er
+                            null
+                        } else {
+                            PersonIdentNumber(personIdent)
+                        }
                     } catch (ex: IllegalArgumentException) {
                         log.warn("Invalid personident for Personhendelse", ex)
                         null
