@@ -37,7 +37,7 @@ class PersonhendelseService(
                         database.connection.use { connection ->
                             if (connection.getDodsdato(personIdent) == null) {
                                 connection.createPerson(
-                                    uuid = UUID.fromString(personhendelse.hendelseId),
+                                    uuid = UUID.randomUUID(),
                                     personIdent = personIdent,
                                     dodsdato = personhendelse.doedsfall.doedsdato,
                                 )
