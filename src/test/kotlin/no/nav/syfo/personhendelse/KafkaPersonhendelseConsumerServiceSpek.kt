@@ -159,4 +159,3 @@ object KafkaPersonhendelseConsumerServiceSpek : Spek({
         }
     }
 })
-
