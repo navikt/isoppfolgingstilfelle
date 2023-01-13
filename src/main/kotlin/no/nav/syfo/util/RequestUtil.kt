@@ -20,4 +20,4 @@ private val kafkaCounter = AtomicInteger(0)
 fun kafkaCallId(): String =
     "${
     LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-HHmm"))
-    }-syfosyketilfelle-kafka-${kafkaCounter.incrementAndGet()}"
+    }-isoppfolgingstilfelle-kafka-${kafkaCounter.incrementAndGet()}"

@@ -24,6 +24,7 @@ import no.nav.syfo.identhendelse.kafka.IdenthendelseConsumerService
 import no.nav.syfo.identhendelse.kafka.launchKafkaTaskIdenthendelse
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.OppfolgingstilfellePersonProducer
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.kafkaOppfolgingstilfelleProducerConfig
+import no.nav.syfo.personhendelse.kafka.launchKafkaTaskPersonhendelse
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
@@ -121,6 +122,12 @@ fun main() {
                 kafkaIdenthendelseConsumerService = kafkaIdenthendelseConsumerService,
             )
         }
+        launchKafkaTaskPersonhendelse(
+            applicationState = applicationState,
+            kafkaEnvironment = environment.kafka,
+            database = applicationDatabase,
+            pdlClient = pdlClient,
+        )
         launchCronjobModule(
             applicationState = applicationState,
             environment = environment,
