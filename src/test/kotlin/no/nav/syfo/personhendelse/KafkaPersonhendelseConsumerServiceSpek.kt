@@ -5,13 +5,10 @@ import io.mockk.*
 import kotlinx.coroutines.*
 import no.nav.person.pdl.leesah.Personhendelse
 import no.nav.syfo.application.cache.RedisStore
-import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.pdl.PdlClient
-import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
 import no.nav.syfo.oppfolgingstilfelle.person.database.createOppfolgingstilfellePerson
-import no.nav.syfo.personhendelse.db.getDodsdato
 import no.nav.syfo.personhendelse.kafka.KafkaPersonhendelseConsumerService
 import no.nav.syfo.personhendelse.kafka.PDL_LEESAH_TOPIC
 import org.amshove.kluent.shouldBe
@@ -20,16 +17,14 @@ import org.apache.kafka.clients.consumer.*
 import org.apache.kafka.common.TopicPartition
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import testhelper.ExternalMockEnvironment
-import testhelper.UserConstants
-import testhelper.dropData
+import testhelper.*
 import testhelper.generator.*
 import java.time.Duration
 import java.time.LocalDate
 
-object PersonhendelseServiceSpek : Spek({
+object KafkaPersonhendelseConsumerServiceSpek : Spek({
 
-    describe(PersonhendelseServiceSpek::class.java.simpleName) {
+    describe(KafkaPersonhendelseConsumerServiceSpek::class.java.simpleName) {
 
         with(TestApplicationEngine()) {
             start()
@@ -165,8 +160,3 @@ object PersonhendelseServiceSpek : Spek({
     }
 })
 
-fun DatabaseInterface.getDodsdato(
-    personIdent: PersonIdentNumber
-) = this.connection.use {
-    it.getDodsdato(personIdent)
-}

@@ -2,6 +2,8 @@ package testhelper
 
 import com.opentable.db.postgres.embedded.EmbeddedPostgres
 import no.nav.syfo.application.database.DatabaseInterface
+import no.nav.syfo.domain.PersonIdentNumber
+import no.nav.syfo.personhendelse.db.getDodsdato
 import org.flywaydb.core.Flyway
 import java.sql.Connection
 
@@ -57,4 +59,10 @@ fun DatabaseInterface.dropData() {
         }
         connection.commit()
     }
+}
+
+fun DatabaseInterface.getDodsdato(
+    personIdent: PersonIdentNumber
+) = this.connection.use {
+    it.getDodsdato(personIdent)
 }
