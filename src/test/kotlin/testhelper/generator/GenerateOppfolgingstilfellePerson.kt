@@ -24,4 +24,5 @@ fun generateOppfolgingstilfellePerson(
     ),
     referanseTilfelleBitUuid = UUID.randomUUID(),
     referanseTilfelleBitInntruffet = nowUTC(),
+    dodsdato = null,
 )

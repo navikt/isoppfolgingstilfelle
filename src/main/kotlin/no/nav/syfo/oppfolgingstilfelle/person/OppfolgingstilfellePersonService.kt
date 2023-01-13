@@ -5,6 +5,7 @@ import no.nav.syfo.oppfolgingstilfelle.bit.domain.OppfolgingstilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.toOppfolgingstilfellePerson
 import no.nav.syfo.oppfolgingstilfelle.person.database.createOppfolgingstilfellePerson
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.OppfolgingstilfellePersonProducer
+import no.nav.syfo.personhendelse.db.getDodsdato
 import java.sql.Connection
 
 class OppfolgingstilfellePersonService(
@@ -18,6 +19,7 @@ class OppfolgingstilfellePersonService(
     ) {
         val oppfolgingstilfellePerson = oppfolgingstilfelleBit.toOppfolgingstilfellePerson(
             oppfolgingstilfelleBitList = oppfolgingstilfelleBitForPersonList,
+            dodsdato = connection.getDodsdato(oppfolgingstilfelleBit.personIdentNumber),
         )
         connection.createOppfolgingstilfellePerson(
             commit = false,

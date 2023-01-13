@@ -6,7 +6,7 @@ import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingstilfelle.person.database.getOppfolgingstilfellePerson
 import no.nav.syfo.oppfolgingstilfelle.person.database.toOppfolgingstilfellePerson
 import no.nav.syfo.oppfolgingstilfelle.person.domain.Oppfolgingstilfelle
-import no.nav.syfo.oppfolgingstilfelle.person.domain.OppfolgingstilfellePerson
+import no.nav.syfo.personhendelse.db.getDodsdato
 import no.nav.syfo.util.tomorrow
 
 class OppfolgingstilfelleService(
@@ -36,12 +36,17 @@ class OppfolgingstilfelleService(
         return allOppfolgingstilfelleList.sortedByDescending { tilfelle -> tilfelle.start }
     }
 
+    fun getDodsdato(personIdent: PersonIdentNumber) = database.connection.use {
+        it.getDodsdato(personIdent)
+    }
+
     private fun oppfolgingstilfellePerson(
         personIdent: PersonIdentNumber,
-    ): OppfolgingstilfellePerson? {
-        val oppfolgingstilfellePerson = database.getOppfolgingstilfellePerson(
+    ) = database.connection.use { connection ->
+        val oppfolgingstilfellePerson = connection.getOppfolgingstilfellePerson(
             personIdent = personIdent,
         )
-        return oppfolgingstilfellePerson?.toOppfolgingstilfellePerson()
+        val dodsdato = connection.getDodsdato(personIdent)
+        oppfolgingstilfellePerson?.toOppfolgingstilfellePerson(dodsdato)
     }
 }
