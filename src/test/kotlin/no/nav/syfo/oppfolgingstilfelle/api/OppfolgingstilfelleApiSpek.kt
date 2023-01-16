@@ -172,11 +172,12 @@ class OppfolgingstilfelleApiSpek : Spek({
                             kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
                         )
                         oppfolgingstilfelleCronjob.runJob()
+                        val dodsdato = LocalDate.now().minusDays(3)
                         database.connection.use {
                             it.createPerson(
                                 uuid = UUID.randomUUID(),
                                 personIdent = PersonIdentNumber(kafkaSyketilfellebitRecordRelevantVirksomhet.value().fnr),
-                                dodsdato = LocalDate.now()
+                                dodsdato = dodsdato
                             )
                             it.commit()
                         }
@@ -192,7 +193,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                                 objectMapper.readValue(response.content!!)
 
                             oppfolgingstilfellePersonDTO.personIdent shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.fnr
-                            oppfolgingstilfellePersonDTO.dodsdato shouldBeEqualTo LocalDate.now()
+                            oppfolgingstilfellePersonDTO.dodsdato shouldBeEqualTo dodsdato
                         }
                     }
                     it("should not return future oppfolgingstilfelle when using get in api") {
