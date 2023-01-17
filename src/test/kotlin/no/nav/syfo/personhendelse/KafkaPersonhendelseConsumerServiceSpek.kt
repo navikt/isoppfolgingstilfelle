@@ -71,6 +71,17 @@ object KafkaPersonhendelseConsumerServiceSpek : Spek({
                 "key1",
                 kafkaPersonHendelse,
             )
+            val kafkaPersonHendelseAnnullering = generateKafkaPersonhendelseAnnulleringDTO(
+                personident = personIdent,
+                annullertHendelseId = kafkaPersonHendelse.hendelseId,
+            )
+            val kafkaPersonHendelseAnnulleringRecord = ConsumerRecord(
+                PDL_LEESAH_TOPIC,
+                partition,
+                2,
+                "key1",
+                kafkaPersonHendelseAnnullering,
+            )
 
             beforeEachTest {
                 database.dropData()
@@ -153,6 +164,49 @@ object KafkaPersonhendelseConsumerServiceSpek : Spek({
                         mockKafkaConsumerPersonhendelse.commitSync()
                     }
 
+                    database.getDodsdato(personIdent) shouldBe null
+                }
+                it("Skal slette personforekomst ved annullering") {
+
+                    val oppfolgingstilfellePerson = generateOppfolgingstilfellePerson(
+                        personIdent = personIdent,
+                    )
+
+                    database.connection.use { connection ->
+                        connection.createOppfolgingstilfellePerson(
+                            commit = true,
+                            oppfolgingstilfellePerson = oppfolgingstilfellePerson,
+                        )
+                    }
+                    every { mockKafkaConsumerPersonhendelse.poll(any<Duration>()) } returns ConsumerRecords(
+                        mapOf(
+                            personhendelseTopicPartition to listOf(
+                                kafkaPersonhendelseRecord,
+                            )
+                        )
+                    )
+                    runBlocking {
+                        kafkaPersonhendelseConsumerService.pollAndProcessRecords(mockKafkaConsumerPersonhendelse)
+                    }
+                    verify(exactly = 1) {
+                        mockKafkaConsumerPersonhendelse.commitSync()
+                    }
+
+                    database.getDodsdato(personIdent) shouldBeEqualTo LocalDate.now()
+
+                    every { mockKafkaConsumerPersonhendelse.poll(any<Duration>()) } returns ConsumerRecords(
+                        mapOf(
+                            personhendelseTopicPartition to listOf(
+                                kafkaPersonHendelseAnnulleringRecord,
+                            )
+                        )
+                    )
+                    runBlocking {
+                        kafkaPersonhendelseConsumerService.pollAndProcessRecords(mockKafkaConsumerPersonhendelse)
+                    }
+                    verify(exactly = 2) {
+                        mockKafkaConsumerPersonhendelse.commitSync()
+                    }
                     database.getDodsdato(personIdent) shouldBe null
                 }
             }
