@@ -14,6 +14,7 @@ import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleSystemApiPe
 import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleSystemApiV1Path
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.OppfolgingstilfellePersonProducer
 import no.nav.syfo.util.*
+import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEqualTo
 import org.apache.kafka.clients.consumer.*
 import org.apache.kafka.common.TopicPartition
@@ -129,6 +130,7 @@ class OppfolgingstilfelleSystemApiSpek : Spek({
                                 objectMapper.readValue(response.content!!)
 
                             oppfolgingstilfellePersonDTO.personIdent shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.fnr
+                            oppfolgingstilfellePersonDTO.dodsdato shouldBe null
 
                             val oppfolgingstilfelleDTO =
                                 oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.first()

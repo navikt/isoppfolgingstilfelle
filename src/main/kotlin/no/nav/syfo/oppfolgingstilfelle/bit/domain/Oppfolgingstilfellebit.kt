@@ -202,6 +202,7 @@ fun OppfolgingstilfelleBit.isGradert(): Boolean = this.tagList.any {
 
 fun OppfolgingstilfelleBit.toOppfolgingstilfellePerson(
     oppfolgingstilfelleBitList: List<OppfolgingstilfelleBit>,
+    dodsdato: LocalDate? = null,
 ) = OppfolgingstilfellePerson(
     uuid = UUID.randomUUID(),
     createdAt = nowUTC(),
@@ -209,4 +210,5 @@ fun OppfolgingstilfelleBit.toOppfolgingstilfellePerson(
     oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList(),
     referanseTilfelleBitUuid = this.uuid,
     referanseTilfelleBitInntruffet = this.inntruffet,
+    dodsdato = dodsdato,
 )

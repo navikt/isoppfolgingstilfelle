@@ -10,6 +10,7 @@ data class KafkaOppfolgingstilfellePerson(
     val oppfolgingstilfelleList: List<KafkaOppfolgingstilfelle>,
     val referanseTilfelleBitUuid: String,
     val referanseTilfelleBitInntruffet: OffsetDateTime,
+    val dodsdato: LocalDate?,
 )
 
 data class KafkaOppfolgingstilfelle(

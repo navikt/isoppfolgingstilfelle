@@ -28,11 +28,13 @@ fun Route.registerOppfolgingstilfelleApi(
                 personIdentToAccess = personIdent,
                 veilederTilgangskontrollClient = veilederTilgangskontrollClient,
             ) {
+                val dodsdato = oppfolgingstilfelleService.getDodsdato(personIdent)
                 val oppfolgingstilfellePersonDTO = oppfolgingstilfelleService.getOppfolgingstilfeller(
                     callId = getCallId(),
                     personIdent = personIdent,
                 ).toOppfolgingstilfellePersonDTO(
                     personIdent = personIdent,
+                    dodsdato = dodsdato,
                 )
                 call.respond(oppfolgingstilfellePersonDTO)
             }

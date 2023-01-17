@@ -17,6 +17,7 @@ data class OppfolgingstilfellePerson(
     val oppfolgingstilfelleList: List<Oppfolgingstilfelle>,
     val referanseTilfelleBitUuid: UUID,
     val referanseTilfelleBitInntruffet: OffsetDateTime,
+    val dodsdato: LocalDate?,
 )
 
 data class Oppfolgingstilfelle(
@@ -29,9 +30,11 @@ data class Oppfolgingstilfelle(
 
 fun List<Oppfolgingstilfelle>?.toOppfolgingstilfellePersonDTO(
     personIdent: PersonIdentNumber,
+    dodsdato: LocalDate?,
 ) = OppfolgingstilfellePersonDTO(
     oppfolgingstilfelleList = this?.toOppfolgingstilfelleDTOList() ?: emptyList(),
     personIdent = personIdent.value,
+    dodsdato = dodsdato,
 )
 
 fun List<Oppfolgingstilfelle>.toOppfolgingstilfelleDTOList() =
@@ -59,4 +62,5 @@ fun OppfolgingstilfellePerson.toKafkaOppfolgingstilfellePerson() = KafkaOppfolgi
     },
     referanseTilfelleBitUuid = this.referanseTilfelleBitUuid.toString(),
     referanseTilfelleBitInntruffet = this.referanseTilfelleBitInntruffet,
+    dodsdato = this.dodsdato,
 )

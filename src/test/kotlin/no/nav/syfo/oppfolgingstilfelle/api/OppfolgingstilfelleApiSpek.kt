@@ -5,6 +5,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.mockk.*
+import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
 import no.nav.syfo.oppfolgingstilfelle.bit.cronjob.OppfolgingstilfelleCronjob
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.*
@@ -13,7 +14,9 @@ import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfellePers
 import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleApiPersonIdentPath
 import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleApiV1Path
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.OppfolgingstilfellePersonProducer
+import no.nav.syfo.personhendelse.db.createPerson
 import no.nav.syfo.util.*
+import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEqualTo
 import org.apache.kafka.clients.consumer.*
 import org.apache.kafka.common.TopicPartition
@@ -143,6 +146,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                                 objectMapper.readValue(response.content!!)
 
                             oppfolgingstilfellePersonDTO.personIdent shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.fnr
+                            oppfolgingstilfellePersonDTO.dodsdato shouldBe null
 
                             val oppfolgingstilfelleDTO =
                                 oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.first()
@@ -153,6 +157,43 @@ class OppfolgingstilfelleApiSpek : Spek({
                             oppfolgingstilfelleDTO.arbeidstakerAtTilfelleEnd shouldBeEqualTo true
                             oppfolgingstilfelleDTO.start shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.fom
                             oppfolgingstilfelleDTO.end shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.tom
+                        }
+                    }
+                    it("should create OppfolgingstilfellePerson with dodsdato if set") {
+                        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+                            mapOf(
+                                syketilfellebitTopicPartition to listOf(
+                                    kafkaSyketilfellebitRecordRelevantVirksomhet,
+                                )
+                            )
+                        )
+
+                        kafkaSyketilfellebitService.pollAndProcessRecords(
+                            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                        )
+                        oppfolgingstilfelleCronjob.runJob()
+                        val dodsdato = LocalDate.now().minusDays(3)
+                        database.connection.use {
+                            it.createPerson(
+                                uuid = UUID.randomUUID(),
+                                personIdent = PersonIdentNumber(kafkaSyketilfellebitRecordRelevantVirksomhet.value().fnr),
+                                dodsdato = dodsdato
+                            )
+                            it.commit()
+                        }
+                        with(
+                            handleRequest(HttpMethod.Get, url) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                            val oppfolgingstilfellePersonDTO: OppfolgingstilfellePersonDTO =
+                                objectMapper.readValue(response.content!!)
+
+                            oppfolgingstilfellePersonDTO.personIdent shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.fnr
+                            oppfolgingstilfellePersonDTO.dodsdato shouldBeEqualTo dodsdato
                         }
                     }
                     it("should not return future oppfolgingstilfelle when using get in api") {
