@@ -58,7 +58,7 @@ fun Connection.getDodsdato(
     return datoList.firstOrNull()
 }
 
-const val queryDeletePerson =
+const val queryDeletePersonWithHendelseId =
     """
     DELETE FROM PERSON WHERE hendelse_id=?    
     """
@@ -66,7 +66,7 @@ const val queryDeletePerson =
 fun DatabaseInterface.deletePersonWithHendelseId(
     hendelseId: UUID,
 ) = this.connection.use { connection ->
-    connection.prepareStatement(queryDeletePerson).use {
+    connection.prepareStatement(queryDeletePersonWithHendelseId).use {
         it.setString(1, hendelseId.toString())
         it.executeUpdate()
     }.also {
