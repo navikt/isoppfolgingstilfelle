@@ -63,7 +63,7 @@ const val queryDeletePerson =
     DELETE FROM PERSON WHERE hendelse_id=?    
     """
 
-fun DatabaseInterface.deletePerson(
+fun DatabaseInterface.deletePersonWithHendelseId(
     hendelseId: UUID,
 ) = this.connection.use { connection ->
     connection.prepareStatement(queryDeletePerson).use {

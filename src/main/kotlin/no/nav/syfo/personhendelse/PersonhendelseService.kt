@@ -73,7 +73,7 @@ class PersonhendelseService(
                 "Tidligere hendelseId: ${personhendelse.tidligereHendelseId}"
         )
         val annullertHendelseId = UUID.fromString(personhendelse.tidligereHendelseId)
-        val rowCount = database.deletePerson(annullertHendelseId)
+        val rowCount = database.deletePersonWithHendelseId(annullertHendelseId)
         if (rowCount > 0) {
             log.info("Slettet $rowCount rader fra person-tabellen pga ANNULLERING")
         }
