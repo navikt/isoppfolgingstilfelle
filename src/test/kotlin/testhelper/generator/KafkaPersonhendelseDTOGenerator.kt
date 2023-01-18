@@ -19,4 +19,17 @@ fun generateKafkaPersonhendelseDTO(
         doedsdato = LocalDate.now()
     }
     endringstype = Endringstype.OPPRETTET
+    opplysningstype = "DOEDSFALL_V1"
+}
+
+fun generateKafkaPersonhendelseAnnulleringDTO(
+    personident: PersonIdentNumber = UserConstants.ARBEIDSTAKER_FNR,
+    annullertHendelseId: String,
+) = Personhendelse().apply {
+    hendelseId = UUID.randomUUID().toString()
+    personidenter = listOf(personident.value)
+    opprettet = Instant.now()
+    endringstype = Endringstype.ANNULLERT
+    tidligereHendelseId = annullertHendelseId
+    opplysningstype = "DOEDSFALL_V1"
 }

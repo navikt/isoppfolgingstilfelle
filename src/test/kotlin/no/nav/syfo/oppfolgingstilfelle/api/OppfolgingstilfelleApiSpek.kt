@@ -177,7 +177,8 @@ class OppfolgingstilfelleApiSpek : Spek({
                             it.createPerson(
                                 uuid = UUID.randomUUID(),
                                 personIdent = PersonIdentNumber(kafkaSyketilfellebitRecordRelevantVirksomhet.value().fnr),
-                                dodsdato = dodsdato
+                                dodsdato = dodsdato,
+                                hendelseId = UUID.randomUUID(),
                             )
                             it.commit()
                         }
