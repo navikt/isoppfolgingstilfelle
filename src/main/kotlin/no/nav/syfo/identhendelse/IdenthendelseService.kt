@@ -4,10 +4,9 @@ import kotlinx.coroutines.runBlocking
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.client.pdl.PdlClient
 import no.nav.syfo.domain.PersonIdentNumber
-import no.nav.syfo.identhendelse.database.updateTilfelleBit
+import no.nav.syfo.identhendelse.database.*
 import no.nav.syfo.identhendelse.kafka.COUNT_KAFKA_CONSUMER_PDL_AKTOR_UPDATES
 import no.nav.syfo.identhendelse.kafka.KafkaIdenthendelseDTO
-import no.nav.syfo.oppfolgingstilfelle.bit.database.getOppfolgingstilfelleBitForIdent
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -23,14 +22,9 @@ class IdenthendelseService(
             val activeIdent = identhendelse.getActivePersonident()
             if (activeIdent != null) {
                 val inactiveIdenter = identhendelse.getInactivePersonidenter()
-                val tilfelleBitWithOldIdentList = inactiveIdenter.flatMap { personident ->
-                    database.getOppfolgingstilfelleBitForIdent(personident)
-                }
-
-                if (tilfelleBitWithOldIdentList.isNotEmpty()) {
-                    checkThatPdlIsUpdated(activeIdent)
-                    val numberOfUpdatedIdenter = database.updateTilfelleBit(activeIdent, tilfelleBitWithOldIdentList)
-                    log.info("Identhendelse: Updated $numberOfUpdatedIdenter tilfellebiter based on Identhendelse from PDL")
+                val numberOfUpdatedIdenter = updateAllTables(activeIdent, inactiveIdenter)
+                if (numberOfUpdatedIdenter > 0) {
+                    log.info("Identhendelse: Updated $numberOfUpdatedIdenter rows based on Identhendelse from PDL")
                     COUNT_KAFKA_CONSUMER_PDL_AKTOR_UPDATES.increment(numberOfUpdatedIdenter.toDouble())
                 }
             } else {
@@ -39,11 +33,27 @@ class IdenthendelseService(
         }
     }
 
+    private fun updateAllTables(activeIdent: PersonIdentNumber, inactiveIdenter: List<PersonIdentNumber>): Int {
+        var numberOfUpdatedIdenter = 0
+        val inactiveIdenterCount = database.getIdentCount(inactiveIdenter)
+
+        if (inactiveIdenterCount > 0) {
+            checkThatPdlIsUpdated(activeIdent)
+            database.connection.use { connection ->
+                numberOfUpdatedIdenter += connection.updateTilfelleBit(activeIdent, inactiveIdenter)
+                numberOfUpdatedIdenter += connection.updateOppfolgingstilfellePerson(activeIdent, inactiveIdenter)
+                connection.commit()
+            }
+        }
+
+        return numberOfUpdatedIdenter
+    }
+
     // Erfaringer fra andre team tilsier at vi burde dobbeltsjekke at ting har blitt oppdatert i PDL før vi gjør endringer
     private fun checkThatPdlIsUpdated(nyIdent: PersonIdentNumber) {
         runBlocking {
-            val pdlIdenter = pdlClient.pdlIdenter(nyIdent)?.hentIdenter
-            if (nyIdent.value != pdlIdenter?.aktivIdent || pdlIdenter.identer.any { it.ident == nyIdent.value && it.historisk }) {
+            val pdlIdenter = pdlClient.pdlIdenter(nyIdent)?.hentIdenter ?: throw RuntimeException("Fant ingen identer fra PDL")
+            if (nyIdent.value != pdlIdenter.aktivIdent && pdlIdenter.identhendelseIsNotHistorisk(nyIdent.value)) {
                 throw IllegalStateException("Ny ident er ikke aktiv ident i PDL")
             }
         }

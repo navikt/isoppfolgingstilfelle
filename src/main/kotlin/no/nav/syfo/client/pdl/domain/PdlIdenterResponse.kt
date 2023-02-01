@@ -17,6 +17,10 @@ data class PdlIdenter(
     val aktivIdent: String? = identer.firstOrNull {
         it.gruppe == IdentType.FOLKEREGISTERIDENT.name && !it.historisk
     }?.ident
+
+    fun identhendelseIsNotHistorisk(newIdent: String): Boolean {
+        return identer.none { it.ident == newIdent && it.historisk }
+    }
 }
 
 data class PdlIdent(

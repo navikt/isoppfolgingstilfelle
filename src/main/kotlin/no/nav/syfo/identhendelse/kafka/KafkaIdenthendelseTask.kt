@@ -28,6 +28,9 @@ fun launchKafkaTaskIdenthendelse(
             listOf(PDL_AKTOR_TOPIC)
         )
         while (applicationState.ready) {
+            if (kafkaConsumer.subscription().isEmpty()) {
+                kafkaConsumer.subscribe(listOf(PDL_AKTOR_TOPIC))
+            }
             kafkaIdenthendelseConsumerService.pollAndProcessRecords(
                 kafkaConsumer = kafkaConsumer,
             )

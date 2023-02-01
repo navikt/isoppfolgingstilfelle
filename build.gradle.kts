@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.apache.tools.ant.taskdefs.condition.Os
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "no.nav.syfo"
@@ -20,7 +21,7 @@ object Versions {
     const val nimbusJoseJwt = "9.25.3"
     const val micrometerRegistry = "1.9.4"
     const val postgres = "42.5.1"
-    const val postgresEmbedded = "0.13.4"
+    val postgresEmbedded = if (Os.isFamily(Os.FAMILY_MAC)) "1.0.0" else "0.13.4"
     const val redisEmbedded = "0.7.3"
     const val scala = "2.13.9"
     const val spek = "2.0.18"

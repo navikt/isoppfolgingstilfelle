@@ -3,11 +3,14 @@ package no.nav.syfo.identhendelse
 import io.ktor.server.testing.*
 import kotlinx.coroutines.*
 import no.nav.syfo.application.cache.RedisStore
+import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.pdl.PdlClient
+import no.nav.syfo.domain.PersonIdentNumber
+import no.nav.syfo.identhendelse.database.getIdentCount
 import no.nav.syfo.oppfolgingstilfelle.bit.database.createOppfolgingstilfelleBit
-import no.nav.syfo.oppfolgingstilfelle.bit.database.getOppfolgingstilfelleBitForIdent
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.toOppfolgingstilfelleBit
+import no.nav.syfo.oppfolgingstilfelle.person.database.createOppfolgingstilfellePerson
 import org.amshove.kluent.internal.assertFailsWith
 import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
@@ -17,6 +20,7 @@ import testhelper.UserConstants
 import testhelper.dropData
 import testhelper.generator.generateKafkaIdenthendelseDTO
 import testhelper.generator.generateKafkaSyketilfellebitSykmeldingNy
+import testhelper.generator.generateOppfolgingstilfellePerson
 
 object IdenthendelseServiceSpek : Spek({
 
@@ -53,33 +57,17 @@ object IdenthendelseServiceSpek : Spek({
                     val newIdent = kafkaIdenthendelseDTO.getActivePersonident()!!
                     val oldIdent = kafkaIdenthendelseDTO.getInactivePersonidenter().first()
 
-                    val newTilfelleBit = generateKafkaSyketilfellebitSykmeldingNy(
-                        personIdentNumber = oldIdent,
-                    ).toOppfolgingstilfelleBit().copy(
-                        processed = true
-                    )
+                    populateDatabase(oldIdent, database)
 
-                    database.connection.use { connection ->
-                        connection.createOppfolgingstilfelleBit(
-                            commit = true,
-                            oppfolgingstilfelleBit = newTilfelleBit,
-                        )
-                    }
-
-                    val currentTilfelleBitList = database.getOppfolgingstilfelleBitForIdent(oldIdent)
-                    currentTilfelleBitList.size shouldBeEqualTo 1
+                    val oldIdentOccurrences = database.getIdentCount(listOf(oldIdent)) + database.getIdentCount(listOf(UserConstants.ARBEIDSTAKER_4_FNR))
+                    oldIdentOccurrences shouldBeEqualTo 2
 
                     runBlocking {
                         identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO)
                     }
 
-                    val updatedTilfelleBitList = database.getOppfolgingstilfelleBitForIdent(newIdent)
-                    updatedTilfelleBitList.size shouldBeEqualTo 1
-                    updatedTilfelleBitList.first().personIdentNumber.value shouldBeEqualTo newIdent.value
-                    updatedTilfelleBitList.first().processed shouldBeEqualTo false
-
-                    val oldTilfelleBitList = database.getOppfolgingstilfelleBitForIdent(oldIdent)
-                    oldTilfelleBitList.size shouldBeEqualTo 0
+                    val newIdentOccurrences = database.getIdentCount(listOf(newIdent))
+                    newIdentOccurrences shouldBeEqualTo 2
                 }
             }
 
@@ -91,19 +79,7 @@ object IdenthendelseServiceSpek : Spek({
                     )
                     val oldIdent = kafkaIdenthendelseDTO.getInactivePersonidenter().first()
 
-                    val newTilfelleBit = generateKafkaSyketilfellebitSykmeldingNy(
-                        personIdentNumber = oldIdent,
-                    ).toOppfolgingstilfelleBit()
-
-                    database.connection.use { connection ->
-                        connection.createOppfolgingstilfelleBit(
-                            commit = true,
-                            oppfolgingstilfelleBit = newTilfelleBit,
-                        )
-                    }
-
-                    val currentTilfelleBitList = database.getOppfolgingstilfelleBitForIdent(oldIdent)
-                    currentTilfelleBitList.size shouldBeEqualTo 1
+                    populateDatabase(oldIdent, database)
 
                     runBlocking {
                         assertFailsWith(IllegalStateException::class) {
@@ -115,3 +91,21 @@ object IdenthendelseServiceSpek : Spek({
         }
     }
 })
+
+private fun populateDatabase(oldIdent: PersonIdentNumber, database: DatabaseInterface) {
+    val oppfolgingstilfellePerson = generateOppfolgingstilfellePerson(oldIdent)
+    val newTilfelleBit = generateKafkaSyketilfellebitSykmeldingNy(
+        personIdentNumber = UserConstants.ARBEIDSTAKER_4_FNR,
+    ).toOppfolgingstilfelleBit().copy(
+        processed = true
+    )
+
+    database.connection.use { connection ->
+        connection.createOppfolgingstilfelleBit(
+            commit = true,
+            oppfolgingstilfelleBit = newTilfelleBit,
+        )
+        connection.createOppfolgingstilfellePerson(true, oppfolgingstilfellePerson)
+        connection.commit()
+    }
+}

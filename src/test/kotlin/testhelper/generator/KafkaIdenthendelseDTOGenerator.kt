@@ -35,6 +35,11 @@ fun generateKafkaIdenthendelseDTO(
                     type = IdentType.FOLKEREGISTERIDENT,
                     gjeldende = false,
                 ),
+                Identifikator(
+                    idnummer = UserConstants.ARBEIDSTAKER_4_FNR.value,
+                    type = IdentType.FOLKEREGISTERIDENT,
+                    gjeldende = false,
+                ),
             )
         )
     }
