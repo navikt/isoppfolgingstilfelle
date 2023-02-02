@@ -13,7 +13,7 @@ fun kafkaIdenthendelseConsumerConfig(
 ): Properties {
     return Properties().apply {
         putAll(commonKafkaAivenConfig(kafkaEnvironment))
-        this[ConsumerConfig.GROUP_ID_CONFIG] = "isoppfolgingstilfelle-v0"
+        this[ConsumerConfig.GROUP_ID_CONFIG] = "isoppfolgingstilfelle-v1"
         this[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java.canonicalName
         this[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = KafkaAvroDeserializer::class.java.canonicalName
         this[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] = "1"
