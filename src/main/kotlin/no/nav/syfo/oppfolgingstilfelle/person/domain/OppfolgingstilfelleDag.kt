@@ -17,7 +17,9 @@ class OppfolgingstilfelleDag(
     val virksomhetsnummerAll: List<String>,
 )
 
-fun List<OppfolgingstilfelleDag>.groupOppfolgingstilfelleList(): List<Oppfolgingstilfelle> {
+fun List<OppfolgingstilfelleDag>.groupOppfolgingstilfelleList(
+    oppfolgingstilfelleDagerPerVirksomhet: Map<String?, List<OppfolgingstilfelleDag>>,
+): List<Oppfolgingstilfelle> {
     val oppfolgingstilfelleList = ArrayList<Oppfolgingstilfelle>()
     var oppfolgingstilfelleSykedagList = ArrayList<OppfolgingstilfelleDag>()
     var notSykedagSinceLastSykedagCounter = 0
@@ -34,6 +36,7 @@ fun List<OppfolgingstilfelleDag>.groupOppfolgingstilfelleList(): List<Oppfolging
                     notSykedagSinceLastSykedagCounter++
                 }
             }
+
             else -> { // isSykedag
                 oppfolgingstilfelleSykedagList.add(it)
                 notSykedagSinceLastSykedagCounter = 0
@@ -42,7 +45,8 @@ fun List<OppfolgingstilfelleDag>.groupOppfolgingstilfelleList(): List<Oppfolging
 
         val noSykedagLast16days = notSykedagSinceLastSykedagCounter >= 16 && oppfolgingstilfelleSykedagList.isNotEmpty()
         if (noSykedagLast16days) {
-            val newOppfolgingstilfelle = oppfolgingstilfelleSykedagList.toOppfolgingstilfelle()
+            val newOppfolgingstilfelle =
+                oppfolgingstilfelleSykedagList.toOppfolgingstilfelle(oppfolgingstilfelleDagerPerVirksomhet)
             oppfolgingstilfelleList.add(newOppfolgingstilfelle)
 
             // Reset variables
@@ -52,7 +56,8 @@ fun List<OppfolgingstilfelleDag>.groupOppfolgingstilfelleList(): List<Oppfolging
     }
 
     if (oppfolgingstilfelleSykedagList.isNotEmpty()) {
-        val lastOppfolgingstilfelle = oppfolgingstilfelleSykedagList.toOppfolgingstilfelle()
+        val lastOppfolgingstilfelle =
+            oppfolgingstilfelleSykedagList.toOppfolgingstilfelle(oppfolgingstilfelleDagerPerVirksomhet)
         oppfolgingstilfelleList.add(lastOppfolgingstilfelle)
     }
 
@@ -76,24 +81,34 @@ private fun List<OppfolgingstilfelleDag>.findLastPriorityOppfolgingstilfelleBit(
         it.priorityOppfolgingstilfelleBit != null
     }.priorityOppfolgingstilfelleBit
 
-fun List<OppfolgingstilfelleDag>.gradertAtTilfelleEnd() =
-    this.findLastPriorityOppfolgingstilfelleBit()?.isGradert() ?: false
+fun List<OppfolgingstilfelleDag>.allGradert() =
+    this.all { dag -> dag.priorityOppfolgingstilfelleBit?.isGradert() ?: false }
 
-fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelle(): Oppfolgingstilfelle {
+fun List<OppfolgingstilfelleDag>.findDag(date: LocalDate) =
+    this.find { oppfolgingstilfelleDag -> oppfolgingstilfelleDag.dag == date }
+
+fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelle(
+    oppfolgingstilfelleDagerPerVirksomhet: Map<String?, List<OppfolgingstilfelleDag>>,
+): Oppfolgingstilfelle {
     if (this.onlySykmeldingNyOrInntektsmelding() && this.durationDays() > 118) {
         val sampleUUID = this.firstNotNullOfOrNull { dag -> dag.priorityOppfolgingstilfelleBit }?.uuid
         log.info("Created oppfolgingstilfelle with duration>118 days based on only sykmelding-ny, bit sample uuid: $sampleUUID")
         SYKMELDING_NY_COUNTER.increment()
     }
     val arbeidstakerAtTilfelleEnd = this.isArbeidstakerAtTilfelleEnd()
+    val tilfelleEnd = this.last().dag
+    val allGradertAtTilfelleEnd = oppfolgingstilfelleDagerPerVirksomhet
+        .mapNotNull { it.value.findDag(tilfelleEnd) }
+        .allGradert()
+
     return Oppfolgingstilfelle(
         arbeidstakerAtTilfelleEnd = arbeidstakerAtTilfelleEnd,
-        start = this.first().dag,
-        end = this.last().dag,
+        start = first().dag,
+        end = tilfelleEnd,
         virksomhetsnummerList = this.toVirksomhetsnummerPreferred().ifEmpty {
             if (arbeidstakerAtTilfelleEnd) this.toVirksomhetsnummerAll() else emptyList()
         },
-        gradertAtTilfelleEnd = this.gradertAtTilfelleEnd(),
+        gradertAtTilfelleEnd = allGradertAtTilfelleEnd,
     )
 }
 

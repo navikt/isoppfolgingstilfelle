@@ -87,16 +87,20 @@ data class OppfolgingstilfelleBit(
 }
 
 fun List<OppfolgingstilfelleBit>.generateOppfolgingstilfelleList(): List<Oppfolgingstilfelle> {
-    val filtrertOppfolgingstilfelleList = this.filtrerOppfolgingstilfelleList()
-    return if (filtrertOppfolgingstilfelleList.isEmpty()) {
+    val filtrertOppfolgingstilfelleBitList = this.filtrerOppfolgingstilfelleBitList()
+    return if (filtrertOppfolgingstilfelleBitList.isEmpty()) {
         emptyList()
     } else {
-        filtrertOppfolgingstilfelleList.toOppfolgingstilfelleDagList()
-            .groupOppfolgingstilfelleList()
+        val oppfolgingstilfelleBiterPerVirksomhet = filtrertOppfolgingstilfelleBitList.groupBy { it.virksomhetsnummer }
+        val oppfolgingstilfelleDagerPerVirksomhet =
+            oppfolgingstilfelleBiterPerVirksomhet.mapValues { it.value.toOppfolgingstilfelleDagList() }
+
+        filtrertOppfolgingstilfelleBitList.toOppfolgingstilfelleDagList()
+            .groupOppfolgingstilfelleList(oppfolgingstilfelleDagerPerVirksomhet)
     }
 }
 
-private fun List<OppfolgingstilfelleBit>.filtrerOppfolgingstilfelleList(): List<OppfolgingstilfelleBit> {
+private fun List<OppfolgingstilfelleBit>.filtrerOppfolgingstilfelleBitList(): List<OppfolgingstilfelleBit> {
     val korrigerte = this.mapNotNull { bit -> bit.korrigerer?.toString() }
     return this.filter { bit -> !korrigerte.contains(bit.ressursId) }
 }
