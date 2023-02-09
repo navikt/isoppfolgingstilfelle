@@ -43,7 +43,7 @@ spec:
   gcp:
     sqlInstances:
       - type: POSTGRES_14
-        tier: db-custom-1-768
+        tier: db-custom-1-1024
         databases:
           - name: isoppfolgingstilfelle-db
         diskAutoresize: true
