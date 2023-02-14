@@ -614,6 +614,33 @@ class OppfolgingstilfelleBitSpek : Spek({
             oppfolgingstilfelleList.size shouldBeEqualTo 0
         }
 
+        it("should return Oppfolgingstilfelle, but should exclude behandlingsdager from the interval") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, BEHANDLINGSDAGER),
+                    fom = LocalDate.now().minusDays(18),
+                    tom = LocalDate.now(),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.now().minusDays(10),
+                    tom = LocalDate.now(),
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.size shouldBeEqualTo 1
+            val tilfelleDuration = Period.between(
+                oppfolgingstilfelleList.first().start,
+                oppfolgingstilfelleList.first().end,
+            ).days
+            tilfelleDuration shouldBeEqualTo 10
+        }
+
         it("should return 2 Oppfolgingstilfelle, if person has at least 16 Arbeidsdag between 2 Sykedag") {
             val oppfolgingstilfelleBitList = listOf(
                 defaultBit.copy(
