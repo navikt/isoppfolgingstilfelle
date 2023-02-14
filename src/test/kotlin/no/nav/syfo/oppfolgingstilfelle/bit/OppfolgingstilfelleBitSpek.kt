@@ -614,7 +614,7 @@ class OppfolgingstilfelleBitSpek : Spek({
             oppfolgingstilfelleList.size shouldBeEqualTo 0
         }
 
-        it("should return Oppfolgingstilfelle, but should exclude behandlingsdager from the interval") {
+        it("should return Oppfolgingstilfelle and exclude behandlingsdager from the interval") {
             val oppfolgingstilfelleBitList = listOf(
                 defaultBit.copy(
                     createdAt = nowUTC(),
