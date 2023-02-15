@@ -13,11 +13,14 @@ private val log = LoggerFactory.getLogger(OppfolgingstilfelleDag::class.java)
 class OppfolgingstilfelleDag(
     val dag: LocalDate,
     val priorityOppfolgingstilfelleBit: OppfolgingstilfelleBit?,
+    val priorityGraderingBit: OppfolgingstilfelleBit?,
     val virksomhetsnummerPreferred: List<String>,
     val virksomhetsnummerAll: List<String>,
 )
 
-fun List<OppfolgingstilfelleDag>.groupOppfolgingstilfelleList(): List<Oppfolgingstilfelle> {
+fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelleList(
+    oppfolgingstilfelleDagerPerVirksomhet: Map<String?, List<OppfolgingstilfelleDag>>,
+): List<Oppfolgingstilfelle> {
     val oppfolgingstilfelleList = ArrayList<Oppfolgingstilfelle>()
     var oppfolgingstilfelleSykedagList = ArrayList<OppfolgingstilfelleDag>()
     var notSykedagSinceLastSykedagCounter = 0
@@ -34,6 +37,7 @@ fun List<OppfolgingstilfelleDag>.groupOppfolgingstilfelleList(): List<Oppfolging
                     notSykedagSinceLastSykedagCounter++
                 }
             }
+
             else -> { // isSykedag
                 oppfolgingstilfelleSykedagList.add(it)
                 notSykedagSinceLastSykedagCounter = 0
@@ -42,7 +46,8 @@ fun List<OppfolgingstilfelleDag>.groupOppfolgingstilfelleList(): List<Oppfolging
 
         val noSykedagLast16days = notSykedagSinceLastSykedagCounter >= 16 && oppfolgingstilfelleSykedagList.isNotEmpty()
         if (noSykedagLast16days) {
-            val newOppfolgingstilfelle = oppfolgingstilfelleSykedagList.toOppfolgingstilfelle()
+            val newOppfolgingstilfelle =
+                oppfolgingstilfelleSykedagList.toOppfolgingstilfelle(oppfolgingstilfelleDagerPerVirksomhet)
             oppfolgingstilfelleList.add(newOppfolgingstilfelle)
 
             // Reset variables
@@ -52,7 +57,8 @@ fun List<OppfolgingstilfelleDag>.groupOppfolgingstilfelleList(): List<Oppfolging
     }
 
     if (oppfolgingstilfelleSykedagList.isNotEmpty()) {
-        val lastOppfolgingstilfelle = oppfolgingstilfelleSykedagList.toOppfolgingstilfelle()
+        val lastOppfolgingstilfelle =
+            oppfolgingstilfelleSykedagList.toOppfolgingstilfelle(oppfolgingstilfelleDagerPerVirksomhet)
         oppfolgingstilfelleList.add(lastOppfolgingstilfelle)
     }
 
@@ -76,35 +82,60 @@ private fun List<OppfolgingstilfelleDag>.findLastPriorityOppfolgingstilfelleBit(
         it.priorityOppfolgingstilfelleBit != null
     }.priorityOppfolgingstilfelleBit
 
-fun List<OppfolgingstilfelleDag>.gradertAtTilfelleEnd() =
-    this.findLastPriorityOppfolgingstilfelleBit()?.isGradert() ?: false
+private fun List<OppfolgingstilfelleDag>.findLastPriorityGraderingBit() =
+    this.lastOrNull { it.priorityGraderingBit != null }?.priorityGraderingBit
 
-fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelle(): Oppfolgingstilfelle {
+fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelle(
+    oppfolgingstilfelleDagerPerVirksomhet: Map<String?, List<OppfolgingstilfelleDag>>,
+): Oppfolgingstilfelle {
     if (this.onlySykmeldingNyOrInntektsmelding() && this.durationDays() > 118) {
         val sampleUUID = this.firstNotNullOfOrNull { dag -> dag.priorityOppfolgingstilfelleBit }?.uuid
         log.info("Created oppfolgingstilfelle with duration>118 days based on only sykmelding-ny, bit sample uuid: $sampleUUID")
         SYKMELDING_NY_COUNTER.increment()
     }
     val arbeidstakerAtTilfelleEnd = this.isArbeidstakerAtTilfelleEnd()
+    val tilfelleStart = this.first().dag
+    val tilfelleEnd = this.last().dag
+    val tilfelleDagerPerVirksomhet = oppfolgingstilfelleDagerPerVirksomhet.mapValues {
+        it.value.filterDagerInTilfelle(tilfelleStart, tilfelleEnd)
+    }
+
+    val isGradertInAllVirksomheterAtTilfelleEnd = gradertInAllVirksomheterAtTilfelleEnd(tilfelleDagerPerVirksomhet)
+
     return Oppfolgingstilfelle(
         arbeidstakerAtTilfelleEnd = arbeidstakerAtTilfelleEnd,
-        start = this.first().dag,
-        end = this.last().dag,
+        start = tilfelleStart,
+        end = tilfelleEnd,
         virksomhetsnummerList = this.toVirksomhetsnummerPreferred().ifEmpty {
             if (arbeidstakerAtTilfelleEnd) this.toVirksomhetsnummerAll() else emptyList()
         },
-        gradertAtTilfelleEnd = this.gradertAtTilfelleEnd(),
+        gradertAtTilfelleEnd = isGradertInAllVirksomheterAtTilfelleEnd,
     )
 }
 
-private fun List<OppfolgingstilfelleDag>.onlySykmeldingNyOrInntektsmelding() =
-    this.all { dag ->
-        dag.priorityOppfolgingstilfelleBit?.tagList
-            ?.let { tagList ->
-                tagList in ((Tag.SYKMELDING and Tag.NY) or (Tag.INNTEKTSMELDING and Tag.ARBEIDSGIVERPERIODE))
-            }
-            ?: false
+private fun List<OppfolgingstilfelleDag>.filterDagerInTilfelle(
+    tilfelleStart: LocalDate,
+    tilfelleEnd: LocalDate,
+): List<OppfolgingstilfelleDag> =
+    this.filter { oppfolgingstilfelleDag -> oppfolgingstilfelleDag.dag in (tilfelleStart..tilfelleEnd) }
+
+private fun gradertInAllVirksomheterAtTilfelleEnd(
+    oppfolgingstilfelleDagerPerVirksomhet: Map<String?, List<OppfolgingstilfelleDag>>,
+): Boolean {
+    val priorityGraderingBitPerVirksomhet =
+        oppfolgingstilfelleDagerPerVirksomhet.mapValues { it.value.findLastPriorityGraderingBit() }
+    if (priorityGraderingBitPerVirksomhet.values.any { bit -> bit == null }) {
+        return false
     }
+    val priorityGraderingBiter = priorityGraderingBitPerVirksomhet.mapNotNull { it.value }
+
+    // Filtrerer ut sykmelding-ny-biter her siden graderings-informasjon fra andre biter skal overstyre disse.
+    return if (priorityGraderingBiter.all { it.isSykmeldingNy() }) priorityGraderingBiter.onlyGradert() else priorityGraderingBiter.filterNot { it.isSykmeldingNy() }
+        .onlyGradert()
+}
+
+private fun List<OppfolgingstilfelleDag>.onlySykmeldingNyOrInntektsmelding() =
+    this.all { dag -> dag.isSykmeldingNy() || dag.isInntektsmelding() }
 
 private fun List<OppfolgingstilfelleDag>.durationDays(): Long {
     val start = this.first().dag.atStartOfDay()
@@ -125,6 +156,10 @@ fun List<OppfolgingstilfelleDag>.toVirksomhetsnummerAll() =
     }.flatten().distinct().map { virksomhetsnummer ->
         Virksomhetsnummer(virksomhetsnummer)
     }
+
+fun OppfolgingstilfelleDag.isInntektsmelding() = priorityOppfolgingstilfelleBit?.isInntektsmelding() ?: false
+
+fun OppfolgingstilfelleDag.isSykmeldingNy() = priorityOppfolgingstilfelleBit?.isSykmeldingNy() ?: false
 
 fun OppfolgingstilfelleDag.isArbeidsdag() =
     priorityOppfolgingstilfelleBit
