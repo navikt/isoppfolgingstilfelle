@@ -192,6 +192,386 @@ class OppfolgingstilfelleBitSpek : Spek({
             val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
             oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBe false
         }
+        it("returns Oppfolgingstilfelle with gradertAtTilfelleEnd=true if sykmelding-ny bit not gradert and sendt bit gradert at tilfelle end") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, NY, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, GRADERT_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBe true
+        }
+        it("returns Oppfolgingstilfelle with gradertAtTilfelleEnd=true if sykmelding-ny bit not gradert and sendt bit and sykepengesoknad gradert at tilfelle end") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, NY, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, GRADERT_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT, KORRIGERT_ARBEIDSTID, GRADERT_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                )
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBe true
+        }
+        it("returns Oppfolgingstilfelle with gradertAtTilfelleEnd=true if sykmelding-ny bit not gradert, sendt bit gradert and sykepengesoknad at tilfelle end") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, NY, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, GRADERT_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                )
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBe true
+        }
+        it("returns Oppfolgingstilfelle with gradertAtTilfelleEnd=false if sykmelding sendt bit gradert and sykepengesoknad ingen aktivitet at tilfelle end") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, GRADERT_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT, KORRIGERT_ARBEIDSTID, INGEN_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                )
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBe false
+        }
+        it("returns Oppfolgingstilfelle with gradertAtTilfelleEnd=false if biter from different virksomheter and no bit gradert at tilfelle end") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                    virksomhetsnummer = "987654320",
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBe false
+        }
+
+        it("returns Oppfolgingstilfelle with gradertAtTilfelleEnd=false if biter from different virksomheter and one bit gradert at tilfelle end") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT, KORRIGERT_ARBEIDSTID, INGEN_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, GRADERT_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                    virksomhetsnummer = "987654320",
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBe false
+        }
+        it("returns Oppfolgingstilfelle with gradertAtTilfelleEnd=false if biter from different virksomheter with sykmelding gradert and sykepengesoknad") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, GRADERT_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                    virksomhetsnummer = "987654320",
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBe false
+        }
+
+        it("returns Oppfolgingstilfelle with gradertAtTilfelleEnd=true if biter from different virksomheter and all biter gradert at tilfelle end") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, GRADERT_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, GRADERT_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                    virksomhetsnummer = "987654320",
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBe true
+        }
+        it("returns Oppfolgingstilfelle with gradertAtTilfelleEnd=true if biter from different virksomheter and sykmelding-ny bit not gradert and sendt bit gradert at tilfelle end") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, NY, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, GRADERT_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                    virksomhetsnummer = "987654320",
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBe true
+        }
+        it("returns Oppfolgingstilfelle with gradertAtTilfelleEnd=true if biter from different virksomheter and sykmelding-ny bit not gradert and sendt bit and sykepengesoknad gradert at tilfelle end") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, NY, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, GRADERT_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                    virksomhetsnummer = "987654320",
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT, KORRIGERT_ARBEIDSTID, GRADERT_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                    virksomhetsnummer = "987654320",
+                )
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBe true
+        }
+        it("returns Oppfolgingstilfelle with gradertAtTilfelleEnd=true if biter from different virksomheter and sykmelding-ny bit not gradert, sendt bit gradert and sykepengesoknad at tilfelle end") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, NY, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, GRADERT_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                    virksomhetsnummer = "987654320",
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                    virksomhetsnummer = "987654320",
+                )
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBe true
+        }
+        it("returns Oppfolgingstilfelle with gradertAtTilfelleEnd=false if biter from different virksomheter and sykmelding-ny bit not gradert and sykepengesoknad at tilfelle end") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, NY, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                    virksomhetsnummer = "987654320",
+                )
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBe false
+        }
+        it("returns Oppfolgingstilfelle with gradertAtTilfelleEnd=false if biter from different virksomheter and sykmelding-ny bit gradert and sendt bit not gradert at tilfelle end") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, NY, PERIODE, GRADERT_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                    virksomhetsnummer = "987654320",
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBe false
+        }
+        it("returns Oppfolgingstilfelle with gradertAtTilfelleEnd=true if only sykmelding-ny biter from different virksomheter and all gradert at tilfelle end") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, NY, PERIODE, GRADERT_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, NY, PERIODE, GRADERT_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                    virksomhetsnummer = "987654320",
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBe true
+        }
+        it("returns Oppfolgingstilfelle with gradertAtTilfelleEnd=false if only sykmelding-ny biter from different virksomheter and one gradert at tilfelle end") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, NY, PERIODE, GRADERT_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, NY, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                    virksomhetsnummer = "987654320",
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBe false
+        }
+        it("returns Oppfolgingstilfelle with gradertAtTilfelleEnd=false if only sykmelding-ny biter from different virksomheter and none gradert at tilfelle end") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, NY, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, NY, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                    virksomhetsnummer = "987654320",
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBe false
+        }
 
         it("should return 1 Oppfolgingstilfelle with two virksomheter if biter from different virksomheter") {
             val oppfolgingstilfelleBitList = listOf(
@@ -597,6 +977,56 @@ class OppfolgingstilfelleBitSpek : Spek({
                 oppfolgingstilfelleList.last().end,
             ).days
             secondTilfelleDuration shouldBeEqualTo 1
+        }
+
+        it("should return 2 Oppfolgingstilfelle with gradertAtTilfelleEnd=true and gradertAtTilfelleEnd=false, if sykmelding gradert then not sick for at least 16 days then sykmelding not gradert") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, GRADERT_AKTIVITET),
+                    fom = LocalDate.now().minusDays(100),
+                    tom = LocalDate.now().minusDays(50),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.now().minusDays(20),
+                    tom = LocalDate.now().plusDays(1),
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.size shouldBeEqualTo 2
+
+            oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBeEqualTo true
+            oppfolgingstilfelleList.last().gradertAtTilfelleEnd shouldBeEqualTo false
+        }
+
+        it("should return 2 Oppfolgingstilfelle with gradertAtTilfelleEnd=false and gradertAtTilfelleEnd=true, if sykmelding not gradert then not sick for at least 16 days then sykmelding gradert") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, NY, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.now().minusDays(100),
+                    tom = LocalDate.now().minusDays(50),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, GRADERT_AKTIVITET),
+                    fom = LocalDate.now().minusDays(20),
+                    tom = LocalDate.now().plusDays(1),
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.size shouldBeEqualTo 2
+
+            oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBeEqualTo false
+            oppfolgingstilfelleList.last().gradertAtTilfelleEnd shouldBeEqualTo true
         }
 
         it("should return no Oppfolgingstilfelle, if person has only behandlingsdager") {

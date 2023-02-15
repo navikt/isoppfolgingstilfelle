@@ -87,18 +87,22 @@ data class OppfolgingstilfelleBit(
 }
 
 fun List<OppfolgingstilfelleBit>.generateOppfolgingstilfelleList(): List<Oppfolgingstilfelle> {
-    val filtrertOppfolgingstilfelleList = this.filtrerOppfolgingstilfelleList()
-    return if (filtrertOppfolgingstilfelleList.isEmpty()) {
+    val ikkeKorrigerteOppfolgingstilfelleBiter = this.fjernKorrigerteOppfolgingstilfelleBiter()
+    return if (ikkeKorrigerteOppfolgingstilfelleBiter.isEmpty()) {
         emptyList()
     } else {
-        filtrertOppfolgingstilfelleList.toOppfolgingstilfelleDagList()
-            .groupOppfolgingstilfelleList()
+        val oppfolgingstilfelleBiterPerVirksomhet = ikkeKorrigerteOppfolgingstilfelleBiter.groupBy { it.virksomhetsnummer }
+        val oppfolgingstilfelleDagerPerVirksomhet =
+            oppfolgingstilfelleBiterPerVirksomhet.mapValues { it.value.toOppfolgingstilfelleDagList() }
+
+        ikkeKorrigerteOppfolgingstilfelleBiter.toOppfolgingstilfelleDagList()
+            .toOppfolgingstilfelleList(oppfolgingstilfelleDagerPerVirksomhet)
     }
 }
 
-private fun List<OppfolgingstilfelleBit>.filtrerOppfolgingstilfelleList(): List<OppfolgingstilfelleBit> {
+private fun List<OppfolgingstilfelleBit>.fjernKorrigerteOppfolgingstilfelleBiter(): List<OppfolgingstilfelleBit> {
     val korrigerte = this.mapNotNull { bit -> bit.korrigerer?.toString() }
-    return this.filter { bit -> !korrigerte.contains(bit.ressursId) }
+    return this.filterNot { bit -> korrigerte.contains(bit.ressursId) }
 }
 
 private fun List<OppfolgingstilfelleBit>.toOppfolgingstilfelleDagList(): List<OppfolgingstilfelleDag> {
@@ -137,13 +141,14 @@ fun List<OppfolgingstilfelleBit>.pickOppfolgingstilfelleDag(
     return OppfolgingstilfelleDag(
         dag = dag,
         priorityOppfolgingstilfelleBit = bitListForDag.firstOrNull(),
+        priorityGraderingBit = bitListForDag.firstOrNull { it.isGraderingBit() },
         virksomhetsnummerPreferred = bitListForDag.getVirksomhetsnummerPreferred(),
         virksomhetsnummerAll = bitListForDag.getVirksomhetsnummerAll(),
     )
 }
 
 fun List<OppfolgingstilfelleBit>.getVirksomhetsnummerPreferred() =
-    this.filter { bit -> !(bit.tagList in (Tag.SYKMELDING and Tag.NY)) }
+    this.filter { bit -> !bit.isSykmeldingNy() }
         .mapNotNull { bit -> bit.virksomhetsnummer }.distinct()
 
 fun List<OppfolgingstilfelleBit>.getVirksomhetsnummerAll() =
@@ -155,6 +160,8 @@ fun List<OppfolgingstilfelleBit>.containsSendtSykmeldingBit(
     bit.ressursId == oppfolgingstilfelleBit.ressursId &&
         bit.tagList in (Tag.SYKMELDING and (Tag.SENDT or Tag.BEKREFTET))
 }
+
+fun List<OppfolgingstilfelleBit>.onlyGradert(): Boolean = this.isNotEmpty() && this.all { it.isGradert() }
 
 fun MutableList<OppfolgingstilfelleBit>.sortByTagPriority() {
     this.sortBy { bit -> bit.findTagPriority() }
@@ -193,12 +200,15 @@ fun KafkaSyketilfellebit.toOppfolgingstilfelleBit(): OppfolgingstilfelleBit {
 
 fun OppfolgingstilfelleBit.isArbeidstakerBit(): Boolean = this.virksomhetsnummer != null
 
-fun OppfolgingstilfelleBit.isGradert(): Boolean = this.tagList.any {
-    listOf(
-        Tag.GRADERT_AKTIVITET,
-        Tag.FULL_AKTIVITET,
-    ).contains(it)
-}
+fun OppfolgingstilfelleBit.isGradert(): Boolean = this.tagList in (Tag.GRADERT_AKTIVITET or Tag.FULL_AKTIVITET)
+
+fun OppfolgingstilfelleBit.isGraderingBit(): Boolean =
+    this.tagList in (Tag.GRADERT_AKTIVITET or Tag.INGEN_AKTIVITET or Tag.FULL_AKTIVITET)
+
+fun OppfolgingstilfelleBit.isSykmeldingNy(): Boolean = this.tagList in (Tag.SYKMELDING and Tag.NY)
+
+fun OppfolgingstilfelleBit.isInntektsmelding(): Boolean =
+    this.tagList in (Tag.INNTEKTSMELDING and Tag.ARBEIDSGIVERPERIODE)
 
 fun OppfolgingstilfelleBit.toOppfolgingstilfellePerson(
     oppfolgingstilfelleBitList: List<OppfolgingstilfelleBit>,
