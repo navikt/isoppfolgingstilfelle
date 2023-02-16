@@ -68,6 +68,7 @@ spec:
         - application: isoppfolgingstilfelle-redis
   azure:
     application:
+      allowAllUsers: true
       enabled: true
       claims:
         extra:
