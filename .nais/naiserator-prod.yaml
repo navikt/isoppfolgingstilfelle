@@ -100,5 +100,3 @@ spec:
       value: "https://aareg-services.prod-fss-pub.nais.io"
     - name: ARBEIDSFORHOLD_CLIENT_ID
       value: "prod-fss.arbeidsforhold.aareg-services-nais"
-    - name: TOGGLE_KAFKA_IDENTHENDELSE_ENABLED
-      value: "false"

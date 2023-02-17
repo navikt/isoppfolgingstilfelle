@@ -107,21 +107,20 @@ fun main() {
             kafkaEnvironment = environment.kafka,
             kafkaSyketilfellebitService = kafkaSyketilfellebitService,
         )
-        if (environment.kafkaIdenthendelseUpdatesEnabled) {
-            val identhendelseService = IdenthendelseService(
-                database = applicationDatabase,
-                pdlClient = pdlClient,
-            )
 
-            val kafkaIdenthendelseConsumerService = IdenthendelseConsumerService(
-                identhendelseService = identhendelseService,
-            )
-            launchKafkaTaskIdenthendelse(
-                applicationState = applicationState,
-                kafkaEnvironment = environment.kafka,
-                kafkaIdenthendelseConsumerService = kafkaIdenthendelseConsumerService,
-            )
-        }
+        val identhendelseService = IdenthendelseService(
+            database = applicationDatabase,
+            pdlClient = pdlClient,
+        )
+        val kafkaIdenthendelseConsumerService = IdenthendelseConsumerService(
+            identhendelseService = identhendelseService,
+        )
+        launchKafkaTaskIdenthendelse(
+            applicationState = applicationState,
+            kafkaEnvironment = environment.kafka,
+            kafkaIdenthendelseConsumerService = kafkaIdenthendelseConsumerService,
+        )
+
         launchKafkaTaskPersonhendelse(
             applicationState = applicationState,
             kafkaEnvironment = environment.kafka,

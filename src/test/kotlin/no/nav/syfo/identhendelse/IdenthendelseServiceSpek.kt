@@ -11,7 +11,6 @@ import no.nav.syfo.identhendelse.database.getIdentCount
 import no.nav.syfo.oppfolgingstilfelle.bit.database.createOppfolgingstilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.toOppfolgingstilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.person.database.createOppfolgingstilfellePerson
-import org.amshove.kluent.internal.assertFailsWith
 import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -72,7 +71,22 @@ object IdenthendelseServiceSpek : Spek({
             }
 
             describe("Unhappy path") {
-                it("Skal kaste feil hvis PDL ikke har oppdatert identen") {
+//                it("Skal kaste feil hvis PDL ikke har oppdatert identen") {
+//                    val kafkaIdenthendelseDTO = generateKafkaIdenthendelseDTO(
+//                        personident = UserConstants.ARBEIDSTAKER_3_FNR,
+//                        hasOldPersonident = true,
+//                    )
+//                    val oldIdent = kafkaIdenthendelseDTO.getInactivePersonidenter().first()
+//
+//                    populateDatabase(oldIdent, database)
+//
+//                    runBlocking {
+//                        assertFailsWith(IllegalStateException::class) {
+//                            identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO)
+//                        }
+//                    }
+//                }
+                it("Skal hoppe over record hvis PDL ikke har oppdatert identen") {
                     val kafkaIdenthendelseDTO = generateKafkaIdenthendelseDTO(
                         personident = UserConstants.ARBEIDSTAKER_3_FNR,
                         hasOldPersonident = true,
@@ -81,11 +95,17 @@ object IdenthendelseServiceSpek : Spek({
 
                     populateDatabase(oldIdent, database)
 
+                    val oldIdentOccurrences = database.getIdentCount(listOf(oldIdent)) + database.getIdentCount(listOf(UserConstants.ARBEIDSTAKER_4_FNR))
+                    oldIdentOccurrences shouldBeEqualTo 2
+
                     runBlocking {
-                        assertFailsWith(IllegalStateException::class) {
-                            identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO)
-                        }
+                        identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO)
                     }
+
+                    val oldIdentOccurrencesNotUpdated = database.getIdentCount(listOf(oldIdent)) + database.getIdentCount(listOf(UserConstants.ARBEIDSTAKER_4_FNR))
+                    oldIdentOccurrencesNotUpdated shouldBeEqualTo 2
+                    val newIdentOccurrences = database.getIdentCount(listOf(kafkaIdenthendelseDTO.getActivePersonident()!!))
+                    newIdentOccurrences shouldBeEqualTo 0
                 }
             }
         }

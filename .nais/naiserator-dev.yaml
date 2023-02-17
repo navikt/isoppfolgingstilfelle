@@ -99,5 +99,3 @@ spec:
       value: "https://aareg-services-q1.dev-fss-pub.nais.io"
     - name: ARBEIDSFORHOLD_CLIENT_ID
       value: "dev-fss.arbeidsforhold.aareg-services-nais-q1"
-    - name: TOGGLE_KAFKA_IDENTHENDELSE_ENABLED
-      value: "true"

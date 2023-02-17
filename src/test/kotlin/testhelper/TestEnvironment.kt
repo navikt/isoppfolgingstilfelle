@@ -76,7 +76,6 @@ fun testEnvironment(
         port = 6379,
         secret = "password",
     ),
-    kafkaIdenthendelseUpdatesEnabled = true,
 )
 
 fun testAppState() = ApplicationState(
