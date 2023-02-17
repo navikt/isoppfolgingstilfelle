@@ -7,11 +7,8 @@ import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.identhendelse.database.*
 import no.nav.syfo.identhendelse.kafka.COUNT_KAFKA_CONSUMER_PDL_AKTOR_UPDATES
 import no.nav.syfo.identhendelse.kafka.KafkaIdenthendelseDTO
-import no.nav.syfo.oppfolgingstilfelle.bit.database.getOppfolgingstilfelleBitForIdent
-import no.nav.syfo.oppfolgingstilfelle.person.database.getOppfolgingstilfellePerson
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.util.*
 
 class IdenthendelseService(
     private val database: DatabaseInterface,
@@ -41,15 +38,11 @@ class IdenthendelseService(
         val inactiveIdenterCount = database.getIdentCount(inactiveIdenter)
 
         if (inactiveIdenterCount > 0) {
-            val bitUuid = database.getOppfolgingstilfelleBitForIdent(inactiveIdenter.first()).firstOrNull()?.uuid
-            val tilfelleUuid = database.getOppfolgingstilfellePerson(inactiveIdenter.first())?.uuid
-            val isUpdatedInPdl = checkThatPdlIsUpdated(activeIdent, bitUuid, tilfelleUuid)
-            if (isUpdatedInPdl) {
-                database.connection.use { connection ->
-                    numberOfUpdatedIdenter += connection.updateTilfelleBit(activeIdent, inactiveIdenter)
-                    numberOfUpdatedIdenter += connection.updateOppfolgingstilfellePerson(activeIdent, inactiveIdenter)
-                    connection.commit()
-                }
+            checkThatPdlIsUpdated(activeIdent)
+            database.connection.use { connection ->
+                numberOfUpdatedIdenter += connection.updateTilfelleBit(activeIdent, inactiveIdenter)
+                numberOfUpdatedIdenter += connection.updateOppfolgingstilfellePerson(activeIdent, inactiveIdenter)
+                connection.commit()
             }
         }
 
@@ -57,16 +50,12 @@ class IdenthendelseService(
     }
 
     // Erfaringer fra andre team tilsier at vi burde dobbeltsjekke at ting har blitt oppdatert i PDL før vi gjør endringer
-    private fun checkThatPdlIsUpdated(nyIdent: PersonIdentNumber, bitUuid: UUID?, tilfelleUuid: UUID?): Boolean {
-        var isUpdated = true
+    private fun checkThatPdlIsUpdated(nyIdent: PersonIdentNumber) {
         runBlocking {
             val pdlIdenter = pdlClient.pdlIdenter(nyIdent)?.hentIdenter ?: throw RuntimeException("Fant ingen identer fra PDL")
             if (nyIdent.value != pdlIdenter.aktivIdent && pdlIdenter.identhendelseIsNotHistorisk(nyIdent.value)) {
-                log.warn("Identhendelse: Could not update ident with bitUuid $bitUuid or tilfelleUuid $tilfelleUuid, skipping identhendelse")
-                isUpdated = false
-//                throw IllegalStateException("Ny ident er ikke aktiv ident i PDL")
+                throw IllegalStateException("Ny ident er ikke aktiv ident i PDL")
             }
         }
-        return isUpdated
     }
 }
