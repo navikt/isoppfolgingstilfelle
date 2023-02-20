@@ -44,6 +44,18 @@ fun generatePdlIdenterResponse(
     errors = null,
 )
 
+fun generatePdlError(code: String? = null) = listOf(
+    PdlError(
+        message = "Error",
+        locations = emptyList(),
+        path = emptyList(),
+        extensions = PdlErrorExtension(
+            code = code,
+            classification = "Classification",
+        )
+    )
+)
+
 class PdlMock {
     private val port = getRandomPort()
     val url = "http://localhost:$port"
@@ -56,11 +68,16 @@ class PdlMock {
         routing {
             post {
                 val pdlRequest = call.receive<PdlHentIdenterRequest>()
-                val personIdentNumber = PersonIdentNumber(pdlRequest.variables.ident)
-                if (personIdentNumber == UserConstants.ARBEIDSTAKER_3_FNR) {
-                    call.respond(generatePdlIdenterResponse(PersonIdentNumber("11111111111")))
-                } else {
-                    call.respond(generatePdlIdenterResponse(personIdentNumber))
+                when (val personIdentNumber = PersonIdentNumber(pdlRequest.variables.ident)) {
+                    UserConstants.ARBEIDSTAKER_3_FNR -> {
+                        call.respond(generatePdlIdenterResponse(PersonIdentNumber("11111111111")))
+                    }
+                    UserConstants.ARBEIDSTAKER_WITH_ERROR -> {
+                        call.respond(generatePdlIdenterResponse(personIdentNumber).copy(errors = generatePdlError(code = "not_found")))
+                    }
+                    else -> {
+                        call.respond(generatePdlIdenterResponse(personIdentNumber))
+                    }
                 }
             }
         }
