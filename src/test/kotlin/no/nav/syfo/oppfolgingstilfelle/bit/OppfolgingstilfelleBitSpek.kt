@@ -8,8 +8,7 @@ import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import testhelper.generator.generateOppfolgingstilfelleBit
-import java.time.LocalDate
-import java.time.Period
+import java.time.*
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
@@ -54,6 +53,89 @@ class OppfolgingstilfelleBitSpek : Spek({
                 oppfolgingstilfelleList.first().end,
             ).days
             tilfelleDuration shouldBeEqualTo 16
+        }
+
+        it("should return 2 Oppfolgingstilfelle with latest gradertAtTilfelleEnd=true, if sykmelding gradert and older tilfelle-bit from different virksomhet") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    uuid = UUID.randomUUID(),
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.of(2018, 1, 9),
+                    tom = LocalDate.of(2018, 1, 22),
+                    virksomhetsnummer = "987654322",
+                ),
+                defaultBit.copy(
+                    uuid = UUID.randomUUID(),
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, NY, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.of(2023, 1, 9),
+                    tom = LocalDate.of(2023, 1, 22),
+                ),
+                defaultBit.copy(
+                    uuid = UUID.randomUUID(),
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.of(2023, 1, 9),
+                    tom = LocalDate.of(2023, 1, 22),
+                ),
+                defaultBit.copy(
+                    uuid = UUID.randomUUID(),
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT),
+                    fom = LocalDate.of(2023, 1, 9),
+                    tom = LocalDate.of(2023, 1, 22),
+                ),
+                defaultBit.copy(
+                    uuid = UUID.randomUUID(),
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT, FRAVAR_FOR_SYKMELDING),
+                    fom = LocalDate.of(2023, 1, 7),
+                    tom = LocalDate.of(2023, 1, 8),
+                ),
+                defaultBit.copy(
+                    uuid = UUID.randomUUID(),
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, NY, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.of(2023, 1, 23),
+                    tom = LocalDate.of(2023, 2, 19),
+                ),
+                defaultBit.copy(
+                    uuid = UUID.randomUUID(),
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.of(2023, 1, 23),
+                    tom = LocalDate.of(2023, 2, 19),
+                ),
+                defaultBit.copy(
+                    uuid = UUID.randomUUID(),
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, NY, PERIODE, GRADERT_AKTIVITET),
+                    fom = LocalDate.of(2023, 2, 20),
+                    tom = LocalDate.of(2023, 3, 5),
+                ),
+                defaultBit.copy(
+                    uuid = UUID.randomUUID(),
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, GRADERT_AKTIVITET),
+                    fom = LocalDate.of(2023, 2, 20),
+                    tom = LocalDate.of(2023, 3, 5),
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.size shouldBeEqualTo 2
+            val oppfolgingstilfelle = oppfolgingstilfelleList.last()
+            oppfolgingstilfelle.gradertAtTilfelleEnd shouldBeEqualTo true
         }
 
         it("should return 1 Oppfolgingstilfelle if person only has days with Sykedag from korrigert bit") {
