@@ -98,7 +98,7 @@ fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelle(
     val tilfelleEnd = this.last().dag
     val tilfelleDagerPerVirksomhet = oppfolgingstilfelleDagerPerVirksomhet.mapValues {
         it.value.filterDagerInTilfelle(tilfelleStart, tilfelleEnd)
-    }
+    }.filterValues { it.isNotEmpty() }
 
     val isGradertInAllVirksomheterAtTilfelleEnd = gradertInAllVirksomheterAtTilfelleEnd(tilfelleDagerPerVirksomhet)
 
