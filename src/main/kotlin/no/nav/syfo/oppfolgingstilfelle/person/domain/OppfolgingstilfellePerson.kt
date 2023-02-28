@@ -22,7 +22,7 @@ data class OppfolgingstilfellePerson(
 
 data class Oppfolgingstilfelle(
     val arbeidstakerAtTilfelleEnd: Boolean,
-    val gradertAtTilfelleEnd: Boolean,
+    val gradertAtTilfelleEnd: Boolean, // True hvis alle biter på siste dag i tilfellet er gradert
     val start: LocalDate,
     val end: LocalDate,
     val virksomhetsnummerList: List<Virksomhetsnummer>,
