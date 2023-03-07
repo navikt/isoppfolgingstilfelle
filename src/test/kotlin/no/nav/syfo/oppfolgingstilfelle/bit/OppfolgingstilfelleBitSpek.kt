@@ -417,7 +417,31 @@ class OppfolgingstilfelleBitSpek : Spek({
             val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
             oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBe false
         }
-        it("returns Oppfolgingstilfelle with gradertAtTilfelleEnd=false if biter from different virksomheter with sykmelding gradert and sykepengesoknad") {
+
+        it("returns Oppfolgingstilfelle with gradertAtTilfelleEnd=true if bit with ingen_aktivitet ends before last day of tilfelle") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, GRADERT_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now().minusDays(15),
+                    virksomhetsnummer = "987654320",
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBe true
+        }
+
+        it("returns Oppfolgingstilfelle with gradertAtTilfelleEnd=true if biter from different virksomheter with sykmelding gradert and sykepengesoknad without graderingsinformasjon") {
             val oppfolgingstilfelleBitList = listOf(
                 defaultBit.copy(
                     createdAt = nowUTC(),
@@ -437,7 +461,77 @@ class OppfolgingstilfelleBitSpek : Spek({
             )
 
             val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBe true
+        }
+
+        it("returns Oppfolgingstilfelle with gradertAtTilfelleEnd=true if priorityGraderingBit is behandlingsdager") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, BEHANDLINGSDAGER),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(INNTEKTSMELDING, ARBEIDSGIVERPERIODE),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+
+            oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBe true
+        }
+
+        it("returns Oppfolgingstilfelle with gradertAtTilfelleEnd=false if no biter with graderingsinformasjon") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                    virksomhetsnummer = "987654320",
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
             oppfolgingstilfelleList.first().gradertAtTilfelleEnd shouldBe false
+        }
+
+        it("returns Dag with priorityOppfolgingstilfelleBit with INGEN_AKTIVITET even if it has inntruffet before GRADERT bit") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, GRADERT_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC().minusDays(1),
+                    tagList = listOf(SYKMELDING, SENDT, INGEN_AKTIVITET),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now(),
+                    virksomhetsnummer = "987654320",
+                ),
+            )
+
+            val lastDayInTilfelle = oppfolgingstilfelleBitList.pickOppfolgingstilfelleDag(LocalDate.now())
+
+            lastDayInTilfelle.priorityOppfolgingstilfelleBit?.tagList?.contains(INGEN_AKTIVITET)
         }
 
         it("returns Oppfolgingstilfelle with gradertAtTilfelleEnd=true if biter from different virksomheter and all biter gradert at tilfelle end") {

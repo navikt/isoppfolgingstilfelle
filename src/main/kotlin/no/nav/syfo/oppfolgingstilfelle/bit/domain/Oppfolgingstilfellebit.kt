@@ -62,24 +62,28 @@ data class OppfolgingstilfelleBit(
         val TAG_PRIORITY: List<ListContainsPredicate<Tag>> = listOf(
             Tag.SYKEPENGESOKNAD and Tag.SENDT and Tag.ARBEID_GJENNOPPTATT,
             Tag.SYKEPENGESOKNAD and Tag.SENDT and Tag.KORRIGERT_ARBEIDSTID and Tag.BEHANDLINGSDAGER,
+            Tag.SYKEPENGESOKNAD and Tag.SENDT and Tag.KORRIGERT_ARBEIDSTID and Tag.INGEN_AKTIVITET,
             Tag.SYKEPENGESOKNAD and Tag.SENDT and Tag.KORRIGERT_ARBEIDSTID and Tag.FULL_AKTIVITET,
-            Tag.SYKEPENGESOKNAD and Tag.SENDT and Tag.KORRIGERT_ARBEIDSTID and (Tag.GRADERT_AKTIVITET or Tag.INGEN_AKTIVITET),
+            Tag.SYKEPENGESOKNAD and Tag.SENDT and Tag.KORRIGERT_ARBEIDSTID and Tag.GRADERT_AKTIVITET,
             Tag.SYKEPENGESOKNAD and Tag.SENDT and (Tag.PERMISJON or Tag.FERIE),
             Tag.SYKEPENGESOKNAD and Tag.SENDT and (Tag.EGENMELDING or Tag.PAPIRSYKMELDING or Tag.FRAVAR_FOR_SYKMELDING),
             Tag.SYKEPENGESOKNAD and Tag.SENDT and ListContainsPredicate.tagsSize(2),
             Tag.SYKEPENGESOKNAD and Tag.SENDT and Tag.BEHANDLINGSDAG,
             Tag.SYKEPENGESOKNAD and Tag.SENDT and Tag.BEHANDLINGSDAGER,
             Tag.INNTEKTSMELDING and Tag.ARBEIDSGIVERPERIODE,
+            Tag.SYKMELDING and Tag.SENDT and Tag.PERIODE and Tag.INGEN_AKTIVITET,
             Tag.SYKMELDING and Tag.SENDT and Tag.PERIODE and Tag.FULL_AKTIVITET,
-            Tag.SYKMELDING and Tag.SENDT and Tag.PERIODE and (Tag.GRADERT_AKTIVITET or Tag.INGEN_AKTIVITET),
+            Tag.SYKMELDING and Tag.SENDT and Tag.PERIODE and Tag.GRADERT_AKTIVITET,
             Tag.SYKMELDING and Tag.SENDT and Tag.PERIODE and Tag.BEHANDLINGSDAGER,
+            Tag.SYKMELDING and Tag.BEKREFTET and Tag.PERIODE and Tag.INGEN_AKTIVITET,
             Tag.SYKMELDING and Tag.BEKREFTET and Tag.PERIODE and Tag.FULL_AKTIVITET,
-            Tag.SYKMELDING and Tag.BEKREFTET and Tag.PERIODE and (Tag.GRADERT_AKTIVITET or Tag.INGEN_AKTIVITET),
+            Tag.SYKMELDING and Tag.BEKREFTET and Tag.PERIODE and Tag.GRADERT_AKTIVITET,
             Tag.SYKMELDING and Tag.BEKREFTET and Tag.PERIODE and Tag.BEHANDLINGSDAGER,
             Tag.SYKMELDING and Tag.BEKREFTET and Tag.ANNET_FRAVAR,
             Tag.SYKMELDING and Tag.SENDT and Tag.PERIODE and Tag.REISETILSKUDD and Tag.UKJENT_AKTIVITET,
+            Tag.SYKMELDING and Tag.NY and Tag.PERIODE and Tag.INGEN_AKTIVITET,
             Tag.SYKMELDING and Tag.NY and Tag.PERIODE and Tag.FULL_AKTIVITET,
-            Tag.SYKMELDING and Tag.NY and Tag.PERIODE and (Tag.GRADERT_AKTIVITET or Tag.INGEN_AKTIVITET),
+            Tag.SYKMELDING and Tag.NY and Tag.PERIODE and Tag.GRADERT_AKTIVITET,
             Tag.SYKMELDING and Tag.NY and Tag.PERIODE and Tag.BEHANDLINGSDAGER,
             Tag.SYKMELDING and Tag.NY and Tag.PERIODE and Tag.REISETILSKUDD and Tag.UKJENT_AKTIVITET,
         )
@@ -91,12 +95,7 @@ fun List<OppfolgingstilfelleBit>.generateOppfolgingstilfelleList(): List<Oppfolg
     return if (ikkeKorrigerteOppfolgingstilfelleBiter.isEmpty()) {
         emptyList()
     } else {
-        val oppfolgingstilfelleBiterPerVirksomhet = ikkeKorrigerteOppfolgingstilfelleBiter.groupBy { it.virksomhetsnummer }
-        val oppfolgingstilfelleDagerPerVirksomhet =
-            oppfolgingstilfelleBiterPerVirksomhet.mapValues { it.value.toOppfolgingstilfelleDagList() }
-
-        ikkeKorrigerteOppfolgingstilfelleBiter.toOppfolgingstilfelleDagList()
-            .toOppfolgingstilfelleList(oppfolgingstilfelleDagerPerVirksomhet)
+        ikkeKorrigerteOppfolgingstilfelleBiter.toOppfolgingstilfelleDagList().toOppfolgingstilfelleList()
     }
 }
 
@@ -161,8 +160,6 @@ fun List<OppfolgingstilfelleBit>.containsSendtSykmeldingBit(
         bit.tagList in (Tag.SYKMELDING and (Tag.SENDT or Tag.BEKREFTET))
 }
 
-fun List<OppfolgingstilfelleBit>.onlyGradert(): Boolean = this.isNotEmpty() && this.all { it.isGradert() }
-
 fun MutableList<OppfolgingstilfelleBit>.sortByTagPriority() {
     this.sortBy { bit -> bit.findTagPriority() }
 }
@@ -200,10 +197,10 @@ fun KafkaSyketilfellebit.toOppfolgingstilfelleBit(): OppfolgingstilfelleBit {
 
 fun OppfolgingstilfelleBit.isArbeidstakerBit(): Boolean = this.virksomhetsnummer != null
 
-fun OppfolgingstilfelleBit.isGradert(): Boolean = this.tagList in (Tag.GRADERT_AKTIVITET or Tag.FULL_AKTIVITET)
+fun OppfolgingstilfelleBit.isGradert(): Boolean = this.tagList in (Tag.GRADERT_AKTIVITET or Tag.FULL_AKTIVITET or Tag.BEHANDLINGSDAG or Tag.BEHANDLINGSDAGER)
 
 fun OppfolgingstilfelleBit.isGraderingBit(): Boolean =
-    this.tagList in (Tag.GRADERT_AKTIVITET or Tag.INGEN_AKTIVITET or Tag.FULL_AKTIVITET)
+    this.tagList in (Tag.GRADERT_AKTIVITET or Tag.INGEN_AKTIVITET or Tag.FULL_AKTIVITET or Tag.BEHANDLINGSDAG or Tag.BEHANDLINGSDAGER)
 
 fun OppfolgingstilfelleBit.isSykmeldingNy(): Boolean = this.tagList in (Tag.SYKMELDING and Tag.NY)
 
