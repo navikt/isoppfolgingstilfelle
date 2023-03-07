@@ -55,6 +55,27 @@ class OppfolgingstilfelleBitSpek : Spek({
             tilfelleDuration shouldBeEqualTo 16
         }
 
+        it("should return 1 Oppfolgingstilfelle of 0 day duration if fom og tom is the same") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, PERIODE, NY, GRADERT_AKTIVITET),
+                    fom = LocalDate.now().minusDays(1),
+                    tom = LocalDate.now().minusDays(1),
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.size shouldBeEqualTo 1
+
+            val tilfelleDuration = Period.between(
+                oppfolgingstilfelleList.first().start,
+                oppfolgingstilfelleList.first().end,
+            ).days
+            tilfelleDuration shouldBeEqualTo 0
+        }
+
         it("should return 2 Oppfolgingstilfelle with latest gradertAtTilfelleEnd=true, if sykmelding gradert and older tilfelle-bit from different virksomhet") {
             val oppfolgingstilfelleBitList = listOf(
                 defaultBit.copy(
