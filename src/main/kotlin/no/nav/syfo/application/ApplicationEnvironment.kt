@@ -74,9 +74,11 @@ data class Environment(
     val electorPath: String = getEnvVar("ELECTOR_PATH"),
     private val isdialogmoteApplicationName: String = "isdialogmote",
     private val isdialogmotekandidatApplicationName: String = "isdialogmotekandidat",
+    private val syfooversiktsrvName: String = "syfooversiktsrv",
     val systemAPIAuthorizedConsumerApplicationNames: List<String> = listOf(
         isdialogmoteApplicationName,
         isdialogmotekandidatApplicationName,
+        syfooversiktsrvName,
     ),
 )
 
