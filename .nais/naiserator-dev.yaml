@@ -55,7 +55,7 @@ spec:
         - application: isdialogmotekandidat
           namespace: teamsykefravr
           cluster: dev-gcp
-        - application: syfooversiksrv
+        - application: syfooversiktsrv
           namespace: teamsykefravr
           cluster: dev-gcp
         - application: syfomodiaperson
