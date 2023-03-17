@@ -40,6 +40,7 @@ spec:
       memory: 384Mi
   ingresses:
     - "https://isoppfolgingstilfelle.dev.intern.nav.no"
+    - "https://isoppfolgingstilfelle.intern.dev.nav.no"
   gcp:
     sqlInstances:
       - type: POSTGRES_14
