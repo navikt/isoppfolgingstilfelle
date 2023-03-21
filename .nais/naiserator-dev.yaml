@@ -39,7 +39,6 @@ spec:
       cpu: 100m
       memory: 384Mi
   ingresses:
-    - "https://isoppfolgingstilfelle.dev.intern.nav.no"
     - "https://isoppfolgingstilfelle.intern.dev.nav.no"
   gcp:
     sqlInstances:
@@ -93,7 +92,7 @@ spec:
     - name: SYFOTILGANGSKONTROLL_URL
       value: "https://syfo-tilgangskontroll.dev-fss-pub.nais.io"
     - name: NARMESTELEDER_URL
-      value: "https://isnarmesteleder.dev.intern.nav.no"
+      value: "https://isnarmesteleder.intern.dev.nav.no"
     - name: NARMESTELEDER_CLIENT_ID
       value: "dev-gcp.teamsykefravr.isnarmesteleder"
     - name: ARBEIDSFORHOLD_URL
