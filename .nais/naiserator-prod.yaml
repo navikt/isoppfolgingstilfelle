@@ -66,6 +66,7 @@ spec:
         - host: "aareg-services.prod-fss-pub.nais.io"
       rules:
         - application: isoppfolgingstilfelle-redis
+        - application: isnarmesteleder
   azure:
     application:
       allowAllUsers: true
@@ -93,7 +94,7 @@ spec:
     - name: SYFOTILGANGSKONTROLL_URL
       value: "https://syfo-tilgangskontroll.prod-fss-pub.nais.io"
     - name: NARMESTELEDER_URL
-      value: "https://isnarmesteleder.intern.nav.no"
+      value: "http://isnarmesteleder"
     - name: NARMESTELEDER_CLIENT_ID
       value: "prod-gcp.teamsykefravr.isnarmesteleder"
     - name: ARBEIDSFORHOLD_URL
