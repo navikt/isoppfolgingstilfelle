@@ -74,6 +74,7 @@ data class OppfolgingstilfelleBit(
             Tag.SYKMELDING and Tag.SENDT and Tag.PERIODE and Tag.INGEN_AKTIVITET,
             Tag.SYKMELDING and Tag.SENDT and Tag.PERIODE and Tag.FULL_AKTIVITET,
             Tag.SYKMELDING and Tag.SENDT and Tag.PERIODE and Tag.GRADERT_AKTIVITET,
+            Tag.SYKMELDING and Tag.SENDT and Tag.EGENMELDING,
             Tag.SYKMELDING and Tag.SENDT and Tag.PERIODE and Tag.BEHANDLINGSDAGER,
             Tag.SYKMELDING and Tag.BEKREFTET and Tag.PERIODE and Tag.INGEN_AKTIVITET,
             Tag.SYKMELDING and Tag.BEKREFTET and Tag.PERIODE and Tag.FULL_AKTIVITET,
