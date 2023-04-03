@@ -55,7 +55,7 @@ class OppfolgingstilfelleBitSpek : Spek({
             tilfelleDuration shouldBeEqualTo 16
         }
 
-        it("Egenmelding should count at sykedager") {
+        it("Egenmelding should count as sykedager") {
             val oppfolgingstilfelleBitList = listOf(
                 defaultBit.copy(
                     createdAt = nowUTC(),
