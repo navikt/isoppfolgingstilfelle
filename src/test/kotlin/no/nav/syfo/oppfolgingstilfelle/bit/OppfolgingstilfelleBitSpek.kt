@@ -55,6 +55,34 @@ class OppfolgingstilfelleBitSpek : Spek({
             tilfelleDuration shouldBeEqualTo 16
         }
 
+        it("Egenmelding should count at sykedager") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, EGENMELDING),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now().minusDays(13),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, PERIODE, SENDT, INGEN_AKTIVITET),
+                    fom = LocalDate.now().minusDays(12),
+                    tom = LocalDate.now(),
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.size shouldBeEqualTo 1
+
+            val tilfelleDuration = Period.between(
+                oppfolgingstilfelleList.first().start,
+                oppfolgingstilfelleList.first().end,
+            ).days
+            tilfelleDuration shouldBeEqualTo 16
+        }
+
         it("should return 1 Oppfolgingstilfelle of 0 day duration if fom og tom is the same") {
             val oppfolgingstilfelleBitList = listOf(
                 defaultBit.copy(
