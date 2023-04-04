@@ -29,7 +29,7 @@ object Versions {
 }
 
 plugins {
-    kotlin("jvm") version "1.7.0"
+    kotlin("jvm") version "1.8.20"
     id("com.github.johnrengelman.shadow") version "7.1.2"
     id("org.jlleitschuh.gradle.ktlint") version "10.3.0"
     id("com.github.davidmc24.gradle.plugin.avro") version "1.5.0"
@@ -129,6 +129,10 @@ dependencies {
     }
 }
 
+kotlin {
+    jvmToolchain(17)
+}
+
 tasks {
     withType<Jar> {
         manifest.attributes["Main-Class"] = "no.nav.syfo.AppKt"
@@ -142,7 +146,6 @@ tasks {
 
     withType<KotlinCompile> {
         dependsOn(":generateAvroJava")
-        kotlinOptions.jvmTarget = "17"
     }
 
     withType<ShadowJar> {
