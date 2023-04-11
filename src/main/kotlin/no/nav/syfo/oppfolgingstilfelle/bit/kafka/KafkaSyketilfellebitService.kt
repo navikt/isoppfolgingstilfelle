@@ -7,6 +7,7 @@ import org.apache.kafka.clients.consumer.*
 import org.slf4j.LoggerFactory
 import java.sql.Connection
 import java.time.Duration
+import java.util.UUID
 
 class KafkaSyketilfellebitService(
     val database: DatabaseInterface,
@@ -55,10 +56,20 @@ class KafkaSyketilfellebitService(
     private fun processTombstoneRecordList(
         tombstoneRecordList: List<ConsumerRecord<String, KafkaSyketilfellebit>>,
     ) {
-        if (tombstoneRecordList.isNotEmpty()) {
-            log.error("Value of ${tombstoneRecordList.size} ConsumerRecord are null, most probably due to a tombstone. Contact the owner of the topic if an error is suspected")
-            COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_TOMBSTONE.increment(tombstoneRecordList.size.toDouble())
+        val idList = try {
+            tombstoneRecordList.map { UUID.fromString(it.key()) }
+        } catch (exc: IllegalArgumentException) {
+            log.warn("Received tombstone record(s) with invalid key(s), not valid uuids")
+            emptyList()
         }
+        database.connection.use { connection ->
+            oppfolgingstilfelleBitService.deleteOppfolgingstilfelleBitList(
+                connection = connection,
+                oppfolgingstilfelleBitIdList = idList,
+            )
+            connection.commit()
+        }
+        COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_TOMBSTONE.increment(tombstoneRecordList.size.toDouble())
     }
 
     private fun processRelevantRecordList(

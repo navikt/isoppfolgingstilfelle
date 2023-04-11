@@ -87,14 +87,14 @@ class OppfolgingstilfelleCronjobSpek : Spek({
             SYKETILFELLEBIT_TOPIC,
             partition,
             1,
-            "key1",
+            kafkaSyketilfellebitRelevantVirksomhet.id,
             kafkaSyketilfellebitRelevantVirksomhet,
         )
         val kafkaSyketilfellebitRecordRelevantVirksomhetDuplicate = ConsumerRecord(
             SYKETILFELLEBIT_TOPIC,
             partition,
             1,
-            "key1",
+            kafkaSyketilfellebitRelevantVirksomhet.id,
             kafkaSyketilfellebitRelevantVirksomhet,
         )
         val kafkaSyketilfellebitNotRelevant1 = generateKafkaSyketilfellebitNotRelevantNoVirksomhet(
@@ -104,7 +104,7 @@ class OppfolgingstilfelleCronjobSpek : Spek({
             SYKETILFELLEBIT_TOPIC,
             partition,
             3,
-            "key3",
+            kafkaSyketilfellebitNotRelevant1.id,
             kafkaSyketilfellebitNotRelevant1,
         )
         val kafkaSyketilfellebitSykmeldingNy = generateKafkaSyketilfellebitSykmeldingNy(
@@ -114,7 +114,7 @@ class OppfolgingstilfelleCronjobSpek : Spek({
             SYKETILFELLEBIT_TOPIC,
             partition,
             4,
-            "key4",
+            kafkaSyketilfellebitSykmeldingNy.id,
             kafkaSyketilfellebitSykmeldingNy,
         )
         val kafkaSyketilfellebitSykmeldingNyNoOrgNr = generateKafkaSyketilfellebitSykmeldingNy(
@@ -124,7 +124,7 @@ class OppfolgingstilfelleCronjobSpek : Spek({
             SYKETILFELLEBIT_TOPIC,
             partition,
             5,
-            "key5",
+            kafkaSyketilfellebitSykmeldingNyNoOrgNr.id,
             kafkaSyketilfellebitSykmeldingNyNoOrgNr,
         )
         val kafkaSyketilfellebitInntektsmelding = generateKafkaSyketilfellebitInntektsmelding(
@@ -134,8 +134,26 @@ class OppfolgingstilfelleCronjobSpek : Spek({
             SYKETILFELLEBIT_TOPIC,
             partition,
             6,
-            "key6",
+            kafkaSyketilfellebitInntektsmelding.id,
             kafkaSyketilfellebitInntektsmelding,
+        )
+
+        val kafkaSyketilfellebitEgenmelding = generateKafkaSyketilfellebitEgenmelding(
+            personIdentNumber = personIdentDefault,
+        )
+        val kafkaSyketilfellebitRecordEgenmelding = ConsumerRecord(
+            SYKETILFELLEBIT_TOPIC,
+            partition,
+            7,
+            kafkaSyketilfellebitEgenmelding.id,
+            kafkaSyketilfellebitEgenmelding,
+        )
+        val kafkaSyketilfellebitRecordEgenmeldingTombstone = ConsumerRecord<String, KafkaSyketilfellebit>(
+            SYKETILFELLEBIT_TOPIC,
+            partition,
+            8,
+            kafkaSyketilfellebitRecordEgenmelding.key(),
+            null,
         )
 
         val mockKafkaConsumerSyketilfelleBit = mockk<KafkaConsumer<String, KafkaSyketilfellebit>>()
@@ -230,6 +248,87 @@ class OppfolgingstilfelleCronjobSpek : Spek({
                             oppfolgingstilfelle.start shouldBeEqualTo kafkaSyketilfellebitSykmeldingNy.fom
                             oppfolgingstilfelle.end shouldBeEqualTo kafkaSyketilfellebitSykmeldingNy.tom
                         }
+                    }
+
+                    it("tombstone records should be deleted from tilfelle_bit and added to tilfelle_bit_deleted") {
+                        val sykepengebitRecord = ConsumerRecord(
+                            SYKETILFELLEBIT_TOPIC,
+                            partition,
+                            8,
+                            kafkaSyketilfellebitRelevantVirksomhet.id,
+                            kafkaSyketilfellebitRelevantVirksomhet.copy(
+                                fom = LocalDate.now().minusDays(13),
+                                tom = LocalDate.now(),
+                            ),
+                        )
+                        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+                            mapOf(
+                                syketilfellebitTopicPartition to listOf(
+                                    kafkaSyketilfellebitRecordEgenmelding,
+                                    sykepengebitRecord,
+                                )
+                            )
+                        )
+
+                        kafkaSyketilfellebitService.pollAndProcessRecords(
+                            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                        )
+                        runBlocking {
+                            oppfolgingstilfelleCronjob.runJob()
+                        }
+                        with(
+                            handleRequest(HttpMethod.Get, url) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                            val oppfolgingstilfelleArbeidstakerDTO: OppfolgingstilfellePersonDTO =
+                                objectMapper.readValue(response.content!!)
+
+                            oppfolgingstilfelleArbeidstakerDTO.personIdent shouldBeEqualTo personIdentDefault.value
+                            oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList.size shouldBeEqualTo 1
+                            val oppfolgingstilfelle = oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList[0]
+                            oppfolgingstilfelle.start shouldBeEqualTo kafkaSyketilfellebitRecordEgenmelding.value().fom
+                            oppfolgingstilfelle.end shouldBeEqualTo sykepengebitRecord.value().tom
+                        }
+                        database.countDeletedTilfelleBit() shouldBeEqualTo 0
+
+                        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+                            mapOf(
+                                syketilfellebitTopicPartition to listOf(
+                                    kafkaSyketilfellebitRecordEgenmeldingTombstone,
+                                )
+                            )
+                        )
+                        kafkaSyketilfellebitService.pollAndProcessRecords(
+                            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                        )
+                        runBlocking {
+                            val result = oppfolgingstilfelleCronjob.runJob()
+                            result.failed shouldBeEqualTo 0
+                            result.updated shouldBeEqualTo 1
+                        }
+
+                        with(
+                            handleRequest(HttpMethod.Get, url) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                            val oppfolgingstilfelleArbeidstakerDTO: OppfolgingstilfellePersonDTO =
+                                objectMapper.readValue(response.content!!)
+
+                            oppfolgingstilfelleArbeidstakerDTO.personIdent shouldBeEqualTo oppfolgingstilfelleBit.personIdentNumber.value
+                            oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList.size shouldBeEqualTo 1
+                            val oppfolgingstilfelle = oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList[0]
+                            oppfolgingstilfelle.start shouldBeEqualTo sykepengebitRecord.value().fom
+                            oppfolgingstilfelle.end shouldBeEqualTo sykepengebitRecord.value().tom
+                        }
+                        database.countDeletedTilfelleBit() shouldBeEqualTo 1
                     }
 
                     it("should create OppfolgingstilfelleBit and OppfolgingstilfellePerson if bit is inntekstmelding") {

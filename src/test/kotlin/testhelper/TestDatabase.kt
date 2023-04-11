@@ -47,6 +47,9 @@ fun DatabaseInterface.dropData() {
         DELETE FROM TILFELLE_BIT
         """.trimIndent(),
         """
+        DELETE FROM TILFELLE_BIT_DELETED
+        """.trimIndent(),
+        """
         DELETE FROM OPPFOLGINGSTILFELLE_PERSON
         """.trimIndent(),
         """
@@ -66,3 +69,11 @@ fun DatabaseInterface.getDodsdato(
 ) = this.connection.use {
     it.getDodsdato(personIdent)
 }
+
+fun DatabaseInterface.countDeletedTilfelleBit() =
+    this.connection.use { connection ->
+        connection.prepareStatement("SELECT COUNT(*) FROM TILFELLE_BIT_DELETED").use { ps ->
+            val resultSet = ps.executeQuery().also { it.next() }
+            resultSet.getInt(1)
+        }
+    }

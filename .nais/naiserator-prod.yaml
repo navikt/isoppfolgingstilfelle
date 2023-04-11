@@ -58,9 +58,6 @@ spec:
           cluster: prod-gcp
         - application: syfomodiaperson
           namespace: teamsykefravr
-          cluster: prod-fss
-        - application: syfomodiaperson
-          namespace: teamsykefravr
           cluster: prod-gcp
     outbound:
       external:
