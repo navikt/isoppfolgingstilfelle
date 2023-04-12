@@ -1,4 +1,4 @@
-package no.nav.syfo.oppfolgingstilfelle.cronjob
+package no.nav.syfo.oppfolgingstilfelle.kafka
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -36,7 +36,7 @@ import java.time.Duration
 import java.time.LocalDate
 import java.util.*
 
-class OppfolgingstilfelleCronjobSpek : Spek({
+class KafkaSyketilfelleBitConsumerSpek : Spek({
     val objectMapper: ObjectMapper = configuredJacksonMapper()
 
     with(TestApplicationEngine()) {
@@ -188,8 +188,8 @@ class OppfolgingstilfelleCronjobSpek : Spek({
             justRun { oppfolgingstilfellePersonProducer.sendOppfolgingstilfellePerson(any()) }
         }
 
-        describe(OppfolgingstilfelleCronjobSpek::class.java.simpleName) {
-            describe("Get OppfolgingstilfellePersonDTO for PersonIdent") {
+        describe(KafkaSyketilfelleBitConsumerSpek::class.java.simpleName) {
+            describe("Consumer syketilfellebiter from Kafka topic") {
                 val url = "$oppfolgingstilfelleApiV1Path$oppfolgingstilfelleApiPersonIdentPath"
                 val validToken = generateJWT(
                     audience = externalMockEnvironment.environment.azure.appClientId,
@@ -276,23 +276,6 @@ class OppfolgingstilfelleCronjobSpek : Spek({
                         runBlocking {
                             oppfolgingstilfelleCronjob.runJob()
                         }
-                        with(
-                            handleRequest(HttpMethod.Get, url) {
-                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
-                                addHeader(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
-                            }
-                        ) {
-                            response.status() shouldBeEqualTo HttpStatusCode.OK
-
-                            val oppfolgingstilfelleArbeidstakerDTO: OppfolgingstilfellePersonDTO =
-                                objectMapper.readValue(response.content!!)
-
-                            oppfolgingstilfelleArbeidstakerDTO.personIdent shouldBeEqualTo personIdentDefault.value
-                            oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList.size shouldBeEqualTo 1
-                            val oppfolgingstilfelle = oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList[0]
-                            oppfolgingstilfelle.start shouldBeEqualTo kafkaSyketilfellebitRecordEgenmelding.value().fom
-                            oppfolgingstilfelle.end shouldBeEqualTo sykepengebitRecord.value().tom
-                        }
                         database.countDeletedTilfelleBit() shouldBeEqualTo 0
 
                         every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
@@ -325,13 +308,15 @@ class OppfolgingstilfelleCronjobSpek : Spek({
                             oppfolgingstilfelleArbeidstakerDTO.personIdent shouldBeEqualTo oppfolgingstilfelleBit.personIdentNumber.value
                             oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList.size shouldBeEqualTo 1
                             val oppfolgingstilfelle = oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList[0]
+                            // siden egenmeldingsbiten har blitt slettet vil fom for oppfolgingstilfellet fra
+                            // sykepengesoknadbiten.
                             oppfolgingstilfelle.start shouldBeEqualTo sykepengebitRecord.value().fom
                             oppfolgingstilfelle.end shouldBeEqualTo sykepengebitRecord.value().tom
                         }
                         database.countDeletedTilfelleBit() shouldBeEqualTo 1
                     }
 
-                    it("should create OppfolgingstilfelleBit and OppfolgingstilfellePerson if bit is inntekstmelding") {
+                    it("should create tilfelleBit and OppfolgingstilfellePerson if bit is inntekstmelding") {
                         every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
                             mapOf(
                                 syketilfellebitTopicPartition to listOf(
@@ -383,7 +368,7 @@ class OppfolgingstilfelleCronjobSpek : Spek({
                         }
                     }
 
-                    it("should create OppfolgingstilfelleBit and OppfolgingstilfellePerson if SyketilfelleBit is sykmelding ny and orgnr missing") {
+                    it("should create tilfelleBit and OppfolgingstilfellePerson if SyketilfelleBit is sykmelding ny and orgnr missing") {
                         every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
                             mapOf(
                                 syketilfellebitTopicPartition to listOf(
@@ -438,7 +423,7 @@ class OppfolgingstilfelleCronjobSpek : Spek({
                         }
                     }
 
-                    it("should not create OppfolgingstilfelleBit or OppfolgingstilfellePerson if SyketilfelleBit is not relevant") {
+                    it("should not create tilfelleBit or OppfolgingstilfellePerson if SyketilfelleBit is not relevant") {
                         every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
                             mapOf(
                                 syketilfellebitTopicPartition to listOf(
