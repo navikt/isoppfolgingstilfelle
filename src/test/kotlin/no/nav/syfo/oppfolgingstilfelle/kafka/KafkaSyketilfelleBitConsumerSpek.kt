@@ -189,7 +189,7 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
         }
 
         describe(KafkaSyketilfelleBitConsumerSpek::class.java.simpleName) {
-            describe("Consumer syketilfellebiter from Kafka topic") {
+            describe("Consume syketilfellebiter from Kafka topic") {
                 val url = "$oppfolgingstilfelleApiV1Path$oppfolgingstilfelleApiPersonIdentPath"
                 val validToken = generateJWT(
                     audience = externalMockEnvironment.environment.azure.appClientId,
@@ -198,7 +198,7 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                 )
 
                 describe("Happy path") {
-                    it("should create OppfolgingstilfelleBit and OppfolgingstilfellePerson if SyketilfelleBit is sykmelding ny") {
+                    it("should create tilfelleBit and OppfolgingstilfellePerson if SyketilfelleBit is sykmelding ny") {
                         every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
                             mapOf(
                                 syketilfellebitTopicPartition to listOf(
