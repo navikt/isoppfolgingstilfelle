@@ -67,7 +67,8 @@ class OppfolgingstilfelleNarmesteLederApiSpek : Spek({
                                 addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
                                 addHeader(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
                                 addHeader(
-                                    NAV_VIRKSOMHETSNUMMER, "912000000"
+                                    NAV_VIRKSOMHETSNUMMER,
+                                    "912000000"
                                 )
                             }
                         ) {
