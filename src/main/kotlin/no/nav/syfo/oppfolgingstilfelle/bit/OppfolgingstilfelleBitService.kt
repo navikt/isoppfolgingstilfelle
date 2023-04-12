@@ -8,6 +8,7 @@ import no.nav.syfo.oppfolgingstilfelle.bit.kafka.*
 import org.slf4j.LoggerFactory
 import java.sql.Connection
 import java.time.LocalDate
+import java.util.UUID
 
 class OppfolgingstilfelleBitService() {
     fun createOppfolgingstilfelleBitList(
@@ -15,8 +16,7 @@ class OppfolgingstilfelleBitService() {
         oppfolgingstilfelleBitList: List<OppfolgingstilfelleBit>,
     ) {
         oppfolgingstilfelleBitList.forEach { oppfolgingstilfelleBit ->
-            val existingWithSameUuid = connection.getOppfolgingstilfelleBitForUUID(oppfolgingstilfelleBit.uuid)
-                ?.toOppfolgingstilfelleBit()
+            val existingWithSameUuid = connection.getOppfolgingstilfelleBit(oppfolgingstilfelleBit.uuid)
             if (existingWithSameUuid != null) {
                 COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_DUPLICATE.increment()
             } else {
@@ -42,6 +42,24 @@ class OppfolgingstilfelleBitService() {
                 } else {
                     COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_SKIPPED_CREATE.increment()
                 }
+            }
+        }
+    }
+
+    fun deleteOppfolgingstilfelleBitList(
+        connection: Connection,
+        oppfolgingstilfelleBitIdList: List<UUID>,
+    ) {
+        oppfolgingstilfelleBitIdList.forEach { uuid ->
+            val existing = connection.getOppfolgingstilfelleBit(uuid)
+            if (existing != null) {
+                connection.deleteOppfolgingstilfelleBit(existing.toOppfolgingstilfelleBit())
+                connection.getProcessedOppfolgingstilfelleBitList(existing.personIdentNumber).firstOrNull()?.let {
+                    // Set the newest tilfelleBit to unprocessed so that oppfolgingstilfelle is updated by cronjob
+                    connection.setProcessedOppfolgingstilfelleBit(it.uuid, false)
+                }
+            } else {
+                log.warn("No tilfellebit found for tombstone with uuid $uuid")
             }
         }
     }

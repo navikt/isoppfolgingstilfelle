@@ -55,6 +55,7 @@ fun generateKafkaSyketilfellebitNotRelevantNoVirksomhet(
     personIdent = personIdentNumber,
     virksomhetsnummer = virksomhetsnummer
 ).copy(
+    id = UUID.randomUUID().toString(),
     orgnummer = null,
     tags = listOf(
         Tag.SYKEPENGESOKNAD,
@@ -67,6 +68,7 @@ fun generateKafkaSyketilfellebitSykmeldingNy(
 ) = generateKafkaSyketilfellebitRelevantVirksomhet(
     personIdent = personIdentNumber,
 ).copy(
+    id = UUID.randomUUID().toString(),
     orgnummer = null,
     fom = LocalDate.now().minusDays(28),
     tom = LocalDate.now(),
@@ -85,8 +87,25 @@ fun generateKafkaSyketilfellebitInntektsmelding(
     personIdent = personIdentNumber,
     virksomhetsnummer = virksomhetsnummer
 ).copy(
+    id = UUID.randomUUID().toString(),
     tags = listOf(
         Tag.INNTEKTSMELDING,
         Tag.ARBEIDSGIVERPERIODE,
+    ).map { tag -> tag.name },
+)
+
+fun generateKafkaSyketilfellebitEgenmelding(
+    personIdentNumber: PersonIdentNumber = UserConstants.PERSONIDENTNUMBER_DEFAULT,
+    virksomhetsnummer: Virksomhetsnummer = UserConstants.VIRKSOMHETSNUMMER_DEFAULT,
+) = generateKafkaSyketilfellebitRelevantVirksomhet(
+    personIdent = personIdentNumber,
+    virksomhetsnummer = virksomhetsnummer
+).copy(
+    id = UUID.randomUUID().toString(),
+    inntruffet = nowUTC().minusDays(16),
+    tags = listOf(
+        Tag.SYKMELDING,
+        Tag.SENDT,
+        Tag.EGENMELDING,
     ).map { tag -> tag.name },
 )

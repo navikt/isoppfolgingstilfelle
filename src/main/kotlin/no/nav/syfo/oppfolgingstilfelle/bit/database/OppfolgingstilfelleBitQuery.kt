@@ -31,11 +31,33 @@ const val queryCreateOppfolgingstilfellebit =
         RETURNING id
     """
 
+const val queryCreateOppfolgingstilfellebitDeleted =
+    """
+    INSERT INTO TILFELLE_BIT_DELETED (
+        id,
+        uuid,
+        created_at,
+        inntruffet,
+        personident,
+        ressurs_id,
+        tags,
+        virksomhetsnummer,
+        fom,
+        tom,
+        ready,
+        processed,
+        korrigerer
+        ) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        RETURNING id
+    """
+
 fun Connection.createOppfolgingstilfelleBit(
     commit: Boolean,
     oppfolgingstilfelleBit: OppfolgingstilfelleBit,
+    deleted: Boolean = false,
 ) {
-    val oppfolgingstilfelleBitIdList = this.prepareStatement(queryCreateOppfolgingstilfellebit).use {
+    val sql = if (deleted) queryCreateOppfolgingstilfellebitDeleted else queryCreateOppfolgingstilfellebit
+    val oppfolgingstilfelleBitIdList = this.prepareStatement(sql).use {
         it.setString(1, oppfolgingstilfelleBit.uuid.toString())
         it.setTimestamp(2, Timestamp.from(oppfolgingstilfelleBit.createdAt.toInstant()))
         it.setTimestamp(3, Timestamp.from(oppfolgingstilfelleBit.inntruffet.toInstant()))
@@ -67,7 +89,7 @@ const val queryGetOppfolgingstilfelleBitForUUID =
     WHERE uuid = ?;
     """
 
-fun Connection.getOppfolgingstilfelleBitForUUID(
+fun Connection.getOppfolgingstilfelleBit(
     uuid: UUID,
 ): POppfolgingstilfelleBit? = this.prepareStatement(queryGetOppfolgingstilfelleBitForUUID).use {
     it.setString(1, uuid.toString())
@@ -75,6 +97,31 @@ fun Connection.getOppfolgingstilfelleBitForUUID(
         toPOppfolgingstilfelleBit()
     }
 }.firstOrNull()
+
+const val queryDeleteOppfolgingstilfelleBitForUUID =
+    """
+    DELETE
+    FROM TILFELLE_BIT
+    WHERE uuid = ?;
+    """
+
+fun Connection.deleteOppfolgingstilfelleBit(
+    oppfolgingstilfelleBit: OppfolgingstilfelleBit,
+) {
+    this.createOppfolgingstilfelleBit(
+        commit = false,
+        oppfolgingstilfelleBit = oppfolgingstilfelleBit,
+        deleted = true,
+    )
+    this.prepareStatement(queryDeleteOppfolgingstilfelleBitForUUID).use {
+        it.setString(1, oppfolgingstilfelleBit.uuid.toString())
+        it.executeUpdate()
+    }.also { updateCount ->
+        if (updateCount != 1) {
+            throw RuntimeException("Unexpected update count: $updateCount")
+        }
+    }
+}
 
 const val queryGetProcessedOppfolgingstilfelleBitList =
     """
@@ -170,19 +217,22 @@ fun Connection.setReadyOppfolgingstilfelleBit(uuid: UUID) =
 const val querySetProcessedOppfolgingstilfelleBit =
     """
     UPDATE TILFELLE_BIT 
-    SET processed=true
+    SET processed=?
     WHERE uuid=?
     """
 
-fun Connection.setProcessedOppfolgingstilfelleBit(uuid: UUID) =
-    this.prepareStatement(querySetProcessedOppfolgingstilfelleBit).use {
-        it.setString(1, uuid.toString())
-        it.executeUpdate()
-    }.also { updateCount ->
-        if (updateCount != 1) {
-            throw RuntimeException("Unexpected update count: $updateCount")
-        }
+fun Connection.setProcessedOppfolgingstilfelleBit(
+    uuid: UUID,
+    processed: Boolean = true,
+) = this.prepareStatement(querySetProcessedOppfolgingstilfelleBit).use {
+    it.setBoolean(1, processed)
+    it.setString(2, uuid.toString())
+    it.executeUpdate()
+}.also { updateCount ->
+    if (updateCount != 1) {
+        throw RuntimeException("Unexpected update count: $updateCount")
     }
+}
 
 const val queryGetOppfolgingstilfelleBitForIdent =
     """

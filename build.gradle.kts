@@ -1,6 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jlleitschuh.gradle.ktlint.tasks.KtLintCheckTask
 
 group = "no.nav.syfo"
 version = "1.0.0"
@@ -159,5 +160,8 @@ tasks {
             includeEngines("spek2")
         }
         testLogging.showStandardStreams = true
+    }
+    withType<KtLintCheckTask> {
+        dependsOn(":generateTestAvroJava")
     }
 }
