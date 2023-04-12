@@ -68,7 +68,7 @@ class OppfolgingstilfelleNarmesteLederApiSpek : Spek({
                                 addHeader(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
                                 addHeader(
                                     NAV_VIRKSOMHETSNUMMER,
-                                    "912000000"
+                                    "912000000",
                                 )
                             }
                         ) {
