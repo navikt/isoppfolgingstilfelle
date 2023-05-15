@@ -3,10 +3,12 @@ package testhelper.generator
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.domain.Virksomhetsnummer
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.Tag
-import no.nav.syfo.oppfolgingstilfelle.bit.kafka.KafkaSyketilfellebit
+import no.nav.syfo.oppfolgingstilfelle.bit.kafka.statusendring.*
+import no.nav.syfo.oppfolgingstilfelle.bit.kafka.syketilfelle.KafkaSyketilfellebit
 import no.nav.syfo.util.nowUTC
 import testhelper.UserConstants
 import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.util.*
 
 fun generateKafkaSyketilfellebitRelevantVirksomhet(
@@ -108,4 +110,21 @@ fun generateKafkaSyketilfellebitEgenmelding(
         Tag.SENDT,
         Tag.EGENMELDING,
     ).map { tag -> tag.name },
+)
+
+fun generateKafkaStatusendring(
+    sykmeldingId: UUID,
+    personIdentNumber: PersonIdentNumber = UserConstants.PERSONIDENTNUMBER_DEFAULT,
+) = SykmeldingStatusKafkaMessageDTO(
+    kafkaMetadata = KafkaMetadataDTO(
+        sykmeldingId = sykmeldingId.toString(),
+        timestamp = OffsetDateTime.now(),
+        fnr = personIdentNumber.value,
+        source = "",
+    ),
+    event = SykmeldingStatusKafkaEventDTO(
+        sykmeldingId = sykmeldingId.toString(),
+        timestamp = OffsetDateTime.now(),
+        statusEvent = STATUS_AVBRUTT,
+    ),
 )

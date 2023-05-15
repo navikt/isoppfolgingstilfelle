@@ -6,6 +6,7 @@ import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.personhendelse.db.getDodsdato
 import org.flywaydb.core.Flyway
 import java.sql.Connection
+import java.util.UUID
 
 class TestDatabase : DatabaseInterface {
     private val pg: EmbeddedPostgres
@@ -75,5 +76,21 @@ fun DatabaseInterface.countDeletedTilfelleBit() =
         connection.prepareStatement("SELECT COUNT(*) FROM TILFELLE_BIT_DELETED").use { ps ->
             val resultSet = ps.executeQuery().also { it.next() }
             resultSet.getInt(1)
+        }
+    }
+
+const val queryGetOppfolgingstilfellebitAvbruttForTilfellebit =
+    """
+    SELECT avbrutt 
+    FROM TILFELLE_BIT_AVBRUTT a INNER JOIN TILFELLE_BIT t ON (t.id = a.tilfelle_bit_id) 
+    WHERE t.uuid=?
+    """
+
+fun DatabaseInterface.isTilfelleBitAvbrutt(tilfelleBitId: UUID): Boolean =
+    this.connection.use { connection ->
+        connection.prepareStatement(queryGetOppfolgingstilfellebitAvbruttForTilfellebit).use {
+            it.setString(1, tilfelleBitId.toString())
+            val rs = it.executeQuery()
+            if (rs.next()) rs.getBoolean(1) else false
         }
     }

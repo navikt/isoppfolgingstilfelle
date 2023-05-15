@@ -1,4 +1,4 @@
-package no.nav.syfo.oppfolgingstilfelle.bit.kafka
+package no.nav.syfo.oppfolgingstilfelle.bit.kafka.syketilfelle
 
 import io.micrometer.core.instrument.Counter
 import no.nav.syfo.application.metric.METRICS_NS
@@ -18,13 +18,17 @@ val COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_READ: Counter = Counter.builder(KAFKA_C
 val COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_CREATED: Counter = Counter.builder(KAFKA_CONSUMER_SYKETILFELLEBIT_CREATED)
     .description("Counts the number of created from topic - syketilfellebit")
     .register(METRICS_REGISTRY)
-val COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_SKIPPED_CREATE: Counter = Counter.builder(KAFKA_CONSUMER_SYKETILFELLEBIT_SKIPPED_CREATE)
+val COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_SKIPPED_CREATE: Counter = Counter.builder(
+    KAFKA_CONSUMER_SYKETILFELLEBIT_SKIPPED_CREATE
+)
     .description("Counts the number of skipped from topic - syketilfellebit")
     .register(METRICS_REGISTRY)
 val COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_DUPLICATE: Counter = Counter.builder(KAFKA_CONSUMER_SYKETILFELLEBIT_DUPLICATE)
     .description("Counts the number of duplicates received from topic - syketilfellebit")
     .register(METRICS_REGISTRY)
-val COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_NOT_RELEVANT: Counter = Counter.builder(KAFKA_CONSUMER_SYKETILFELLEBIT_NOT_RELEVANT)
+val COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_NOT_RELEVANT: Counter = Counter.builder(
+    KAFKA_CONSUMER_SYKETILFELLEBIT_NOT_RELEVANT
+)
     .description("Counts the number of not relevant and skipped records from topic - syketilfellebit")
     .register(METRICS_REGISTRY)
 val COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_TOMBSTONE: Counter = Counter.builder(KAFKA_CONSUMER_SYKETILFELLEBIT_TOMBSTONE)

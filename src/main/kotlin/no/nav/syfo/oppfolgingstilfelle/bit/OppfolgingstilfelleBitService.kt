@@ -4,7 +4,7 @@ import no.nav.syfo.oppfolgingstilfelle.bit.database.*
 import no.nav.syfo.oppfolgingstilfelle.bit.database.domain.toOppfolgingstilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.bit.database.domain.toOppfolgingstilfelleBitList
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.*
-import no.nav.syfo.oppfolgingstilfelle.bit.kafka.*
+import no.nav.syfo.oppfolgingstilfelle.bit.kafka.syketilfelle.*
 import org.slf4j.LoggerFactory
 import java.sql.Connection
 import java.time.LocalDate

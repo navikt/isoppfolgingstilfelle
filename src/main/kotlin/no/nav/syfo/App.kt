@@ -13,8 +13,8 @@ import no.nav.syfo.application.database.applicationDatabase
 import no.nav.syfo.application.database.databaseModule
 import no.nav.syfo.client.wellknown.getWellKnown
 import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
-import no.nav.syfo.oppfolgingstilfelle.bit.kafka.KafkaSyketilfellebitService
-import no.nav.syfo.oppfolgingstilfelle.bit.kafka.launchKafkaTaskSyketilfelleBit
+import no.nav.syfo.oppfolgingstilfelle.bit.kafka.syketilfelle.KafkaSyketilfellebitService
+import no.nav.syfo.oppfolgingstilfelle.bit.kafka.syketilfelle.launchKafkaTaskSyketilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.person.OppfolgingstilfellePersonService
 import no.nav.syfo.application.cronjob.launchCronjobModule
 import no.nav.syfo.client.azuread.AzureAdClient
@@ -22,6 +22,8 @@ import no.nav.syfo.client.pdl.PdlClient
 import no.nav.syfo.identhendelse.IdenthendelseService
 import no.nav.syfo.identhendelse.kafka.IdenthendelseConsumerService
 import no.nav.syfo.identhendelse.kafka.launchKafkaTaskIdenthendelse
+import no.nav.syfo.oppfolgingstilfelle.bit.kafka.statusendring.KafkaStatusendringService
+import no.nav.syfo.oppfolgingstilfelle.bit.kafka.statusendring.launchKafkaTaskStatusendring
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.OppfolgingstilfellePersonProducer
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.kafkaOppfolgingstilfelleProducerConfig
 import no.nav.syfo.personhendelse.kafka.launchKafkaTaskPersonhendelse
@@ -107,6 +109,19 @@ fun main() {
             kafkaEnvironment = environment.kafka,
             kafkaSyketilfellebitService = kafkaSyketilfellebitService,
         )
+
+        if (environment.sykmeldingStatusConsumerEnabled) {
+            val kafkaStatusendringService = KafkaStatusendringService(
+                database = applicationDatabase,
+                oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(),
+            )
+
+            launchKafkaTaskStatusendring(
+                applicationState = applicationState,
+                kafkaEnvironment = environment.kafka,
+                kafkaStatusendringService = kafkaStatusendringService,
+            )
+        }
 
         val identhendelseService = IdenthendelseService(
             database = applicationDatabase,
