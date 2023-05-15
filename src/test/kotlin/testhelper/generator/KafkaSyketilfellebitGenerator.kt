@@ -125,6 +125,6 @@ fun generateKafkaStatusendring(
     event = SykmeldingStatusKafkaEventDTO(
         sykmeldingId = sykmeldingId.toString(),
         timestamp = OffsetDateTime.now(),
-        statusEvent = STATUS_AVBRUTT,
+        statusEvent = StatusEndring.STATUS_AVBRUTT.value,
     ),
 )

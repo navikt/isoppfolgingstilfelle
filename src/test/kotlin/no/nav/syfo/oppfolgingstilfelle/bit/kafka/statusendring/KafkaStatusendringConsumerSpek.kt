@@ -42,7 +42,7 @@ class KafkaStatusendringConsumerSpek : Spek({
         val sykmeldingId = UUID.randomUUID()
         val tilfelleBitUuid = UUID.randomUUID()
 
-        val oppfolgingstilfelleBit = OppfolgingstilfelleBit(
+        val oppfolgingstilfelleBitSykmeldingNy = OppfolgingstilfelleBit(
             uuid = tilfelleBitUuid,
             personIdentNumber = personIdentDefault,
             virksomhetsnummer = null,
@@ -53,9 +53,22 @@ class KafkaStatusendringConsumerSpek : Spek({
             tagList = listOf(
                 Tag.SYKMELDING,
                 Tag.NY,
+                Tag.PERIODE,
+                Tag.INGEN_AKTIVITET,
             ),
             ressursId = sykmeldingId.toString(),
             korrigerer = null,
+        )
+        val tilfelleBitSykmeldingSendtUuid = UUID.randomUUID()
+
+        val oppfolgingstilfelleBitSykmeldingSendt = oppfolgingstilfelleBitSykmeldingNy.copy(
+            uuid = tilfelleBitSykmeldingSendtUuid,
+            tagList = listOf(
+                Tag.SYKMELDING,
+                Tag.SENDT,
+                Tag.PERIODE,
+                Tag.INGEN_AKTIVITET,
+            )
         )
 
         val statusendringTopicPartition = TopicPartition(
@@ -90,12 +103,6 @@ class KafkaStatusendringConsumerSpek : Spek({
 
         beforeEachTest {
             database.dropData()
-            database.connection.use {
-                it.createOppfolgingstilfelleBit(
-                    commit = true,
-                    oppfolgingstilfelleBit = oppfolgingstilfelleBit,
-                )
-            }
 
             clearMocks(mockKafkaConsumerStatusendring)
             every { mockKafkaConsumerStatusendring.commitSync() } returns Unit
@@ -105,7 +112,12 @@ class KafkaStatusendringConsumerSpek : Spek({
             describe("Consume statusendring from Kafka topic") {
                 describe("Happy path") {
                     it("should store statusendring when known sykmeldingId") {
-                        database.isTilfelleBitAvbrutt(tilfelleBitUuid) shouldBeEqualTo false
+                        database.connection.use {
+                            it.createOppfolgingstilfelleBit(
+                                commit = true,
+                                oppfolgingstilfelleBit = oppfolgingstilfelleBitSykmeldingNy,
+                            )
+                        }
                         every { mockKafkaConsumerStatusendring.poll(any<Duration>()) } returns ConsumerRecords(
                             mapOf(
                                 statusendringTopicPartition to listOf(
@@ -124,8 +136,32 @@ class KafkaStatusendringConsumerSpek : Spek({
 
                         database.isTilfelleBitAvbrutt(tilfelleBitUuid) shouldBeEqualTo true
                     }
+                    it("should not store statusendring when known sykmeldingId and sendt") {
+                        database.connection.use {
+                            it.createOppfolgingstilfelleBit(
+                                commit = true,
+                                oppfolgingstilfelleBit = oppfolgingstilfelleBitSykmeldingSendt,
+                            )
+                        }
+                        every { mockKafkaConsumerStatusendring.poll(any<Duration>()) } returns ConsumerRecords(
+                            mapOf(
+                                statusendringTopicPartition to listOf(
+                                    kafkaStatusendring
+                                )
+                            )
+                        )
+
+                        kafkaStatusendringService.pollAndProcessRecords(
+                            kafkaConsumerStatusendring = mockKafkaConsumerStatusendring,
+                        )
+
+                        verify(exactly = 1) {
+                            mockKafkaConsumerStatusendring.commitSync()
+                        }
+
+                        database.isTilfelleBitAvbrutt(tilfelleBitSykmeldingSendtUuid) shouldBeEqualTo false
+                    }
                     it("should consume statusendring with unknown sykmeldingId") {
-                        database.isTilfelleBitAvbrutt(tilfelleBitUuid) shouldBeEqualTo false
                         every { mockKafkaConsumerStatusendring.poll(any<Duration>()) } returns ConsumerRecords(
                             mapOf(
                                 statusendringTopicPartition to listOf(
@@ -141,8 +177,6 @@ class KafkaStatusendringConsumerSpek : Spek({
                         verify(exactly = 1) {
                             mockKafkaConsumerStatusendring.commitSync()
                         }
-
-                        database.isTilfelleBitAvbrutt(tilfelleBitUuid) shouldBeEqualTo false
                     }
                 }
             }

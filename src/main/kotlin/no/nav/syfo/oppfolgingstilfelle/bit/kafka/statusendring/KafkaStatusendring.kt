@@ -2,12 +2,19 @@ package no.nav.syfo.oppfolgingstilfelle.bit.kafka.statusendring
 
 import java.time.OffsetDateTime
 
-const val STATUS_APEN = "APEN"
-const val STATUS_AVBRUTT = "AVBRUTT"
-const val STATUS_UTGATT = "UTGATT"
-const val STATUS_SENDT = "SENDT"
-const val STATUS_BEKREFTET = "BEKREFTET"
-const val STATUS_SLETTET = "SLETTET"
+enum class StatusEndring(val value: String) {
+    STATUS_APEN("APEN"),
+    STATUS_AVBRUTT("AVBRUTT"),
+    STATUS_UTGATT("UTGATT"),
+    STATUS_SENDT("SENDT"),
+    STATUS_BEKREFTET("BEKREFTET"),
+    STATUS_SLETTET("SLETTET");
+
+    companion object {
+        fun fromValue(v: String?): StatusEndring? =
+            StatusEndring.values().firstOrNull { it.value == v }
+    }
+}
 
 data class SykmeldingStatusKafkaMessageDTO(
     val kafkaMetadata: KafkaMetadataDTO,
