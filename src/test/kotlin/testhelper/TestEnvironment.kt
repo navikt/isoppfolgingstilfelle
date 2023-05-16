@@ -76,6 +76,7 @@ fun testEnvironment(
         port = 6379,
         secret = "password",
     ),
+    sykmeldingStatusConsumerEnabled = true,
 )
 
 fun testAppState() = ApplicationState(

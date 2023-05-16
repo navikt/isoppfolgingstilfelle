@@ -72,6 +72,7 @@ data class Environment(
     ),
 
     val electorPath: String = getEnvVar("ELECTOR_PATH"),
+    val sykmeldingStatusConsumerEnabled: Boolean = getEnvVar("TOOGLE_SYKMELDING_STATUS_CONSUMER_ENABLED").toBoolean(),
     private val isdialogmoteApplicationName: String = "isdialogmote",
     private val isdialogmotekandidatApplicationName: String = "isdialogmotekandidat",
     val systemAPIAuthorizedConsumerApplicationNames: List<String> = listOf(

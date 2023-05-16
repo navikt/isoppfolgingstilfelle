@@ -2,7 +2,7 @@ package testhelper
 
 import no.nav.common.KafkaEnvironment
 import no.nav.syfo.identhendelse.kafka.PDL_AKTOR_TOPIC
-import no.nav.syfo.oppfolgingstilfelle.bit.kafka.SYKETILFELLEBIT_TOPIC
+import no.nav.syfo.oppfolgingstilfelle.bit.kafka.syketilfelle.SYKETILFELLEBIT_TOPIC
 
 fun testKafka(
     autoStart: Boolean = false,

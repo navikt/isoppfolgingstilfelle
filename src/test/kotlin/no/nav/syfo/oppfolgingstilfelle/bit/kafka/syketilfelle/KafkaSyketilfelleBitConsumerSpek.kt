@@ -1,4 +1,4 @@
-package no.nav.syfo.oppfolgingstilfelle.kafka
+package no.nav.syfo.oppfolgingstilfelle.bit.kafka.syketilfelle
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -12,9 +12,6 @@ import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
 import no.nav.syfo.oppfolgingstilfelle.bit.cronjob.OppfolgingstilfelleCronjob
 import no.nav.syfo.oppfolgingstilfelle.bit.cronjob.SykmeldingNyCronjob
-import no.nav.syfo.oppfolgingstilfelle.bit.domain.OppfolgingstilfelleBit
-import no.nav.syfo.oppfolgingstilfelle.bit.domain.Tag
-import no.nav.syfo.oppfolgingstilfelle.bit.kafka.*
 import no.nav.syfo.oppfolgingstilfelle.person.OppfolgingstilfellePersonService
 import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfellePersonDTO
 import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleApiPersonIdentPath
@@ -29,12 +26,10 @@ import org.spekframework.spek2.style.specification.describe
 import testhelper.*
 import testhelper.UserConstants.ARBEIDSTAKER_VIRKSOMHET_NO_NARMESTELEDER
 import testhelper.UserConstants.PERSONIDENTNUMBER_DEFAULT
-import testhelper.UserConstants.VIRKSOMHETSNUMMER_DEFAULT
 import testhelper.generator.*
 import testhelper.mock.toHistoricalPersonIdentNumber
 import java.time.Duration
 import java.time.LocalDate
-import java.util.*
 
 class KafkaSyketilfelleBitConsumerSpek : Spek({
     val objectMapper: ObjectMapper = configuredJacksonMapper()
@@ -57,22 +52,6 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
             oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
         )
         val personIdentDefault = PERSONIDENTNUMBER_DEFAULT.toHistoricalPersonIdentNumber()
-
-        val oppfolgingstilfelleBit = OppfolgingstilfelleBit(
-            uuid = UUID.randomUUID(),
-            personIdentNumber = personIdentDefault,
-            virksomhetsnummer = VIRKSOMHETSNUMMER_DEFAULT.value,
-            createdAt = nowUTC(),
-            inntruffet = nowUTC().minusDays(1),
-            fom = LocalDate.now().minusDays(1),
-            tom = LocalDate.now().plusDays(1),
-            tagList = listOf(
-                Tag.SYKEPENGESOKNAD,
-                Tag.SENDT,
-            ),
-            ressursId = UUID.randomUUID().toString(),
-            korrigerer = null,
-        )
 
         val partition = 0
         val syketilfellebitTopicPartition = TopicPartition(
@@ -239,7 +218,7 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                             val oppfolgingstilfelleArbeidstakerDTO: OppfolgingstilfellePersonDTO =
                                 objectMapper.readValue(response.content!!)
 
-                            oppfolgingstilfelleArbeidstakerDTO.personIdent shouldBeEqualTo oppfolgingstilfelleBit.personIdentNumber.value
+                            oppfolgingstilfelleArbeidstakerDTO.personIdent shouldBeEqualTo personIdentDefault.value
                             oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList.size shouldBeEqualTo 1
                             val oppfolgingstilfelle = oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList[0]
                             oppfolgingstilfelle.arbeidstakerAtTilfelleEnd shouldBeEqualTo true
@@ -305,7 +284,7 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                             val oppfolgingstilfelleArbeidstakerDTO: OppfolgingstilfellePersonDTO =
                                 objectMapper.readValue(response.content!!)
 
-                            oppfolgingstilfelleArbeidstakerDTO.personIdent shouldBeEqualTo oppfolgingstilfelleBit.personIdentNumber.value
+                            oppfolgingstilfelleArbeidstakerDTO.personIdent shouldBeEqualTo personIdentDefault.value
                             oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList.size shouldBeEqualTo 1
                             val oppfolgingstilfelle = oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList[0]
                             // siden egenmeldingsbiten har blitt slettet vil fom for oppfolgingstilfellet fra
@@ -464,7 +443,7 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                             val oppfolgingstilfelleArbeidstakerDTO: OppfolgingstilfellePersonDTO =
                                 objectMapper.readValue(response.content!!)
 
-                            oppfolgingstilfelleArbeidstakerDTO.personIdent shouldBeEqualTo oppfolgingstilfelleBit.personIdentNumber.value
+                            oppfolgingstilfelleArbeidstakerDTO.personIdent shouldBeEqualTo personIdentDefault.value
                             oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList.size shouldBeEqualTo 0
                         }
                     }

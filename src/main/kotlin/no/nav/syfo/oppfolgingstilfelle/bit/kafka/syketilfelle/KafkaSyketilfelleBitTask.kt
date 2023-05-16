@@ -1,4 +1,4 @@
-package no.nav.syfo.oppfolgingstilfelle.bit.kafka
+package no.nav.syfo.oppfolgingstilfelle.bit.kafka.syketilfelle
 
 import no.nav.syfo.application.kafka.KafkaEnvironment
 import no.nav.syfo.application.ApplicationState

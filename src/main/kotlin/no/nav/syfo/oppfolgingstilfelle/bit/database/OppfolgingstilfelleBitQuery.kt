@@ -9,6 +9,7 @@ import no.nav.syfo.oppfolgingstilfelle.bit.domain.*
 import no.nav.syfo.util.toOffsetDateTimeUTC
 import java.sql.*
 import java.sql.Date
+import java.time.OffsetDateTime
 import java.util.*
 
 const val queryCreateOppfolgingstilfellebit =
@@ -51,6 +52,20 @@ const val queryCreateOppfolgingstilfellebitDeleted =
         RETURNING id
     """
 
+const val queryCreateOppfolgingstilfellebitAvbrutt =
+    """
+    INSERT INTO TILFELLE_BIT_AVBRUTT (
+        id,
+        uuid,
+        created_at,
+        updated_at,
+        tilfelle_bit_id,
+        inntruffet,
+        avbrutt
+        ) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?)
+        RETURNING id
+    """
+
 fun Connection.createOppfolgingstilfelleBit(
     commit: Boolean,
     oppfolgingstilfelleBit: OppfolgingstilfelleBit,
@@ -82,6 +97,32 @@ fun Connection.createOppfolgingstilfelleBit(
     }
 }
 
+fun Connection.createOppfolgingstilfelleBitAvbrutt(
+    commit: Boolean = false,
+    pOppfolgingstilfelleBit: POppfolgingstilfelleBit,
+    inntruffet: OffsetDateTime,
+    avbrutt: Boolean,
+) {
+    val now = OffsetDateTime.now()
+    val oppfolgingstilfelleBitIdList = this.prepareStatement(queryCreateOppfolgingstilfellebitAvbrutt).use {
+        it.setString(1, UUID.randomUUID().toString())
+        it.setObject(2, now)
+        it.setObject(3, now)
+        it.setInt(4, pOppfolgingstilfelleBit.id)
+        it.setObject(5, inntruffet)
+        it.setBoolean(6, avbrutt)
+        it.executeQuery().toList { getInt("id") }
+    }
+
+    if (oppfolgingstilfelleBitIdList.size != 1) {
+        throw NoElementInsertedException("Creating TILFELLE_BIT_AVBRUTT failed, no rows affected.")
+    }
+
+    if (commit) {
+        this.commit()
+    }
+}
+
 const val queryGetOppfolgingstilfelleBitForUUID =
     """
     SELECT *
@@ -97,6 +138,22 @@ fun Connection.getOppfolgingstilfelleBit(
         toPOppfolgingstilfelleBit()
     }
 }.firstOrNull()
+
+const val queryGetOppfolgingstilfelleBitForRessursId =
+    """
+    SELECT *
+    FROM TILFELLE_BIT
+    WHERE ressurs_id = ?;
+    """
+
+fun Connection.getOppfolgingstilfelleBitForRessursId(
+    ressursId: String,
+): List<POppfolgingstilfelleBit> = this.prepareStatement(queryGetOppfolgingstilfelleBitForRessursId).use {
+    it.setString(1, ressursId)
+    it.executeQuery().toList {
+        toPOppfolgingstilfelleBit()
+    }
+}
 
 const val queryDeleteOppfolgingstilfelleBitForUUID =
     """
