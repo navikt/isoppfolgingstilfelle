@@ -182,9 +182,11 @@ fun Connection.deleteOppfolgingstilfelleBit(
 
 const val queryGetProcessedOppfolgingstilfelleBitList =
     """
-    SELECT *
-    FROM TILFELLE_BIT
-    WHERE personident = ? AND processed
+    SELECT t.*
+    FROM TILFELLE_BIT t
+    WHERE personident = ? AND processed AND NOT EXISTS (
+        SELECT ID FROM TILFELLE_BIT_AVBRUTT WHERE tilfelle_bit_id = t.id AND avbrutt 
+    )
     ORDER BY inntruffet DESC, id DESC;
     """
 
@@ -306,6 +308,20 @@ fun DatabaseInterface.getOppfolgingstilfelleBitForIdent(personIdent: PersonIdent
                 toPOppfolgingstilfelleBit()
             }
         }
+    }
+
+const val queryIsOppfolgingstilfellebitAvbrutt =
+    """
+    SELECT avbrutt 
+    FROM TILFELLE_BIT_AVBRUTT a INNER JOIN TILFELLE_BIT t ON (t.id = a.tilfelle_bit_id) 
+    WHERE t.uuid=?
+    """
+
+fun Connection.isTilfelleBitAvbrutt(tilfelleBitId: UUID): Boolean =
+    this.prepareStatement(queryIsOppfolgingstilfellebitAvbrutt).use {
+        it.setString(1, tilfelleBitId.toString())
+        val rs = it.executeQuery()
+        if (rs.next()) rs.getBoolean(1) else false
     }
 
 fun ResultSet.toPOppfolgingstilfelleBit(): POppfolgingstilfelleBit =

@@ -1,12 +1,10 @@
 package no.nav.syfo.oppfolgingstilfelle.bit.kafka.statusendring
 
 import no.nav.syfo.application.database.DatabaseInterface
-import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
 import no.nav.syfo.oppfolgingstilfelle.bit.database.*
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.Tag
 import no.nav.syfo.util.and
 import org.apache.kafka.clients.consumer.*
-import org.slf4j.LoggerFactory
 import java.sql.Connection
 import java.time.*
 
@@ -18,7 +16,6 @@ val STATUS_ENDRING_CUTOFF = OffsetDateTime.of(
 
 class KafkaStatusendringService(
     val database: DatabaseInterface,
-    val oppfolgingstilfelleBitService: OppfolgingstilfelleBitService,
 ) {
     fun pollAndProcessRecords(
         kafkaConsumerStatusendring: KafkaConsumer<String, SykmeldingStatusKafkaMessageDTO>,
@@ -70,20 +67,24 @@ class KafkaStatusendringService(
                 val oppfolgingstilfelleBitList = connection.getOppfolgingstilfelleBitForRessursId(
                     ressursId = kafkaSykmeldingStatus.event.sykmeldingId,
                 )
-                oppfolgingstilfelleBitList.forEach { pOppfolgingstilfelleBit ->
-                    if (pOppfolgingstilfelleBit.tagList in (Tag.SYKMELDING and Tag.NY)) {
-                        connection.createOppfolgingstilfelleBitAvbrutt(
-                            pOppfolgingstilfelleBit = pOppfolgingstilfelleBit,
-                            inntruffet = inntruffet,
-                            avbrutt = true,
-                        )
-                    }
+                oppfolgingstilfelleBitList.filter {
+                    it.tagList in (Tag.SYKMELDING and Tag.NY)
+                }.forEach { pOppfolgingstilfelleBit ->
+                    connection.createOppfolgingstilfelleBitAvbrutt(
+                        pOppfolgingstilfelleBit = pOppfolgingstilfelleBit,
+                        inntruffet = inntruffet,
+                        avbrutt = true,
+                    )
+                    val latestProcessedTilfelleBit =
+                        connection.getProcessedOppfolgingstilfelleBitList(pOppfolgingstilfelleBit.personIdentNumber)
+                            .firstOrNull()
+                    // Set the newest tilfelleBit to unprocessed so that oppfolgingstilfelle is updated by cronjob
+                    connection.setProcessedOppfolgingstilfelleBit(
+                        uuid = latestProcessedTilfelleBit?.uuid ?: pOppfolgingstilfelleBit.uuid,
+                        processed = false,
+                    )
                 }
             }
         }
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(KafkaStatusendringService::class.java)
     }
 }

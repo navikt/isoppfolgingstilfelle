@@ -110,18 +110,14 @@ fun main() {
             kafkaSyketilfellebitService = kafkaSyketilfellebitService,
         )
 
-        if (environment.sykmeldingStatusConsumerEnabled) {
-            val kafkaStatusendringService = KafkaStatusendringService(
-                database = applicationDatabase,
-                oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(),
-            )
-
-            launchKafkaTaskStatusendring(
-                applicationState = applicationState,
-                kafkaEnvironment = environment.kafka,
-                kafkaStatusendringService = kafkaStatusendringService,
-            )
-        }
+        val kafkaStatusendringService = KafkaStatusendringService(
+            database = applicationDatabase,
+        )
+        launchKafkaTaskStatusendring(
+            applicationState = applicationState,
+            kafkaEnvironment = environment.kafka,
+            kafkaStatusendringService = kafkaStatusendringService,
+        )
 
         val identhendelseService = IdenthendelseService(
             database = applicationDatabase,

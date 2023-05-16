@@ -83,8 +83,6 @@ spec:
   env:
     - name: KTOR_ENV
       value: "production"
-    - name: TOOGLE_SYKMELDING_STATUS_CONSUMER_ENABLED
-      value: "false"
     - name: PDL_CLIENT_ID
       value: "prod-fss.pdl.pdl-api"
     - name: PDL_URL
