@@ -76,8 +76,10 @@ class KafkaSykmeldingstatusService(
                         avbrutt = true,
                     )
                     val latestProcessedTilfelleBit =
-                        connection.getProcessedOppfolgingstilfelleBitList(pOppfolgingstilfelleBit.personIdentNumber)
-                            .firstOrNull()
+                        connection.getProcessedOppfolgingstilfelleBitList(
+                            personIdentNumber = pOppfolgingstilfelleBit.personIdentNumber,
+                            includeAvbrutt = true,
+                        ).firstOrNull()
                     // Set the newest tilfelleBit to unprocessed so that oppfolgingstilfelle is updated by cronjob
                     connection.setProcessedOppfolgingstilfelleBit(
                         uuid = latestProcessedTilfelleBit?.uuid ?: pOppfolgingstilfelleBit.uuid,

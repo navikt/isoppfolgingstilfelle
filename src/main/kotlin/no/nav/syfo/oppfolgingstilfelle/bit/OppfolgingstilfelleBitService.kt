@@ -54,7 +54,10 @@ class OppfolgingstilfelleBitService() {
             val existing = connection.getOppfolgingstilfelleBit(uuid)
             if (existing != null) {
                 connection.deleteOppfolgingstilfelleBit(existing.toOppfolgingstilfelleBit())
-                connection.getProcessedOppfolgingstilfelleBitList(existing.personIdentNumber).firstOrNull()?.let {
+                connection.getProcessedOppfolgingstilfelleBitList(
+                    personIdentNumber = existing.personIdentNumber,
+                    includeAvbrutt = true,
+                ).firstOrNull()?.let {
                     // Set the newest tilfelleBit to unprocessed so that oppfolgingstilfelle is updated by cronjob
                     connection.setProcessedOppfolgingstilfelleBit(it.uuid, false)
                 }

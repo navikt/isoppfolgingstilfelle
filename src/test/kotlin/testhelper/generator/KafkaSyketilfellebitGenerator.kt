@@ -72,7 +72,7 @@ fun generateKafkaSyketilfellebitSykmeldingNy(
 ).copy(
     id = UUID.randomUUID().toString(),
     orgnummer = null,
-    fom = LocalDate.now().minusDays(28),
+    fom = LocalDate.now().minusDays(12),
     tom = LocalDate.now(),
     tags = listOf(
         Tag.SYKMELDING,

@@ -59,12 +59,6 @@ const val queryGetOppfolgingstilfellePerson =
         ORDER BY referanse_tilfelle_bit_inntruffet DESC, id DESC;
     """
 
-fun DatabaseInterface.getOppfolgingstilfellePerson(
-    personIdent: PersonIdentNumber,
-) = this.connection.use {
-    it.getOppfolgingstilfellePerson(personIdent)
-}
-
 fun Connection.getOppfolgingstilfellePerson(
     personIdent: PersonIdentNumber,
 ) = this.prepareStatement(queryGetOppfolgingstilfellePerson).use {

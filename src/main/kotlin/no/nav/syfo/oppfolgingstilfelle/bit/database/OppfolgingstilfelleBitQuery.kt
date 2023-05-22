@@ -190,10 +190,24 @@ const val queryGetProcessedOppfolgingstilfelleBitList =
     ORDER BY inntruffet DESC, id DESC;
     """
 
+const val queryGetAllProcessedOppfolgingstilfelleBitList =
+    """
+    SELECT t.*
+    FROM TILFELLE_BIT t
+    WHERE personident = ? AND processed
+    ORDER BY inntruffet DESC, id DESC;
+    """
+
 fun Connection.getProcessedOppfolgingstilfelleBitList(
     personIdentNumber: PersonIdentNumber,
+    includeAvbrutt: Boolean = false,
 ): List<POppfolgingstilfelleBit> =
-    this.prepareStatement(queryGetProcessedOppfolgingstilfelleBitList).use {
+    this.prepareStatement(
+        if (includeAvbrutt)
+            queryGetAllProcessedOppfolgingstilfelleBitList
+        else
+            queryGetProcessedOppfolgingstilfelleBitList
+    ).use {
         it.setString(1, personIdentNumber.value)
         it.executeQuery().toList {
             toPOppfolgingstilfelleBit()

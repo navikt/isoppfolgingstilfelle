@@ -244,6 +244,7 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                         )
                         runBlocking {
                             sykmeldingNyCronJob.runJob()
+                            oppfolgingstilfelleCronjob.runJob()
                         }
                         val pTilfellebit = database.getOppfolgingstilfelleBitForIdent(personIdentDefault).filter {
                             it.tagList in (Tag.SYKMELDING and Tag.NY)
@@ -255,8 +256,12 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                                 inntruffet = OffsetDateTime.now(),
                                 avbrutt = true,
                             )
+                            val latestTilfelle= it.getProcessedOppfolgingstilfelleBitList(
+                                personIdentNumber = personIdentDefault,
+                                includeAvbrutt = true,
+                            ).first()
                             it.setProcessedOppfolgingstilfelleBit(
-                                uuid = pTilfellebit.uuid,
+                                uuid = latestTilfelle.uuid,
                                 processed = false,
                             )
                             it.commit()
