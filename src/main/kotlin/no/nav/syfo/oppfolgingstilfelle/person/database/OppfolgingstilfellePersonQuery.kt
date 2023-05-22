@@ -1,7 +1,6 @@
 package no.nav.syfo.oppfolgingstilfelle.person.database
 
 import com.fasterxml.jackson.core.type.TypeReference
-import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.database.toList
 import no.nav.syfo.database.NoElementInsertedException
 import no.nav.syfo.domain.PersonIdentNumber
