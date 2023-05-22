@@ -1,4 +1,4 @@
-package no.nav.syfo.oppfolgingstilfelle.bit.kafka.statusendring
+package no.nav.syfo.oppfolgingstilfelle.bit.kafka.sykmeldingstatus
 
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.oppfolgingstilfelle.bit.database.*
@@ -14,7 +14,7 @@ val STATUS_ENDRING_CUTOFF = OffsetDateTime.of(
     ZoneOffset.UTC,
 )
 
-class KafkaStatusendringService(
+class KafkaSykmeldingstatusService(
     val database: DatabaseInterface,
 ) {
     fun pollAndProcessRecords(
@@ -33,7 +33,7 @@ class KafkaStatusendringService(
         consumerRecords: ConsumerRecords<String, SykmeldingStatusKafkaMessageDTO>,
     ) {
         database.connection.use { connection ->
-            COUNT_KAFKA_CONSUMER_STATUSENDRING_READ.increment(consumerRecords.count().toDouble())
+            COUNT_KAFKA_CONSUMER_SYKMELDINGSTATUS_READ.increment(consumerRecords.count().toDouble())
 
             val (tombstoneRecords, relevantRecords) = consumerRecords.partition {
                 it.value() == null
@@ -53,7 +53,7 @@ class KafkaStatusendringService(
     private fun processTombstoneRecords(
         tombstoneRecordList: List<ConsumerRecord<String, SykmeldingStatusKafkaMessageDTO>>,
     ) {
-        COUNT_KAFKA_CONSUMER_STATUSENDRING_TOMBSTONE.increment(tombstoneRecordList.size.toDouble())
+        COUNT_KAFKA_CONSUMER_SYKMELDINGSTATUS_TOMBSTONE.increment(tombstoneRecordList.size.toDouble())
     }
 
     private fun processRelevantRecords(

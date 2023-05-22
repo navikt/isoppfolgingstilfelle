@@ -1,4 +1,4 @@
-package no.nav.syfo.oppfolgingstilfelle.bit.kafka.statusendring
+package no.nav.syfo.oppfolgingstilfelle.bit.kafka.sykmeldingstatus
 
 import java.time.OffsetDateTime
 

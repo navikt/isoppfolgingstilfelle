@@ -1,4 +1,4 @@
-package no.nav.syfo.oppfolgingstilfelle.bit.kafka.statusendring
+package no.nav.syfo.oppfolgingstilfelle.bit.kafka.sykmeldingstatus
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -29,7 +29,7 @@ import java.time.Duration
 import java.time.LocalDate
 import java.util.*
 
-class KafkaStatusendringConsumerSpek : Spek({
+class KafkaSykmeldingstatusConsumerSpek : Spek({
     val objectMapper: ObjectMapper = configuredJacksonMapper()
 
     with(TestApplicationEngine()) {
@@ -43,7 +43,7 @@ class KafkaStatusendringConsumerSpek : Spek({
             externalMockEnvironment = externalMockEnvironment,
         )
 
-        val kafkaStatusendringService = KafkaStatusendringService(
+        val kafkaSykmeldingstatusService = KafkaSykmeldingstatusService(
             database = database,
         )
         val personIdentDefault = PERSONIDENTNUMBER_DEFAULT.toHistoricalPersonIdentNumber()
@@ -128,7 +128,7 @@ class KafkaStatusendringConsumerSpek : Spek({
             justRun { oppfolgingstilfellePersonProducer.sendOppfolgingstilfellePerson(any()) }
         }
 
-        describe(KafkaStatusendringConsumerSpek::class.java.simpleName) {
+        describe(KafkaSykmeldingstatusConsumerSpek::class.java.simpleName) {
             describe("Consume statusendring from Kafka topic") {
                 val url = "$oppfolgingstilfelleApiV1Path$oppfolgingstilfelleApiPersonIdentPath"
                 val validToken = generateJWT(
@@ -156,7 +156,7 @@ class KafkaStatusendringConsumerSpek : Spek({
                             )
                         )
 
-                        kafkaStatusendringService.pollAndProcessRecords(
+                        kafkaSykmeldingstatusService.pollAndProcessRecords(
                             kafkaConsumerStatusendring = mockKafkaConsumerStatusendring,
                         )
 
@@ -199,7 +199,7 @@ class KafkaStatusendringConsumerSpek : Spek({
                             )
                         )
 
-                        kafkaStatusendringService.pollAndProcessRecords(
+                        kafkaSykmeldingstatusService.pollAndProcessRecords(
                             kafkaConsumerStatusendring = mockKafkaConsumerStatusendring,
                         )
                         runBlocking {
@@ -232,7 +232,7 @@ class KafkaStatusendringConsumerSpek : Spek({
                             )
                         )
 
-                        kafkaStatusendringService.pollAndProcessRecords(
+                        kafkaSykmeldingstatusService.pollAndProcessRecords(
                             kafkaConsumerStatusendring = mockKafkaConsumerStatusendring,
                         )
 

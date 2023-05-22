@@ -22,8 +22,8 @@ import no.nav.syfo.client.pdl.PdlClient
 import no.nav.syfo.identhendelse.IdenthendelseService
 import no.nav.syfo.identhendelse.kafka.IdenthendelseConsumerService
 import no.nav.syfo.identhendelse.kafka.launchKafkaTaskIdenthendelse
-import no.nav.syfo.oppfolgingstilfelle.bit.kafka.statusendring.KafkaStatusendringService
-import no.nav.syfo.oppfolgingstilfelle.bit.kafka.statusendring.launchKafkaTaskStatusendring
+import no.nav.syfo.oppfolgingstilfelle.bit.kafka.sykmeldingstatus.KafkaSykmeldingstatusService
+import no.nav.syfo.oppfolgingstilfelle.bit.kafka.sykmeldingstatus.launchKafkaTaskStatusendring
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.OppfolgingstilfellePersonProducer
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.kafkaOppfolgingstilfelleProducerConfig
 import no.nav.syfo.personhendelse.kafka.launchKafkaTaskPersonhendelse
@@ -110,13 +110,13 @@ fun main() {
             kafkaSyketilfellebitService = kafkaSyketilfellebitService,
         )
 
-        val kafkaStatusendringService = KafkaStatusendringService(
+        val kafkaSykmeldingstatusService = KafkaSykmeldingstatusService(
             database = applicationDatabase,
         )
         launchKafkaTaskStatusendring(
             applicationState = applicationState,
             kafkaEnvironment = environment.kafka,
-            kafkaStatusendringService = kafkaStatusendringService,
+            kafkaSykmeldingstatusService = kafkaSykmeldingstatusService,
         )
 
         val identhendelseService = IdenthendelseService(

@@ -1,4 +1,4 @@
-package no.nav.syfo.oppfolgingstilfelle.bit.kafka.statusendring
+package no.nav.syfo.oppfolgingstilfelle.bit.kafka.sykmeldingstatus
 
 import no.nav.syfo.application.kafka.KafkaEnvironment
 import no.nav.syfo.application.kafka.commonKafkaAivenConfig
@@ -15,7 +15,7 @@ fun kafkaStatusendringConsumerConfig(
         this[ConsumerConfig.GROUP_ID_CONFIG] = "isoppfolgingstilfelle-v1"
         this[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java.canonicalName
         this[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] =
-            KafkaStatusendringDeserializer::class.java.canonicalName
+            KafkaSykmeldingstatusDeserializer::class.java.canonicalName
         this[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
         this[ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG] = "false"
         this[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] = "1000"

@@ -283,7 +283,7 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                             oppfolgingstilfelle.end shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.tom
                         }
                     }
-                    it("oppfolgingstilfellelist should be empty if only bit is avbrutt sykmelding-ny") {
+                    it("oppfolgingstilfellelist should be empty if the only bit is avbrutt sykmelding-ny") {
                         every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
                             mapOf(
                                 syketilfellebitTopicPartition to listOf(
