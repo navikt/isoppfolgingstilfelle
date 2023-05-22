@@ -256,7 +256,7 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                                 inntruffet = OffsetDateTime.now(),
                                 avbrutt = true,
                             )
-                            val latestTilfelle= it.getProcessedOppfolgingstilfelleBitList(
+                            val latestTilfelle = it.getProcessedOppfolgingstilfelleBitList(
                                 personIdentNumber = personIdentDefault,
                                 includeAvbrutt = true,
                             ).first()
