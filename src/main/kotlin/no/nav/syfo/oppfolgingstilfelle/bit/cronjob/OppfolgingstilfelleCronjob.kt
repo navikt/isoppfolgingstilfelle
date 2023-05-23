@@ -34,7 +34,12 @@ class OppfolgingstilfelleCronjob(
                         personIdentNumber = oppfolgingstilfelleBit.personIdentNumber,
                     ).toOppfolgingstilfelleBitList().toMutableList()
 
-                    oppfolgingstilfelleBitForPersonList.add(0, oppfolgingstilfelleBit)
+                    if (!connection.isTilfelleBitAvbrutt(oppfolgingstilfelleBit.uuid)) {
+                        oppfolgingstilfelleBitForPersonList.add(
+                            index = 0,
+                            element = oppfolgingstilfelleBit,
+                        )
+                    }
 
                     oppfolgingstilfellePersonService.createOppfolgingstilfellePerson(
                         connection = connection,

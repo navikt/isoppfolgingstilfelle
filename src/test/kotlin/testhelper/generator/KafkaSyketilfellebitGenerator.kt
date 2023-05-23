@@ -3,7 +3,7 @@ package testhelper.generator
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.domain.Virksomhetsnummer
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.Tag
-import no.nav.syfo.oppfolgingstilfelle.bit.kafka.statusendring.*
+import no.nav.syfo.oppfolgingstilfelle.bit.kafka.sykmeldingstatus.*
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.syketilfelle.KafkaSyketilfellebit
 import no.nav.syfo.util.nowUTC
 import testhelper.UserConstants
@@ -72,7 +72,7 @@ fun generateKafkaSyketilfellebitSykmeldingNy(
 ).copy(
     id = UUID.randomUUID().toString(),
     orgnummer = null,
-    fom = LocalDate.now().minusDays(28),
+    fom = LocalDate.now().minusDays(12),
     tom = LocalDate.now(),
     tags = listOf(
         Tag.SYKMELDING,

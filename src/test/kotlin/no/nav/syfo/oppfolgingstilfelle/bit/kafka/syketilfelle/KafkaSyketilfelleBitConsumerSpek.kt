@@ -12,6 +12,8 @@ import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
 import no.nav.syfo.oppfolgingstilfelle.bit.cronjob.OppfolgingstilfelleCronjob
 import no.nav.syfo.oppfolgingstilfelle.bit.cronjob.SykmeldingNyCronjob
+import no.nav.syfo.oppfolgingstilfelle.bit.database.*
+import no.nav.syfo.oppfolgingstilfelle.bit.domain.Tag
 import no.nav.syfo.oppfolgingstilfelle.person.OppfolgingstilfellePersonService
 import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfellePersonDTO
 import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleApiPersonIdentPath
@@ -28,8 +30,7 @@ import testhelper.UserConstants.ARBEIDSTAKER_VIRKSOMHET_NO_NARMESTELEDER
 import testhelper.UserConstants.PERSONIDENTNUMBER_DEFAULT
 import testhelper.generator.*
 import testhelper.mock.toHistoricalPersonIdentNumber
-import java.time.Duration
-import java.time.LocalDate
+import java.time.*
 
 class KafkaSyketilfelleBitConsumerSpek : Spek({
     val objectMapper: ObjectMapper = configuredJacksonMapper()
@@ -226,6 +227,115 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                             oppfolgingstilfelle.virksomhetsnummerList[0] shouldBeEqualTo UserConstants.VIRKSOMHETSNUMMER_HAS_NARMESTELEDER.value
                             oppfolgingstilfelle.start shouldBeEqualTo kafkaSyketilfellebitSykmeldingNy.fom
                             oppfolgingstilfelle.end shouldBeEqualTo kafkaSyketilfellebitSykmeldingNy.tom
+                        }
+                    }
+                    it("tilfelleBit should be ignored if avbrutt") {
+                        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+                            mapOf(
+                                syketilfellebitTopicPartition to listOf(
+                                    kafkaSyketilfellebitRecordRelevantVirksomhet,
+                                    kafkaSyketilfellebitRecordSykmeldingNy,
+                                )
+                            )
+                        )
+
+                        kafkaSyketilfellebitService.pollAndProcessRecords(
+                            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                        )
+                        runBlocking {
+                            sykmeldingNyCronJob.runJob()
+                            oppfolgingstilfelleCronjob.runJob()
+                        }
+                        val pTilfellebit = database.getOppfolgingstilfelleBitForIdent(personIdentDefault).filter {
+                            it.tagList in (Tag.SYKMELDING and Tag.NY)
+                        }.first()
+                        database.connection.use {
+                            it.createOppfolgingstilfelleBitAvbrutt(
+                                commit = true,
+                                pOppfolgingstilfelleBit = pTilfellebit,
+                                inntruffet = OffsetDateTime.now(),
+                                avbrutt = true,
+                            )
+                            val latestTilfelle = it.getProcessedOppfolgingstilfelleBitList(
+                                personIdentNumber = personIdentDefault,
+                                includeAvbrutt = true,
+                            ).first()
+                            it.setProcessedOppfolgingstilfelleBit(
+                                uuid = latestTilfelle.uuid,
+                                processed = false,
+                            )
+                            it.commit()
+                        }
+                        runBlocking {
+                            oppfolgingstilfelleCronjob.runJob()
+                        }
+
+                        with(
+                            handleRequest(HttpMethod.Get, url) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                            val oppfolgingstilfelleArbeidstakerDTO: OppfolgingstilfellePersonDTO =
+                                objectMapper.readValue(response.content!!)
+
+                            oppfolgingstilfelleArbeidstakerDTO.personIdent shouldBeEqualTo personIdentDefault.value
+                            oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList.size shouldBeEqualTo 1
+                            val oppfolgingstilfelle = oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList[0]
+                            oppfolgingstilfelle.start shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.fom
+                            oppfolgingstilfelle.end shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.tom
+                        }
+                    }
+                    it("oppfolgingstilfellelist should be empty if the only bit is avbrutt sykmelding-ny") {
+                        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+                            mapOf(
+                                syketilfellebitTopicPartition to listOf(
+                                    kafkaSyketilfellebitRecordSykmeldingNy,
+                                )
+                            )
+                        )
+
+                        kafkaSyketilfellebitService.pollAndProcessRecords(
+                            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                        )
+                        runBlocking {
+                            sykmeldingNyCronJob.runJob()
+                            oppfolgingstilfelleCronjob.runJob()
+                        }
+                        val pTilfellebit = database.getOppfolgingstilfelleBitForIdent(personIdentDefault).filter {
+                            it.tagList in (Tag.SYKMELDING and Tag.NY)
+                        }.first()
+                        database.connection.use {
+                            it.createOppfolgingstilfelleBitAvbrutt(
+                                pOppfolgingstilfelleBit = pTilfellebit,
+                                inntruffet = OffsetDateTime.now(),
+                                avbrutt = true,
+                            )
+                            it.setProcessedOppfolgingstilfelleBit(
+                                uuid = pTilfellebit.uuid,
+                                processed = false,
+                            )
+                            it.commit()
+                        }
+                        runBlocking {
+                            oppfolgingstilfelleCronjob.runJob()
+                        }
+
+                        with(
+                            handleRequest(HttpMethod.Get, url) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                            val oppfolgingstilfelleArbeidstakerDTO: OppfolgingstilfellePersonDTO =
+                                objectMapper.readValue(response.content!!)
+
+                            oppfolgingstilfelleArbeidstakerDTO.personIdent shouldBeEqualTo personIdentDefault.value
+                            oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList.size shouldBeEqualTo 0
                         }
                     }
 

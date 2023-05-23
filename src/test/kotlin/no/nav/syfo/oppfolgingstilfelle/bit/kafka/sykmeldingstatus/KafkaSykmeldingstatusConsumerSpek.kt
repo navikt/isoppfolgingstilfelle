@@ -1,11 +1,20 @@
-package no.nav.syfo.oppfolgingstilfelle.bit.kafka.statusendring
+package no.nav.syfo.oppfolgingstilfelle.bit.kafka.sykmeldingstatus
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
+import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.mockk.*
-import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
+import kotlinx.coroutines.runBlocking
+import no.nav.syfo.oppfolgingstilfelle.bit.cronjob.OppfolgingstilfelleCronjob
 import no.nav.syfo.oppfolgingstilfelle.bit.database.createOppfolgingstilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.OppfolgingstilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.Tag
+import no.nav.syfo.oppfolgingstilfelle.person.OppfolgingstilfellePersonService
+import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfellePersonDTO
+import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleApiPersonIdentPath
+import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleApiV1Path
+import no.nav.syfo.oppfolgingstilfelle.person.kafka.OppfolgingstilfellePersonProducer
 import no.nav.syfo.util.*
 import org.amshove.kluent.shouldBeEqualTo
 import org.apache.kafka.clients.consumer.*
@@ -20,23 +29,22 @@ import java.time.Duration
 import java.time.LocalDate
 import java.util.*
 
-class KafkaStatusendringConsumerSpek : Spek({
+class KafkaSykmeldingstatusConsumerSpek : Spek({
+    val objectMapper: ObjectMapper = configuredJacksonMapper()
 
     with(TestApplicationEngine()) {
         start()
 
         val externalMockEnvironment = ExternalMockEnvironment.instance
         val database = externalMockEnvironment.database
-
-        val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService()
+        val oppfolgingstilfellePersonProducer = mockk<OppfolgingstilfellePersonProducer>()
 
         application.testApiModule(
             externalMockEnvironment = externalMockEnvironment,
         )
 
-        val kafkaStatusendringService = KafkaStatusendringService(
+        val kafkaSykmeldingstatusService = KafkaSykmeldingstatusService(
             database = database,
-            oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
         )
         val personIdentDefault = PERSONIDENTNUMBER_DEFAULT.toHistoricalPersonIdentNumber()
         val sykmeldingId = UUID.randomUUID()
@@ -58,6 +66,7 @@ class KafkaStatusendringConsumerSpek : Spek({
             ),
             ressursId = sykmeldingId.toString(),
             korrigerer = null,
+            processed = false,
         )
         val tilfelleBitSykmeldingSendtUuid = UUID.randomUUID()
 
@@ -101,15 +110,32 @@ class KafkaStatusendringConsumerSpek : Spek({
         )
         val mockKafkaConsumerStatusendring = mockk<KafkaConsumer<String, SykmeldingStatusKafkaMessageDTO>>()
 
+        val oppfolgingstilfelleCronjob = OppfolgingstilfelleCronjob(
+            database = database,
+            oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
+                database = database,
+                oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
+            )
+        )
+
         beforeEachTest {
             database.dropData()
 
             clearMocks(mockKafkaConsumerStatusendring)
             every { mockKafkaConsumerStatusendring.commitSync() } returns Unit
+
+            clearMocks(oppfolgingstilfellePersonProducer)
+            justRun { oppfolgingstilfellePersonProducer.sendOppfolgingstilfellePerson(any()) }
         }
 
-        describe(KafkaStatusendringConsumerSpek::class.java.simpleName) {
+        describe(KafkaSykmeldingstatusConsumerSpek::class.java.simpleName) {
             describe("Consume statusendring from Kafka topic") {
+                val url = "$oppfolgingstilfelleApiV1Path$oppfolgingstilfelleApiPersonIdentPath"
+                val validToken = generateJWT(
+                    audience = externalMockEnvironment.environment.azure.appClientId,
+                    azp = testIsdialogmoteClientId,
+                    issuer = externalMockEnvironment.wellKnownInternalAzureAD.issuer,
+                )
                 describe("Happy path") {
                     it("should store statusendring when known sykmeldingId") {
                         database.connection.use {
@@ -118,6 +144,10 @@ class KafkaStatusendringConsumerSpek : Spek({
                                 oppfolgingstilfelleBit = oppfolgingstilfelleBitSykmeldingNy,
                             )
                         }
+                        runBlocking {
+                            oppfolgingstilfelleCronjob.runJob()
+                        }
+
                         every { mockKafkaConsumerStatusendring.poll(any<Duration>()) } returns ConsumerRecords(
                             mapOf(
                                 statusendringTopicPartition to listOf(
@@ -126,15 +156,30 @@ class KafkaStatusendringConsumerSpek : Spek({
                             )
                         )
 
-                        kafkaStatusendringService.pollAndProcessRecords(
+                        kafkaSykmeldingstatusService.pollAndProcessRecords(
                             kafkaConsumerStatusendring = mockKafkaConsumerStatusendring,
                         )
 
                         verify(exactly = 1) {
                             mockKafkaConsumerStatusendring.commitSync()
                         }
+                        runBlocking {
+                            oppfolgingstilfelleCronjob.runJob()
+                        }
 
                         database.isTilfelleBitAvbrutt(tilfelleBitUuid) shouldBeEqualTo true
+
+                        with(
+                            handleRequest(HttpMethod.Get, url) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+                            val oppfolgingstilfelleArbeidstakerDTO: OppfolgingstilfellePersonDTO =
+                                objectMapper.readValue(response.content!!)
+                            oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList.size shouldBeEqualTo 0
+                        }
                     }
                     it("should not store statusendring when known sykmeldingId and sendt") {
                         database.connection.use {
@@ -143,6 +188,9 @@ class KafkaStatusendringConsumerSpek : Spek({
                                 oppfolgingstilfelleBit = oppfolgingstilfelleBitSykmeldingSendt,
                             )
                         }
+                        runBlocking {
+                            oppfolgingstilfelleCronjob.runJob()
+                        }
                         every { mockKafkaConsumerStatusendring.poll(any<Duration>()) } returns ConsumerRecords(
                             mapOf(
                                 statusendringTopicPartition to listOf(
@@ -151,15 +199,29 @@ class KafkaStatusendringConsumerSpek : Spek({
                             )
                         )
 
-                        kafkaStatusendringService.pollAndProcessRecords(
+                        kafkaSykmeldingstatusService.pollAndProcessRecords(
                             kafkaConsumerStatusendring = mockKafkaConsumerStatusendring,
                         )
+                        runBlocking {
+                            oppfolgingstilfelleCronjob.runJob()
+                        }
 
                         verify(exactly = 1) {
                             mockKafkaConsumerStatusendring.commitSync()
                         }
 
                         database.isTilfelleBitAvbrutt(tilfelleBitSykmeldingSendtUuid) shouldBeEqualTo false
+                        with(
+                            handleRequest(HttpMethod.Get, url) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+                            val oppfolgingstilfelleArbeidstakerDTO: OppfolgingstilfellePersonDTO =
+                                objectMapper.readValue(response.content!!)
+                            oppfolgingstilfelleArbeidstakerDTO.oppfolgingstilfelleList.size shouldBeEqualTo 1
+                        }
                     }
                     it("should consume statusendring with unknown sykmeldingId") {
                         every { mockKafkaConsumerStatusendring.poll(any<Duration>()) } returns ConsumerRecords(
@@ -170,7 +232,7 @@ class KafkaStatusendringConsumerSpek : Spek({
                             )
                         )
 
-                        kafkaStatusendringService.pollAndProcessRecords(
+                        kafkaSykmeldingstatusService.pollAndProcessRecords(
                             kafkaConsumerStatusendring = mockKafkaConsumerStatusendring,
                         )
 

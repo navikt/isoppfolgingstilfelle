@@ -1,7 +1,6 @@
 package no.nav.syfo.oppfolgingstilfelle.person.database
 
 import com.fasterxml.jackson.core.type.TypeReference
-import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.database.toList
 import no.nav.syfo.database.NoElementInsertedException
 import no.nav.syfo.domain.PersonIdentNumber
@@ -58,12 +57,6 @@ const val queryGetOppfolgingstilfellePerson =
         WHERE personident = ?
         ORDER BY referanse_tilfelle_bit_inntruffet DESC, id DESC;
     """
-
-fun DatabaseInterface.getOppfolgingstilfellePerson(
-    personIdent: PersonIdentNumber,
-) = this.connection.use {
-    it.getOppfolgingstilfellePerson(personIdent)
-}
 
 fun Connection.getOppfolgingstilfellePerson(
     personIdent: PersonIdentNumber,

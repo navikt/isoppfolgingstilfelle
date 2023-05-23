@@ -3,6 +3,7 @@ package testhelper
 import com.opentable.db.postgres.embedded.EmbeddedPostgres
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.domain.PersonIdentNumber
+import no.nav.syfo.oppfolgingstilfelle.bit.database.isTilfelleBitAvbrutt
 import no.nav.syfo.personhendelse.db.getDodsdato
 import org.flywaydb.core.Flyway
 import java.sql.Connection
@@ -79,18 +80,7 @@ fun DatabaseInterface.countDeletedTilfelleBit() =
         }
     }
 
-const val queryGetOppfolgingstilfellebitAvbruttForTilfellebit =
-    """
-    SELECT avbrutt 
-    FROM TILFELLE_BIT_AVBRUTT a INNER JOIN TILFELLE_BIT t ON (t.id = a.tilfelle_bit_id) 
-    WHERE t.uuid=?
-    """
-
-fun DatabaseInterface.isTilfelleBitAvbrutt(tilfelleBitId: UUID): Boolean =
+fun DatabaseInterface.isTilfelleBitAvbrutt(uuid: UUID) =
     this.connection.use { connection ->
-        connection.prepareStatement(queryGetOppfolgingstilfellebitAvbruttForTilfellebit).use {
-            it.setString(1, tilfelleBitId.toString())
-            val rs = it.executeQuery()
-            if (rs.next()) rs.getBoolean(1) else false
-        }
+        connection.isTilfelleBitAvbrutt(uuid)
     }
