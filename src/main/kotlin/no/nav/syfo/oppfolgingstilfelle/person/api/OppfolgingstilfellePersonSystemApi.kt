@@ -1,6 +1,7 @@
 package no.nav.syfo.oppfolgingstilfelle.person.api
 
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import no.nav.syfo.application.api.access.APIConsumerAccessService
@@ -11,6 +12,7 @@ import no.nav.syfo.util.*
 
 const val oppfolgingstilfelleSystemApiV1Path = "/api/system/v1/oppfolgingstilfelle"
 const val oppfolgingstilfelleSystemApiPersonIdentPath = "/personident"
+const val oppfolgingstilfelleSystemApiPersonsPath = "/persons"
 
 fun Route.registerOppfolgingstilfelleSystemApi(
     apiConsumerAccessService: APIConsumerAccessService,
@@ -27,7 +29,8 @@ fun Route.registerOppfolgingstilfelleSystemApi(
             )
             val personIdent = personIdentHeader()?.let { personIdent ->
                 PersonIdentNumber(personIdent)
-            } ?: throw IllegalArgumentException("Failed to retrieve OppfolgingstilfelleDTO: No $NAV_PERSONIDENT_HEADER supplied in request header")
+            }
+                ?: throw IllegalArgumentException("Failed to retrieve OppfolgingstilfelleDTO: No $NAV_PERSONIDENT_HEADER supplied in request header")
 
             val dodsdato = oppfolgingstilfelleService.getDodsdato(personIdent)
             val oppfolgingstilfellePersonDTO = oppfolgingstilfelleService.getOppfolgingstilfeller(
@@ -38,6 +41,28 @@ fun Route.registerOppfolgingstilfelleSystemApi(
                 dodsdato = dodsdato,
             )
             call.respond(oppfolgingstilfellePersonDTO)
+        }
+        get(oppfolgingstilfelleSystemApiPersonsPath) {
+            val token = this.getBearerHeader()
+                ?: throw IllegalArgumentException("Failed to retrieve oppfolgingstilfeller for persons: No token supplied in request header")
+            apiConsumerAccessService.validateConsumerApplicationAZP(
+                authorizedApplicationNames = authorizedApplicationNames,
+                token = token,
+            )
+
+            val personIdents = call.receive<List<String>>()
+            val oppfolgingstilfellerPersonsDTOs = personIdents.map {
+                val personIdent = PersonIdentNumber(it)
+                val dodsdato = oppfolgingstilfelleService.getDodsdato(personIdent)
+                oppfolgingstilfelleService.getOppfolgingstilfeller(
+                    callId = getCallId(),
+                    personIdent = personIdent,
+                ).toOppfolgingstilfellePersonDTO(
+                    personIdent = personIdent,
+                    dodsdato = dodsdato,
+                )
+            }
+            call.respond(oppfolgingstilfellerPersonsDTOs)
         }
     }
 }

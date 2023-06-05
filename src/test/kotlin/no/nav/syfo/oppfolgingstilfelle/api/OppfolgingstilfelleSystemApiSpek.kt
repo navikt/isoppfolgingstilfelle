@@ -11,11 +11,14 @@ import no.nav.syfo.oppfolgingstilfelle.bit.kafka.syketilfelle.*
 import no.nav.syfo.oppfolgingstilfelle.person.OppfolgingstilfellePersonService
 import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfellePersonDTO
 import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleSystemApiPersonIdentPath
+import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleSystemApiPersonsPath
 import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleSystemApiV1Path
+import no.nav.syfo.oppfolgingstilfelle.person.database.createOppfolgingstilfellePerson
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.OppfolgingstilfellePersonProducer
 import no.nav.syfo.util.*
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEqualTo
+import org.amshove.kluent.shouldNotBeEmpty
 import org.apache.kafka.clients.consumer.*
 import org.apache.kafka.common.TopicPartition
 import org.spekframework.spek2.Spek
@@ -227,6 +230,86 @@ class OppfolgingstilfelleSystemApiSpek : Spek({
                             }
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.BadRequest
+                        }
+                    }
+
+                    it("should return status Forbidden if wrong azp") {
+                        val invalidToken = generateJWT(
+                            audience = externalMockEnvironment.environment.azure.appClientId,
+                            azp = testIsnarmesteLederClientId,
+                            issuer = externalMockEnvironment.wellKnownInternalAzureAD.issuer,
+                        )
+                        with(
+                            handleRequest(HttpMethod.Get, url) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(invalidToken))
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.Forbidden
+                        }
+                    }
+                }
+            }
+
+            describe("Get list of OppfolgingstilfellePersonDTO for persons") {
+                val url = "$oppfolgingstilfelleSystemApiV1Path$oppfolgingstilfelleSystemApiPersonsPath"
+                val validToken = generateJWT(
+                    audience = externalMockEnvironment.environment.azure.appClientId,
+                    azp = testIsdialogmoteKandidatClientId,
+                    issuer = externalMockEnvironment.wellKnownInternalAzureAD.issuer,
+                )
+
+                describe("Happy path") {
+                    it("Returns oppfolgingstilfeller for persons") {
+                        val oppfolgingstilfellePerson1 = generateOppfolgingstilfellePerson(
+                            personIdent = UserConstants.ARBEIDSTAKER_FNR,
+                        )
+                        val oppfolgingstilfellePerson2 = generateOppfolgingstilfellePerson(
+                            personIdent = UserConstants.ARBEIDSTAKER_2_FNR,
+                        )
+
+                        database.connection.use { connection ->
+                            listOf(oppfolgingstilfellePerson1, oppfolgingstilfellePerson2).forEach {
+                                connection.createOppfolgingstilfellePerson(commit = false, it)
+                            }
+                            connection.commit()
+                        }
+
+                        with(
+                            handleRequest(HttpMethod.Get, url) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                setBody(
+                                    objectMapper.writeValueAsString(
+                                        listOf(
+                                            UserConstants.ARBEIDSTAKER_FNR.value,
+                                            UserConstants.ARBEIDSTAKER_2_FNR.value,
+                                        )
+                                    )
+                                )
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                            val oppfolgingstilfellePersonDTOs: List<OppfolgingstilfellePersonDTO> =
+                                objectMapper.readValue(response.content!!)
+
+                            oppfolgingstilfellePersonDTOs.size shouldBeEqualTo 2
+                            val first = oppfolgingstilfellePersonDTOs.first()
+                            val last = oppfolgingstilfellePersonDTOs.last()
+                            first.personIdent shouldBeEqualTo UserConstants.ARBEIDSTAKER_FNR.value
+                            first.oppfolgingstilfelleList.shouldNotBeEmpty()
+                            last.personIdent shouldBeEqualTo UserConstants.ARBEIDSTAKER_2_FNR.value
+                            last.oppfolgingstilfelleList.shouldNotBeEmpty()
+                        }
+                    }
+                }
+                describe("Unhappy paths") {
+                    it("should return status Unauthorized if no token is supplied") {
+                        with(
+                            handleRequest(HttpMethod.Get, url) {}
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.Unauthorized
                         }
                     }
 
