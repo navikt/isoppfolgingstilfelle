@@ -41,7 +41,7 @@ fun Route.registerOppfolgingstilfelleApi(
                 call.respond(oppfolgingstilfellePersonDTO)
             }
         }
-        get(oppfolgingstilfelleApiPersonsPath) {
+        post(oppfolgingstilfelleApiPersonsPath) {
             val token = getBearerHeader()!!
             val callId = getCallId()
             val personIdents = call.receive<List<String>>().map { PersonIdentNumber(it) }

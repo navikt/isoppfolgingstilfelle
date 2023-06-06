@@ -521,7 +521,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                         }
 
                         with(
-                            handleRequest(HttpMethod.Get, url) {
+                            handleRequest(HttpMethod.Post, url) {
                                 addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
                                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                                 setBody(
@@ -552,7 +552,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                 describe("Unhappy paths") {
                     it("should return status Unauthorized if no token is supplied") {
                         with(
-                            handleRequest(HttpMethod.Get, url) {}
+                            handleRequest(HttpMethod.Post, url) {}
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.Unauthorized
                         }
@@ -572,7 +572,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                         }
 
                         with(
-                            handleRequest(HttpMethod.Get, url) {
+                            handleRequest(HttpMethod.Post, url) {
                                 addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
                                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                                 setBody(
