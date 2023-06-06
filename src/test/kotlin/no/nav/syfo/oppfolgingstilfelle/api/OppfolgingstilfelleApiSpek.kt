@@ -12,7 +12,7 @@ import no.nav.syfo.oppfolgingstilfelle.bit.kafka.syketilfelle.*
 import no.nav.syfo.oppfolgingstilfelle.person.OppfolgingstilfellePersonService
 import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfellePersonDTO
 import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleApiPersonIdentPath
-import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleApiPersonerPath
+import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleApiPersonsPath
 import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleApiV1Path
 import no.nav.syfo.oppfolgingstilfelle.person.database.createOppfolgingstilfellePerson
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.OppfolgingstilfellePersonProducer
@@ -502,7 +502,7 @@ class OppfolgingstilfelleApiSpek : Spek({
             }
 
             describe("Get list of OppfolgingstilfellePersonDTO for persons") {
-                val url = "$oppfolgingstilfelleApiV1Path$oppfolgingstilfelleApiPersonerPath"
+                val url = "$oppfolgingstilfelleApiV1Path$oppfolgingstilfelleApiPersonsPath"
 
                 describe("Happy path") {
                     it("Returns oppfolgingstilfeller for persons") {

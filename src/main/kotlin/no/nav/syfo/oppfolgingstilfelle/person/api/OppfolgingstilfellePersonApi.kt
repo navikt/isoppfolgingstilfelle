@@ -12,7 +12,7 @@ import no.nav.syfo.util.*
 
 const val oppfolgingstilfelleApiV1Path = "/api/internad/v1/oppfolgingstilfelle"
 const val oppfolgingstilfelleApiPersonIdentPath = "/personident"
-const val oppfolgingstilfelleApiPersonerPath = "/personer"
+const val oppfolgingstilfelleApiPersonsPath = "/persons"
 
 fun Route.registerOppfolgingstilfelleApi(
     oppfolgingstilfelleService: OppfolgingstilfelleService,
@@ -41,12 +41,12 @@ fun Route.registerOppfolgingstilfelleApi(
                 call.respond(oppfolgingstilfellePersonDTO)
             }
         }
-        get(oppfolgingstilfelleApiPersonerPath) {
+        get(oppfolgingstilfelleApiPersonsPath) {
             val token = getBearerHeader()!!
             val callId = getCallId()
             val personIdents = call.receive<List<String>>().map { PersonIdentNumber(it) }
-            val personIdentsWithVeilederAccess = veilederTilgangskontrollClient.hasAccessToPersonList(
-                personIdentList = personIdents,
+            val personIdentsWithVeilederAccess = veilederTilgangskontrollClient.hasAccessToPersons(
+                personIdents = personIdents,
                 token = token,
                 callId = callId,
             )

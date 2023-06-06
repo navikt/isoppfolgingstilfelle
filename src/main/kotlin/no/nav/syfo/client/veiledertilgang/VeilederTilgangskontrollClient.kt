@@ -53,8 +53,8 @@ class VeilederTilgangskontrollClient(
         }
     }
 
-    suspend fun hasAccessToPersonList(
-        personIdentList: List<PersonIdentNumber>,
+    suspend fun hasAccessToPersons(
+        personIdents: List<PersonIdentNumber>,
         token: String,
         callId: String,
     ): List<PersonIdentNumber> {
@@ -69,7 +69,7 @@ class VeilederTilgangskontrollClient(
                 header(NAV_CALL_ID_HEADER, value = callId)
                 accept(ContentType.Application.Json)
                 contentType(ContentType.Application.Json)
-                setBody(personIdentList.map { it.value })
+                setBody(personIdents.map { it.value })
             }
             COUNT_CALL_TILGANGSKONTROLL_PERSONS_SUCCESS.increment()
             response.body<List<String>>().map { personIdent -> PersonIdentNumber(personIdent) }
