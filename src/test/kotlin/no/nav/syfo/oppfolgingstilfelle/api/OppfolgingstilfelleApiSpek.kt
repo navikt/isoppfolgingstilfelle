@@ -12,12 +12,16 @@ import no.nav.syfo.oppfolgingstilfelle.bit.kafka.syketilfelle.*
 import no.nav.syfo.oppfolgingstilfelle.person.OppfolgingstilfellePersonService
 import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfellePersonDTO
 import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleApiPersonIdentPath
+import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleApiPersonerPath
 import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleApiV1Path
+import no.nav.syfo.oppfolgingstilfelle.person.database.createOppfolgingstilfellePerson
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.OppfolgingstilfellePersonProducer
 import no.nav.syfo.personhendelse.db.createPerson
 import no.nav.syfo.util.*
 import org.amshove.kluent.shouldBe
+import org.amshove.kluent.shouldBeEmpty
 import org.amshove.kluent.shouldBeEqualTo
+import org.amshove.kluent.shouldNotBeEmpty
 import org.apache.kafka.clients.consumer.*
 import org.apache.kafka.common.TopicPartition
 import org.spekframework.spek2.Spek
@@ -104,13 +108,14 @@ class OppfolgingstilfelleApiSpek : Spek({
         }
 
         describe(OppfolgingstilfelleApiSpek::class.java.simpleName) {
+            val validToken = generateJWT(
+                audience = externalMockEnvironment.environment.azure.appClientId,
+                azp = testIsdialogmoteClientId,
+                issuer = externalMockEnvironment.wellKnownInternalAzureAD.issuer,
+            )
+
             describe("Get OppfolgingstilfellePersonDTO for PersonIdent") {
                 val url = "$oppfolgingstilfelleApiV1Path$oppfolgingstilfelleApiPersonIdentPath"
-                val validToken = generateJWT(
-                    audience = externalMockEnvironment.environment.azure.appClientId,
-                    azp = testIsdialogmoteClientId,
-                    issuer = externalMockEnvironment.wellKnownInternalAzureAD.issuer,
-                )
 
                 describe("Happy path") {
                     it("should create OppfolgingstilfellePerson and return OppfolgingstilfelleDTO for Person that is always Arbeidstaker in Oppfolgingstilfelle") {
@@ -491,6 +496,100 @@ class OppfolgingstilfelleApiSpek : Spek({
                             }
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.Forbidden
+                        }
+                    }
+                }
+            }
+
+            describe("Get list of OppfolgingstilfellePersonDTO for persons") {
+                val url = "$oppfolgingstilfelleApiV1Path$oppfolgingstilfelleApiPersonerPath"
+
+                describe("Happy path") {
+                    it("Returns oppfolgingstilfeller for persons") {
+                        val oppfolgingstilfellePerson1 = generateOppfolgingstilfellePerson(
+                            personIdent = UserConstants.ARBEIDSTAKER_FNR,
+                        )
+                        val oppfolgingstilfellePerson2 = generateOppfolgingstilfellePerson(
+                            personIdent = UserConstants.ARBEIDSTAKER_2_FNR,
+                        )
+
+                        database.connection.use { connection ->
+                            listOf(oppfolgingstilfellePerson1, oppfolgingstilfellePerson2).forEach {
+                                connection.createOppfolgingstilfellePerson(commit = false, it)
+                            }
+                            connection.commit()
+                        }
+
+                        with(
+                            handleRequest(HttpMethod.Get, url) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                setBody(
+                                    objectMapper.writeValueAsString(
+                                        listOf(
+                                            UserConstants.ARBEIDSTAKER_FNR.value,
+                                            UserConstants.ARBEIDSTAKER_2_FNR.value,
+                                        )
+                                    )
+                                )
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                            val oppfolgingstilfellePersonDTOs: List<OppfolgingstilfellePersonDTO> =
+                                objectMapper.readValue(response.content!!)
+
+                            oppfolgingstilfellePersonDTOs.size shouldBeEqualTo 2
+                            val first = oppfolgingstilfellePersonDTOs.first()
+                            val last = oppfolgingstilfellePersonDTOs.last()
+                            first.personIdent shouldBeEqualTo UserConstants.ARBEIDSTAKER_FNR.value
+                            first.oppfolgingstilfelleList.shouldNotBeEmpty()
+                            last.personIdent shouldBeEqualTo UserConstants.ARBEIDSTAKER_2_FNR.value
+                            last.oppfolgingstilfelleList.shouldNotBeEmpty()
+                        }
+                    }
+                }
+                describe("Unhappy paths") {
+                    it("should return status Unauthorized if no token is supplied") {
+                        with(
+                            handleRequest(HttpMethod.Get, url) {}
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.Unauthorized
+                        }
+                    }
+
+                    it("returns empty list if no access to persons") {
+                        val oppfolgingstilfellePerson1 = generateOppfolgingstilfellePerson(
+                            personIdent = PERSONIDENTNUMBER_VEILEDER_NO_ACCESS,
+                        )
+
+                        database.connection.use { connection ->
+                            connection.createOppfolgingstilfellePerson(
+                                commit = true,
+                                oppfolgingstilfellePerson = oppfolgingstilfellePerson1
+                            )
+                            connection.commit()
+                        }
+
+                        with(
+                            handleRequest(HttpMethod.Get, url) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                setBody(
+                                    objectMapper.writeValueAsString(
+                                        listOf(
+                                            PERSONIDENTNUMBER_VEILEDER_NO_ACCESS.value,
+                                        )
+                                    )
+                                )
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                            val oppfolgingstilfellePersonDTOs: List<OppfolgingstilfellePersonDTO> =
+                                objectMapper.readValue(response.content!!)
+
+                            oppfolgingstilfellePersonDTOs.shouldBeEmpty()
                         }
                     }
                 }

@@ -1,6 +1,7 @@
 package no.nav.syfo.oppfolgingstilfelle.person.api
 
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
@@ -11,6 +12,7 @@ import no.nav.syfo.util.*
 
 const val oppfolgingstilfelleApiV1Path = "/api/internad/v1/oppfolgingstilfelle"
 const val oppfolgingstilfelleApiPersonIdentPath = "/personident"
+const val oppfolgingstilfelleApiPersonerPath = "/personer"
 
 fun Route.registerOppfolgingstilfelleApi(
     oppfolgingstilfelleService: OppfolgingstilfelleService,
@@ -38,6 +40,28 @@ fun Route.registerOppfolgingstilfelleApi(
                 )
                 call.respond(oppfolgingstilfellePersonDTO)
             }
+        }
+        get(oppfolgingstilfelleApiPersonerPath) {
+            val token = getBearerHeader()!!
+            val callId = getCallId()
+            val personIdents = call.receive<List<String>>().map { PersonIdentNumber(it) }
+            val personIdentsWithVeilederAccess = veilederTilgangskontrollClient.hasAccessToPersonList(
+                personIdentList = personIdents,
+                token = token,
+                callId = callId,
+            )
+
+            val oppfolgingstilfellerPersonsDTOs = personIdentsWithVeilederAccess.map {
+                val dodsdato = oppfolgingstilfelleService.getDodsdato(it)
+                oppfolgingstilfelleService.getOppfolgingstilfeller(
+                    callId = getCallId(),
+                    personIdent = it,
+                ).toOppfolgingstilfellePersonDTO(
+                    personIdent = it,
+                    dodsdato = dodsdato,
+                )
+            }
+            call.respond(oppfolgingstilfellerPersonsDTOs)
         }
     }
 }

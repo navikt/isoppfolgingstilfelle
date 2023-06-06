@@ -3,6 +3,7 @@ package testhelper.mock
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import no.nav.syfo.application.api.installContentNegotiation
@@ -33,10 +34,15 @@ class SyfoTilgangskontrollMock {
                         PERSONIDENTNUMBER_VEILEDER_NO_ACCESS.value -> call.respond(
                             Tilgang(harTilgang = false)
                         )
+
                         else -> call.respond(
                             Tilgang(harTilgang = true)
                         )
                     }
+                }
+                post(VeilederTilgangskontrollClient.TILGANGSKONTROLL_PERSON_LIST_PATH) {
+                    val personidenter = call.receive<List<String>>()
+                    call.respond(personidenter.filter { it != PERSONIDENTNUMBER_VEILEDER_NO_ACCESS.value })
                 }
             }
         }
