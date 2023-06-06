@@ -27,7 +27,8 @@ fun Route.registerOppfolgingstilfelleSystemApi(
             )
             val personIdent = personIdentHeader()?.let { personIdent ->
                 PersonIdentNumber(personIdent)
-            } ?: throw IllegalArgumentException("Failed to retrieve OppfolgingstilfelleDTO: No $NAV_PERSONIDENT_HEADER supplied in request header")
+            }
+                ?: throw IllegalArgumentException("Failed to retrieve OppfolgingstilfelleDTO: No $NAV_PERSONIDENT_HEADER supplied in request header")
 
             val dodsdato = oppfolgingstilfelleService.getDodsdato(personIdent)
             val oppfolgingstilfellePersonDTO = oppfolgingstilfelleService.getOppfolgingstilfeller(
