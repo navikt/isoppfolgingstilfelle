@@ -33,19 +33,8 @@ object KafkaPersonhendelseConsumerServiceSpek : Spek({
             val database = externalMockEnvironment.database
             val mockKafkaConsumerPersonhendelse = mockk<KafkaConsumer<String, Personhendelse>>()
 
-            val pdlClient = PdlClient(
-                azureAdClient = AzureAdClient(
-                    azureEnviroment = externalMockEnvironment.environment.azure,
-                    redisStore = RedisStore(externalMockEnvironment.environment.redis),
-                ),
-                clientEnvironment = externalMockEnvironment.environment.clients.pdl,
-                redisStore = RedisStore(
-                    redisEnvironment = externalMockEnvironment.environment.redis,
-                )
-            )
             val oppfolgingstilfelleService = OppfolgingstilfelleService(
                 database = database,
-                pdlClient = pdlClient,
             )
             val personhendelseService = PersonhendelseService(
                 database = database,

@@ -16,11 +16,6 @@ fun Application.testApiModule(
         azureEnviroment = externalMockEnvironment.environment.azure,
         redisStore = redisStore,
     )
-    val pdlClient = PdlClient(
-        azureAdClient = azureAdClient,
-        clientEnvironment = externalMockEnvironment.environment.clients.pdl,
-        redisStore = redisStore,
-    )
     this.apiModule(
         applicationState = externalMockEnvironment.applicationState,
         azureAdClient = azureAdClient,
@@ -29,6 +24,5 @@ fun Application.testApiModule(
         wellKnownInternalAzureAD = externalMockEnvironment.wellKnownInternalAzureAD,
         wellKnownSelvbetjening = externalMockEnvironment.wellKnownSelvbetjening,
         redisStore = redisStore,
-        pdlClient = pdlClient,
     )
 }

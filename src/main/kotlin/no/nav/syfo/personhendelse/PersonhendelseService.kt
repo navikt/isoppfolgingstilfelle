@@ -80,7 +80,7 @@ class PersonhendelseService(
     }
 
     private suspend fun isKnownPersonIdent(personIdent: PersonIdentNumber) =
-        oppfolgingstilfelleService.getOppfolgingstilfeller(kafkaCallId(), personIdent).isNotEmpty()
+        oppfolgingstilfelleService.getOppfolgingstilfeller(personIdent).isNotEmpty()
 
     companion object {
         private val log = LoggerFactory.getLogger(PersonhendelseService::class.java)

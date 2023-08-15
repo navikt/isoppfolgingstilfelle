@@ -30,7 +30,6 @@ fun Application.apiModule(
     wellKnownInternalAzureAD: WellKnown,
     wellKnownSelvbetjening: WellKnown,
     redisStore: RedisStore,
-    pdlClient: PdlClient,
 ) {
     installMetrics()
     installCallId()
@@ -65,7 +64,6 @@ fun Application.apiModule(
     val narmesteLederAccessService = NarmesteLederAccessService(narmesteLederClient = narmesteLederClient)
     val oppfolgingstilfelleService = OppfolgingstilfelleService(
         database = database,
-        pdlClient = pdlClient,
     )
     val veilederTilgangskontrollClient = VeilederTilgangskontrollClient(
         azureAdClient = azureAdClient,

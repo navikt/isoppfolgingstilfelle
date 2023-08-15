@@ -259,56 +259,6 @@ class OppfolgingstilfelleApiSpek : Spek({
                         }
                     }
 
-                    it("should create OppfolgingstilfellePerson and return OppfolgingstilfelleDTO for Person with mutiple historical PersonIdent") {
-                        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
-                            mapOf(
-                                syketilfellebitTopicPartition to listOf(
-                                    kafkaSyketilfellebitRecordRelevantVirksomhet,
-                                )
-                            )
-                        )
-
-                        kafkaSyketilfellebitService.pollAndProcessRecords(
-                            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
-                        )
-                        oppfolgingstilfelleCronjob.runJob()
-
-                        verify(exactly = 1) {
-                            mockKafkaConsumerSyketilfelleBit.commitSync()
-                        }
-                        verify(exactly = 1) {
-                            oppfolgingstilfellePersonProducer.sendOppfolgingstilfellePerson(any())
-                        }
-                        val requestPersonIdent = PERSONIDENTNUMBER_DEFAULT.value
-
-                        with(
-                            handleRequest(HttpMethod.Get, url) {
-                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
-                                addHeader(
-                                    NAV_PERSONIDENT_HEADER,
-                                    requestPersonIdent
-                                )
-                            }
-                        ) {
-                            response.status() shouldBeEqualTo HttpStatusCode.OK
-
-                            val oppfolgingstilfellePersonDTO: OppfolgingstilfellePersonDTO =
-                                objectMapper.readValue(response.content!!)
-
-                            oppfolgingstilfellePersonDTO.personIdent shouldBeEqualTo requestPersonIdent
-
-                            val oppfolgingstilfelleDTO =
-                                oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.first()
-
-                            oppfolgingstilfelleDTO.virksomhetsnummerList.size shouldBeEqualTo 1
-                            oppfolgingstilfelleDTO.virksomhetsnummerList.first() shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.orgnummer
-
-                            oppfolgingstilfelleDTO.arbeidstakerAtTilfelleEnd shouldBeEqualTo true
-                            oppfolgingstilfelleDTO.start shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.fom
-                            oppfolgingstilfelleDTO.end shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.tom
-                        }
-                    }
-
                     it("should create OppfolgingstilfellePerson and return OppfolgingstilfelleDTO for Person that is never Arbeidstaker in Oppfolgingstilfelle") {
                         every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
                             mapOf(

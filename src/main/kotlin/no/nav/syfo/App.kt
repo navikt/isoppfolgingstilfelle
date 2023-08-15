@@ -91,7 +91,6 @@ fun main() {
                 wellKnownInternalAzureAD = wellKnownInternalAzureAD,
                 wellKnownSelvbetjening = wellKnownSelvbetjening,
                 redisStore = redisStore,
-                pdlClient = pdlClient,
             )
         }
     }
@@ -136,7 +135,6 @@ fun main() {
             applicationState = applicationState,
             kafkaEnvironment = environment.kafka,
             database = applicationDatabase,
-            pdlClient = pdlClient,
         )
         launchCronjobModule(
             applicationState = applicationState,

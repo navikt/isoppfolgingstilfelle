@@ -19,7 +19,6 @@ fun launchKafkaTaskPersonhendelse(
     applicationState: ApplicationState,
     kafkaEnvironment: KafkaEnvironment,
     database: DatabaseInterface,
-    pdlClient: PdlClient,
 ) {
     launchBackgroundTask(
         applicationState = applicationState,
@@ -27,7 +26,6 @@ fun launchKafkaTaskPersonhendelse(
         log.info("Setting up kafka consumer for Personhendelse from PDL")
         val oppfolgingstilfelleService = OppfolgingstilfelleService(
             database = database,
-            pdlClient = pdlClient,
         )
         val personhendelseService = PersonhendelseService(
             database = database,

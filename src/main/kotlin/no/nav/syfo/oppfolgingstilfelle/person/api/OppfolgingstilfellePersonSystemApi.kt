@@ -32,7 +32,6 @@ fun Route.registerOppfolgingstilfelleSystemApi(
 
             val dodsdato = oppfolgingstilfelleService.getDodsdato(personIdent)
             val oppfolgingstilfellePersonDTO = oppfolgingstilfelleService.getOppfolgingstilfeller(
-                callId = getCallId(),
                 personIdent = personIdent,
             ).toOppfolgingstilfellePersonDTO(
                 personIdent = personIdent,
