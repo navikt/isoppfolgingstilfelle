@@ -6,7 +6,6 @@ import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
 import no.nav.syfo.personhendelse.db.*
-import no.nav.syfo.util.kafkaCallId
 import org.slf4j.LoggerFactory
 import java.util.UUID
 

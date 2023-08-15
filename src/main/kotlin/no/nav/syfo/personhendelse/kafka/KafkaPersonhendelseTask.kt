@@ -5,7 +5,6 @@ import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.backgroundtask.launchBackgroundTask
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.kafka.KafkaEnvironment
-import no.nav.syfo.client.pdl.PdlClient
 import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
 import no.nav.syfo.personhendelse.PersonhendelseService
 import org.apache.kafka.clients.consumer.KafkaConsumer

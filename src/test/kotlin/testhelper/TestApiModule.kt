@@ -4,7 +4,6 @@ import io.ktor.server.application.*
 import no.nav.syfo.application.api.apiModule
 import no.nav.syfo.application.cache.RedisStore
 import no.nav.syfo.client.azuread.AzureAdClient
-import no.nav.syfo.client.pdl.PdlClient
 
 fun Application.testApiModule(
     externalMockEnvironment: ExternalMockEnvironment,

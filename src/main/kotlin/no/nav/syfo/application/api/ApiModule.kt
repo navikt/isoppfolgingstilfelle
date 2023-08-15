@@ -12,7 +12,6 @@ import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.metric.api.registerMetricApi
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.narmesteLeder.NarmesteLederClient
-import no.nav.syfo.client.pdl.PdlClient
 import no.nav.syfo.client.tokendings.TokendingsClient
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.client.wellknown.WellKnown

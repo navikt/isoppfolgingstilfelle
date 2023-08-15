@@ -1,7 +1,6 @@
 package no.nav.syfo.oppfolgingstilfelle
 
 import no.nav.syfo.application.database.DatabaseInterface
-import no.nav.syfo.client.pdl.PdlClient
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingstilfelle.person.database.getOppfolgingstilfellePerson
 import no.nav.syfo.oppfolgingstilfelle.person.database.toOppfolgingstilfellePerson
