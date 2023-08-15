@@ -4,9 +4,6 @@ import io.ktor.server.testing.*
 import io.mockk.*
 import kotlinx.coroutines.*
 import no.nav.person.pdl.leesah.Personhendelse
-import no.nav.syfo.application.cache.RedisStore
-import no.nav.syfo.client.azuread.AzureAdClient
-import no.nav.syfo.client.pdl.PdlClient
 import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
 import no.nav.syfo.oppfolgingstilfelle.person.database.createOppfolgingstilfellePerson
 import no.nav.syfo.personhendelse.kafka.KafkaPersonhendelseConsumerService
@@ -33,19 +30,8 @@ object KafkaPersonhendelseConsumerServiceSpek : Spek({
             val database = externalMockEnvironment.database
             val mockKafkaConsumerPersonhendelse = mockk<KafkaConsumer<String, Personhendelse>>()
 
-            val pdlClient = PdlClient(
-                azureAdClient = AzureAdClient(
-                    azureEnviroment = externalMockEnvironment.environment.azure,
-                    redisStore = RedisStore(externalMockEnvironment.environment.redis),
-                ),
-                clientEnvironment = externalMockEnvironment.environment.clients.pdl,
-                redisStore = RedisStore(
-                    redisEnvironment = externalMockEnvironment.environment.redis,
-                )
-            )
             val oppfolgingstilfelleService = OppfolgingstilfelleService(
                 database = database,
-                pdlClient = pdlClient,
             )
             val personhendelseService = PersonhendelseService(
                 database = database,

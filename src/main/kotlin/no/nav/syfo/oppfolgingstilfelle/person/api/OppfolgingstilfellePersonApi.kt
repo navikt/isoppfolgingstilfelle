@@ -32,7 +32,6 @@ fun Route.registerOppfolgingstilfelleApi(
             ) {
                 val dodsdato = oppfolgingstilfelleService.getDodsdato(personIdent)
                 val oppfolgingstilfellePersonDTO = oppfolgingstilfelleService.getOppfolgingstilfeller(
-                    callId = getCallId(),
                     personIdent = personIdent,
                 ).toOppfolgingstilfellePersonDTO(
                     personIdent = personIdent,
@@ -54,7 +53,6 @@ fun Route.registerOppfolgingstilfelleApi(
             val oppfolgingstilfellerPersonsDTOs = personIdentsWithVeilederAccess.map {
                 val dodsdato = oppfolgingstilfelleService.getDodsdato(it)
                 oppfolgingstilfelleService.getOppfolgingstilfeller(
-                    callId = getCallId(),
                     personIdent = it,
                 ).toOppfolgingstilfellePersonDTO(
                     personIdent = it,

@@ -5,7 +5,6 @@ import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.backgroundtask.launchBackgroundTask
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.kafka.KafkaEnvironment
-import no.nav.syfo.client.pdl.PdlClient
 import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
 import no.nav.syfo.personhendelse.PersonhendelseService
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -19,7 +18,6 @@ fun launchKafkaTaskPersonhendelse(
     applicationState: ApplicationState,
     kafkaEnvironment: KafkaEnvironment,
     database: DatabaseInterface,
-    pdlClient: PdlClient,
 ) {
     launchBackgroundTask(
         applicationState = applicationState,
@@ -27,7 +25,6 @@ fun launchKafkaTaskPersonhendelse(
         log.info("Setting up kafka consumer for Personhendelse from PDL")
         val oppfolgingstilfelleService = OppfolgingstilfelleService(
             database = database,
-            pdlClient = pdlClient,
         )
         val personhendelseService = PersonhendelseService(
             database = database,
