@@ -52,7 +52,6 @@ fun main() {
     val pdlClient = PdlClient(
         azureAdClient = azureAdClient,
         clientEnvironment = environment.clients.pdl,
-        redisStore = redisStore,
     )
 
     val oppfolgingstilfellePersonProducer = OppfolgingstilfellePersonProducer(

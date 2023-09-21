@@ -4,7 +4,6 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import no.nav.syfo.application.cache.RedisStore
 import no.nav.syfo.client.ClientEnvironment
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.httpClientDefault
@@ -16,40 +15,8 @@ import org.slf4j.LoggerFactory
 class PdlClient(
     private val azureAdClient: AzureAdClient,
     private val clientEnvironment: ClientEnvironment,
-    private val redisStore: RedisStore,
 ) {
     private val httpClient = httpClientDefault()
-
-    suspend fun identList(
-        callId: String,
-        personIdentNumber: PersonIdentNumber,
-    ): List<PersonIdentNumber>? {
-        val cacheKey = personIdentIdenterCacheKey(
-            personIdentNumber = personIdentNumber,
-        )
-        val cachedValue: PdlPersonidentIdenterCache? = redisStore.getObject(key = cacheKey)
-        if (cachedValue != null) {
-            COUNT_CALL_PDL_IDENTER_CACHE_HIT.increment()
-            return cachedValue.personIdentList.map { cachedPersonIdent ->
-                PersonIdentNumber(cachedPersonIdent)
-            }
-        } else {
-            COUNT_CALL_PDL_IDENTER_CACHE_MISS.increment()
-            return pdlIdenter(
-                callId = callId,
-                personIdentNumber = personIdentNumber,
-            )?.hentIdenter?.let { identer ->
-                redisStore.setObject(
-                    key = cacheKey,
-                    value = PdlPersonidentIdenterCache(
-                        personIdentList = identer.identer.map { it.ident }
-                    ),
-                    expireSeconds = CACHE_PDL_PERSONIDENT_IDENTER_TIME_TO_LIVE_SECONDS
-                )
-                identer.toPersonIdentNumberList()
-            }
-        }
-    }
 
     suspend fun pdlIdenter(
         personIdentNumber: PersonIdentNumber,
@@ -108,9 +75,6 @@ class PdlClient(
         }
     }
 
-    private fun personIdentIdenterCacheKey(personIdentNumber: PersonIdentNumber) =
-        "$CACHE_PDL_PERSONIDENT_IDENTER_KEY_PREFIX${personIdentNumber.value}"
-
     private fun getPdlQuery(queryFilePath: String): String {
         return this::class.java.getResource(queryFilePath)!!
             .readText()
@@ -118,9 +82,6 @@ class PdlClient(
     }
 
     companion object {
-        const val CACHE_PDL_PERSONIDENT_IDENTER_KEY_PREFIX = "pdl-personident-identer-"
-        const val CACHE_PDL_PERSONIDENT_IDENTER_TIME_TO_LIVE_SECONDS = 12 * 60 * 60L
-
         const val IDENTER_HEADER = "identer"
 
         private val logger = LoggerFactory.getLogger(PdlClient::class.java)

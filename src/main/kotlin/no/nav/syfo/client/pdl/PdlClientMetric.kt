@@ -14,13 +14,3 @@ val COUNT_CALL_PDL_IDENTER_SUCCESS: Counter = Counter.builder(CALL_PDL_IDENTER_S
 val COUNT_CALL_PDL_IDENTER_FAIL: Counter = Counter.builder(CALL_PDL_IDENTER_FAIL)
     .description("Counts the number of failed calls to persondatalosning - identer")
     .register(METRICS_REGISTRY)
-
-const val CALL_PDL_IDENTER_CACHE_HIT = "${CALL_PDL_IDENTER_BASE}_cache_hit_count"
-const val CALL_PDL_IDENTER_CACHE_MISS = "${CALL_PDL_IDENTER_BASE}_cache_miss_count"
-
-val COUNT_CALL_PDL_IDENTER_CACHE_HIT: Counter = Counter.builder(CALL_PDL_IDENTER_CACHE_HIT)
-    .description("Counts the number of cache hits for calls to persondatalosning - identer")
-    .register(METRICS_REGISTRY)
-val COUNT_CALL_PDL_IDENTER_CACHE_MISS: Counter = Counter.builder(CALL_PDL_IDENTER_CACHE_MISS)
-    .description("Counts the number of cache misses for calls to persondatalosning - identer")
-    .register(METRICS_REGISTRY)
