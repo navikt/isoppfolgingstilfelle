@@ -50,14 +50,9 @@ spec:
     inbound:
       rules:
         - application: isdialogmote
-          namespace: teamsykefravr
-          cluster: prod-gcp
         - application: isdialogmotekandidat
-          namespace: teamsykefravr
-          cluster: prod-gcp
         - application: syfomodiaperson
-          namespace: teamsykefravr
-          cluster: prod-gcp
+        - application: isbehandlerdialog
     outbound:
       external:
         - host: "pdl-api.prod-fss-pub.nais.io"
