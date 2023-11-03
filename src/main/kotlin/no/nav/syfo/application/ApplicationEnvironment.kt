@@ -57,9 +57,9 @@ data class Environment(
             baseUrl = getEnvVar("PDL_URL"),
             clientId = getEnvVar("PDL_CLIENT_ID"),
         ),
-        syfotilgangskontroll = ClientEnvironment(
-            baseUrl = getEnvVar("SYFOTILGANGSKONTROLL_URL"),
-            clientId = getEnvVar("SYFOTILGANGSKONTROLL_CLIENT_ID"),
+        tilgangskontroll = ClientEnvironment(
+            baseUrl = getEnvVar("ISTILGANGSKONTROLL_URL"),
+            clientId = getEnvVar("ISTILGANGSKONTROLL_CLIENT_ID"),
         ),
         narmesteLeder = ClientEnvironment(
             baseUrl = getEnvVar("NARMESTELEDER_URL"),

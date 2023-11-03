@@ -59,7 +59,7 @@ spec:
       rules:
         - application: isoppfolgingstilfelle-redis
         - application: isnarmesteleder
-        - application: syfo-tilgangskontroll
+        - application: istilgangskontroll
   azure:
     application:
       allowAllUsers: true
@@ -82,10 +82,10 @@ spec:
       value: "https://pdl-api.dev-fss-pub.nais.io/graphql"
     - name: REDIS_HOST
       value: "isoppfolgingstilfelle-redis.teamsykefravr.svc.cluster.local"
-    - name: SYFOTILGANGSKONTROLL_CLIENT_ID
-      value: "dev-gcp.teamsykefravr.syfo-tilgangskontroll"
-    - name: SYFOTILGANGSKONTROLL_URL
-      value: "http://syfo-tilgangskontroll"
+    - name: ISTILGANGSKONTROLL_CLIENT_ID
+      value: "dev-gcp.teamsykefravr.istilgangskontroll"
+    - name: ISTILGANGSKONTROLL_URL
+      value: "http://istilgangskontroll"
     - name: NARMESTELEDER_URL
       value: "http://isnarmesteleder"
     - name: NARMESTELEDER_CLIENT_ID

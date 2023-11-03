@@ -66,7 +66,7 @@ fun Application.apiModule(
     )
     val veilederTilgangskontrollClient = VeilederTilgangskontrollClient(
         azureAdClient = azureAdClient,
-        clientEnvironment = environment.clients.syfotilgangskontroll,
+        clientEnvironment = environment.clients.tilgangskontroll,
     )
     val apiConsumerAccessService = APIConsumerAccessService(
         azureAppPreAuthorizedApps = environment.azure.appPreAuthorizedApps,
