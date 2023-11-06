@@ -17,7 +17,7 @@ fun testEnvironment(
     azureOpenIdTokenEndpoint: String,
     kafkaBootstrapServers: String,
     pdlUrl: String,
-    syfoTilgangskontrollUrl: String,
+    istilgangskontrollUrl: String,
     narmestelederUrl: String,
     tokendingsUrl: String,
     arbeidsforholdUrl: String,
@@ -57,9 +57,9 @@ fun testEnvironment(
             baseUrl = pdlUrl,
             clientId = "dev-fss.pdl.pdl-api",
         ),
-        syfotilgangskontroll = ClientEnvironment(
-            baseUrl = syfoTilgangskontrollUrl,
-            clientId = "dev-fss.teamsykefravr.syfotilgangskontroll",
+        tilgangskontroll = ClientEnvironment(
+            baseUrl = istilgangskontrollUrl,
+            clientId = "dev-gcp.teamsykefravr.istilgangskontroll",
         ),
         narmesteLeder = ClientEnvironment(
             baseUrl = narmestelederUrl,

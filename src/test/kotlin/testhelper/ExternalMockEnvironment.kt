@@ -11,7 +11,7 @@ class ExternalMockEnvironment private constructor() {
 
     private val azureAdMock = AzureAdMock()
     private val pdlMock = PdlMock()
-    private val syfoTilgangskontrollMock = SyfoTilgangskontrollMock()
+    private val tilgangskontrollMock = TilgangskontrollMock()
     private val narmesteLederMock = NarmesteLederMock()
     private val tokendingsMock = TokendingsMock()
     private val arbeidsforholdMock = ArbeidsforholdMock()
@@ -19,7 +19,7 @@ class ExternalMockEnvironment private constructor() {
     val externalMocks = hashMapOf(
         azureAdMock.name to azureAdMock.server,
         pdlMock.name to pdlMock.server,
-        syfoTilgangskontrollMock.name to syfoTilgangskontrollMock.server,
+        tilgangskontrollMock.name to tilgangskontrollMock.server,
         narmesteLederMock.name to narmesteLederMock.server,
         tokendingsMock.name to tokendingsMock.server,
         arbeidsforholdMock.name to arbeidsforholdMock.server,
@@ -29,7 +29,7 @@ class ExternalMockEnvironment private constructor() {
         kafkaBootstrapServers = embeddedEnvironment.brokersURL,
         azureOpenIdTokenEndpoint = azureAdMock.url,
         pdlUrl = pdlMock.url,
-        syfoTilgangskontrollUrl = syfoTilgangskontrollMock.url,
+        istilgangskontrollUrl = tilgangskontrollMock.url,
         narmestelederUrl = narmesteLederMock.url,
         tokendingsUrl = tokendingsMock.url,
         arbeidsforholdUrl = arbeidsforholdMock.url,

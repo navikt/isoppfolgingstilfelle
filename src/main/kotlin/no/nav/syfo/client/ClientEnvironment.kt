@@ -2,7 +2,7 @@ package no.nav.syfo.client
 
 data class ClientsEnvironment(
     val pdl: ClientEnvironment,
-    val syfotilgangskontroll: ClientEnvironment,
+    val tilgangskontroll: ClientEnvironment,
     val narmesteLeder: ClientEnvironment,
     val arbeidsforhold: ClientEnvironment,
 )

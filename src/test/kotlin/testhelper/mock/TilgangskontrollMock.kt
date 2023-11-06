@@ -13,16 +13,16 @@ import no.nav.syfo.util.personIdentHeader
 import testhelper.UserConstants.PERSONIDENTNUMBER_VEILEDER_NO_ACCESS
 import testhelper.getRandomPort
 
-class SyfoTilgangskontrollMock {
+class TilgangskontrollMock {
     private val port = getRandomPort()
     val url = "http://localhost:$port"
 
-    val name = "syfotilgangskontroll"
-    val server = mockSyfotilgangskontrollServer(
+    val name = "istilgangskontroll"
+    val server = mockTilgangskontroll(
         port
     )
 
-    private fun mockSyfotilgangskontrollServer(port: Int): NettyApplicationEngine {
+    private fun mockTilgangskontroll(port: Int): NettyApplicationEngine {
         return embeddedServer(
             factory = Netty,
             port = port,
@@ -32,11 +32,11 @@ class SyfoTilgangskontrollMock {
                 get(VeilederTilgangskontrollClient.TILGANGSKONTROLL_PERSON_PATH) {
                     when (personIdentHeader()) {
                         PERSONIDENTNUMBER_VEILEDER_NO_ACCESS.value -> call.respond(
-                            Tilgang(harTilgang = false)
+                            Tilgang(erGodkjent = false)
                         )
 
                         else -> call.respond(
-                            Tilgang(harTilgang = true)
+                            Tilgang(erGodkjent = true)
                         )
                     }
                 }
