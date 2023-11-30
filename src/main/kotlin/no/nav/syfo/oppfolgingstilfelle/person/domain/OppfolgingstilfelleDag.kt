@@ -90,17 +90,33 @@ fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelle(): Oppfolgingstilfelle {
     val tilfelleStart = this.first().dag
     val tilfelleEnd = this.last().dag
 
+    var antallSykedager = 0
+    this.forEachIndexed { index, oppfolgingstilfelleDag ->
+        if (!oppfolgingstilfelleDag.isArbeidsdag() && !oppfolgingstilfelleDag.isFeriedagOrHelgedag()) {
+            antallSykedager++
+        } else if (oppfolgingstilfelleDag.isFeriedagOrHelgedag() && !previousDagIsArbeidsdag(index)) {
+            antallSykedager++
+        }
+    }
+
     val isGradertInAllVirksomheterAtTilfelleEnd = this.last().priorityGraderingBit?.isGradert() ?: false
 
     return Oppfolgingstilfelle(
         arbeidstakerAtTilfelleEnd = arbeidstakerAtTilfelleEnd,
         start = tilfelleStart,
         end = tilfelleEnd,
+        antallSykedager = antallSykedager,
         virksomhetsnummerList = this.toVirksomhetsnummerPreferred().ifEmpty {
             if (arbeidstakerAtTilfelleEnd) this.toVirksomhetsnummerAll() else emptyList()
         },
         gradertAtTilfelleEnd = isGradertInAllVirksomheterAtTilfelleEnd,
     )
+}
+
+private fun List<OppfolgingstilfelleDag>.previousDagIsArbeidsdag(index: Int): Boolean {
+    var previous: Int = index - 1
+    while (previous > 0 && this[previous].isFeriedagOrHelgedag()) previous--
+    return if (previous >= 0) this[previous].isArbeidsdag() else false
 }
 
 private fun List<OppfolgingstilfelleDag>.onlySykmeldingNyOrInntektsmelding() =
@@ -150,3 +166,9 @@ fun OppfolgingstilfelleDag.isFeriedag() =
             tagList in (Tag.SYKEPENGESOKNAD and (Tag.FERIE or Tag.PERMISJON))
         }
         ?: false
+
+fun OppfolgingstilfelleDag.isLordag() = dag.dayOfWeek == DayOfWeek.SATURDAY
+
+fun OppfolgingstilfelleDag.isSondag() = dag.dayOfWeek == DayOfWeek.SUNDAY
+
+fun OppfolgingstilfelleDag.isFeriedagOrHelgedag() = isLordag() || isSondag() || isFeriedag()
