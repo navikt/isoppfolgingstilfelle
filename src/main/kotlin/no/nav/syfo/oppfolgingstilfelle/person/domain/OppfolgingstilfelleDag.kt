@@ -21,6 +21,7 @@ class OppfolgingstilfelleDag(
 fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelleList(): List<Oppfolgingstilfelle> {
     val oppfolgingstilfelleList = ArrayList<Oppfolgingstilfelle>()
     var oppfolgingstilfelleSykedagList = ArrayList<OppfolgingstilfelleDag>()
+    var sykedagerCounter = 0
     var notSykedagSinceLastSykedagCounter = 0
 
     this.forEach {
@@ -33,11 +34,17 @@ fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelleList(): List<Oppfolgingsti
                 if (notSykedagSinceLastSykedagCounter > 0) {
                     // Only count Feriedag if at least one Arbeidsdag since last Sykedag
                     notSykedagSinceLastSykedagCounter++
+                } else if (sykedagerCounter > 0) {
+                    // Counts as Sykedag if at least one Sykedag before
+                    oppfolgingstilfelleSykedagList.add(it)
+                    sykedagerCounter++
+                    notSykedagSinceLastSykedagCounter = 0
                 }
             }
 
             else -> { // isSykedag
                 oppfolgingstilfelleSykedagList.add(it)
+                sykedagerCounter++
                 notSykedagSinceLastSykedagCounter = 0
             }
         }
@@ -50,6 +57,7 @@ fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelleList(): List<Oppfolgingsti
 
             // Reset variables
             oppfolgingstilfelleSykedagList = ArrayList()
+            sykedagerCounter = 0
             notSykedagSinceLastSykedagCounter = 0
         }
     }
@@ -87,15 +95,13 @@ fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelle(): Oppfolgingstilfelle {
         SYKMELDING_NY_COUNTER.increment()
     }
     val arbeidstakerAtTilfelleEnd = this.isArbeidstakerAtTilfelleEnd()
-    val tilfelleStart = this.first().dag
-    val tilfelleEnd = this.last().dag
-
     val isGradertInAllVirksomheterAtTilfelleEnd = this.last().priorityGraderingBit?.isGradert() ?: false
 
     return Oppfolgingstilfelle(
         arbeidstakerAtTilfelleEnd = arbeidstakerAtTilfelleEnd,
-        start = tilfelleStart,
-        end = tilfelleEnd,
+        start = this.first().dag,
+        end = this.last().dag,
+        antallSykedager = this.size,
         virksomhetsnummerList = this.toVirksomhetsnummerPreferred().ifEmpty {
             if (arbeidstakerAtTilfelleEnd) this.toVirksomhetsnummerAll() else emptyList()
         },
