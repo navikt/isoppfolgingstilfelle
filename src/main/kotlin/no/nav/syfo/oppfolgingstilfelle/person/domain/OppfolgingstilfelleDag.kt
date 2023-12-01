@@ -32,10 +32,10 @@ fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelleList(): List<Oppfolgingsti
 
             it.isFeriedag() -> {
                 if (notSykedagSinceLastSykedagCounter > 0) {
-                    // Only count Feriedag or helgedag f at least one Arbeidsdag since last Sykedag
+                    // Only count Feriedag if at least one Arbeidsdag since last Sykedag
                     notSykedagSinceLastSykedagCounter++
                 } else if (sykedagCounter > 0) {
-                    // Counts as sykedag if at least one Sykedag before
+                    // Counts as Sykedag if at least one Sykedag before
                     sykedagCounter++
                     oppfolgingstilfelleSykedagList.add(it)
                 }
