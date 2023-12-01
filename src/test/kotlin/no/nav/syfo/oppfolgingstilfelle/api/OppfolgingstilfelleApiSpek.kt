@@ -33,6 +33,7 @@ import testhelper.generator.*
 import testhelper.mock.toHistoricalPersonIdentNumber
 import java.time.Duration
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 class OppfolgingstilfelleApiSpek : Spek({
@@ -162,6 +163,10 @@ class OppfolgingstilfelleApiSpek : Spek({
                             oppfolgingstilfelleDTO.arbeidstakerAtTilfelleEnd shouldBeEqualTo true
                             oppfolgingstilfelleDTO.start shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.fom
                             oppfolgingstilfelleDTO.end shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.tom
+                            oppfolgingstilfelleDTO.antallSykedager shouldBeEqualTo ChronoUnit.DAYS.between(
+                                oppfolgingstilfelleDTO.start,
+                                oppfolgingstilfelleDTO.end,
+                            ).toInt() + 1
                         }
                     }
                     it("should create OppfolgingstilfellePerson with dodsdato if set") {

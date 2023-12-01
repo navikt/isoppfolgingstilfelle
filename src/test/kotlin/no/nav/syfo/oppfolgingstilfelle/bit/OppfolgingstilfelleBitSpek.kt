@@ -47,12 +47,14 @@ class OppfolgingstilfelleBitSpek : Spek({
 
             val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
             oppfolgingstilfelleList.size shouldBeEqualTo 1
+            val oppfolgingstilfelle = oppfolgingstilfelleList.first()
 
             val tilfelleDuration = Period.between(
-                oppfolgingstilfelleList.first().start,
-                oppfolgingstilfelleList.first().end,
+                oppfolgingstilfelle.start,
+                oppfolgingstilfelle.end,
             ).days
             tilfelleDuration shouldBeEqualTo 16
+            oppfolgingstilfelle.antallSykedager shouldBeEqualTo 2
         }
 
         it("Egenmelding should count as sykedager") {
@@ -75,12 +77,14 @@ class OppfolgingstilfelleBitSpek : Spek({
 
             val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
             oppfolgingstilfelleList.size shouldBeEqualTo 1
+            val oppfolgingstilfelle = oppfolgingstilfelleList.first()
 
             val tilfelleDuration = Period.between(
-                oppfolgingstilfelleList.first().start,
-                oppfolgingstilfelleList.first().end,
+                oppfolgingstilfelle.start,
+                oppfolgingstilfelle.end,
             ).days
             tilfelleDuration shouldBeEqualTo 16
+            oppfolgingstilfelle.antallSykedager shouldBeEqualTo tilfelleDuration + 1
         }
 
         it("should return 1 Oppfolgingstilfelle of 0 day duration if fom og tom is the same") {
@@ -96,12 +100,14 @@ class OppfolgingstilfelleBitSpek : Spek({
 
             val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
             oppfolgingstilfelleList.size shouldBeEqualTo 1
+            val oppfolgingstilfelle = oppfolgingstilfelleList.first()
 
             val tilfelleDuration = Period.between(
-                oppfolgingstilfelleList.first().start,
-                oppfolgingstilfelleList.first().end,
+                oppfolgingstilfelle.start,
+                oppfolgingstilfelle.end,
             ).days
             tilfelleDuration shouldBeEqualTo 0
+            oppfolgingstilfelle.antallSykedager shouldBeEqualTo 1
         }
 
         it("should return 2 Oppfolgingstilfelle with latest gradertAtTilfelleEnd=true, if sykmelding gradert and older tilfelle-bit from different virksomhet") {
@@ -1098,6 +1104,14 @@ class OppfolgingstilfelleBitSpek : Spek({
                 defaultBit.copy(
                     createdAt = nowUTC(),
                     inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, BEKREFTET, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.now().minusDays(20),
+                    tom = LocalDate.now().minusDays(1),
+                    virksomhetsnummer = null,
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
                     tagList = listOf(SYKEPENGESOKNAD, SENDT),
                     fom = LocalDate.now().minusDays(20),
                     tom = LocalDate.now().minusDays(20),
@@ -1127,12 +1141,14 @@ class OppfolgingstilfelleBitSpek : Spek({
 
             val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
             oppfolgingstilfelleList.size shouldBeEqualTo 1
+            val oppfolgingstilfelle = oppfolgingstilfelleList.first()
 
             val tilfelleDuration = Period.between(
-                oppfolgingstilfelleList.first().start,
-                oppfolgingstilfelleList.first().end,
+                oppfolgingstilfelle.start,
+                oppfolgingstilfelle.end,
             ).days
             tilfelleDuration shouldBeEqualTo 20
+            oppfolgingstilfelle.antallSykedager shouldBeEqualTo 21
         }
 
         it("should return 1 Oppfolgingstilfelle, if person has less than 16 Arbeidsdag between sickness") {
@@ -1161,13 +1177,14 @@ class OppfolgingstilfelleBitSpek : Spek({
             )
 
             val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
-            oppfolgingstilfelleList.size shouldBeEqualTo 1
+            val oppfolgingstilfelle = oppfolgingstilfelleList.first()
 
             val tilfelleDuration = Period.between(
-                oppfolgingstilfelleList.first().start,
-                oppfolgingstilfelleList.first().end,
+                oppfolgingstilfelle.start,
+                oppfolgingstilfelle.end,
             ).days
             tilfelleDuration shouldBeEqualTo 16
+            oppfolgingstilfelle.antallSykedager shouldBeEqualTo 2
         }
 
         it("should return 2 Oppfolgingstilfelle, if person is not sick for at least 16 days") {
@@ -1190,18 +1207,23 @@ class OppfolgingstilfelleBitSpek : Spek({
 
             val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
             oppfolgingstilfelleList.size shouldBeEqualTo 2
+            val oppfolgingstilfelle = oppfolgingstilfelleList.first()
 
             val firstTilfelleDuration = Period.between(
-                oppfolgingstilfelleList.first().start,
-                oppfolgingstilfelleList.first().end,
+                oppfolgingstilfelle.start,
+                oppfolgingstilfelle.end,
             ).days
             firstTilfelleDuration shouldBeEqualTo 0
+            oppfolgingstilfelle.antallSykedager shouldBeEqualTo 1
+
+            val oppfolgingstilfelleLast = oppfolgingstilfelleList.last()
 
             val secondTilfelleDuration = Period.between(
-                oppfolgingstilfelleList.last().start,
-                oppfolgingstilfelleList.last().end,
+                oppfolgingstilfelleLast.start,
+                oppfolgingstilfelleLast.end,
             ).days
             secondTilfelleDuration shouldBeEqualTo 1
+            oppfolgingstilfelleLast.antallSykedager shouldBeEqualTo 2
         }
 
         it("should return 2 Oppfolgingstilfelle with gradertAtTilfelleEnd=true and gradertAtTilfelleEnd=false, if sykmelding gradert then not sick for at least 16 days then sykmelding not gradert") {
@@ -1289,11 +1311,13 @@ class OppfolgingstilfelleBitSpek : Spek({
 
             val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
             oppfolgingstilfelleList.size shouldBeEqualTo 1
+            val oppfolgingstilfelle = oppfolgingstilfelleList.first()
             val tilfelleDuration = Period.between(
-                oppfolgingstilfelleList.first().start,
-                oppfolgingstilfelleList.first().end,
+                oppfolgingstilfelle.start,
+                oppfolgingstilfelle.end,
             ).days
             tilfelleDuration shouldBeEqualTo 10
+            oppfolgingstilfelle.antallSykedager shouldBeEqualTo 11
         }
 
         it("should return 2 Oppfolgingstilfelle, if person has at least 16 Arbeidsdag between 2 Sykedag") {
@@ -1323,18 +1347,22 @@ class OppfolgingstilfelleBitSpek : Spek({
 
             val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
             oppfolgingstilfelleList.size shouldBeEqualTo 2
+            val oppfolgingstilfelle = oppfolgingstilfelleList.first()
 
             val firstTilfelleDuration = Period.between(
-                oppfolgingstilfelleList.first().start,
-                oppfolgingstilfelleList.first().end,
+                oppfolgingstilfelle.start,
+                oppfolgingstilfelle.end,
             ).days
             firstTilfelleDuration shouldBeEqualTo 0
+            oppfolgingstilfelle.antallSykedager shouldBeEqualTo 1
 
+            val oppfolgingstilfelleLast = oppfolgingstilfelleList.last()
             val secondTilfelleDuration = Period.between(
-                oppfolgingstilfelleList.last().start,
-                oppfolgingstilfelleList.last().end,
+                oppfolgingstilfelleLast.start,
+                oppfolgingstilfelleLast.end,
             ).days
             secondTilfelleDuration shouldBeEqualTo 0
+            oppfolgingstilfelleLast.antallSykedager shouldBeEqualTo 1
         }
 
         it("should return 2 Oppfolgingstilfelle, if person has at least 16 behandlingsdager between 2 Sykedag") {
@@ -1364,18 +1392,22 @@ class OppfolgingstilfelleBitSpek : Spek({
 
             val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
             oppfolgingstilfelleList.size shouldBeEqualTo 2
+            val oppfolgingstilfelle = oppfolgingstilfelleList.first()
 
             val firstTilfelleDuration = Period.between(
-                oppfolgingstilfelleList.first().start,
-                oppfolgingstilfelleList.first().end,
+                oppfolgingstilfelle.start,
+                oppfolgingstilfelle.end,
             ).days
             firstTilfelleDuration shouldBeEqualTo 0
+            oppfolgingstilfelle.antallSykedager shouldBeEqualTo 1
 
+            val oppfolgingstilfelleLast = oppfolgingstilfelleList.last()
             val secondTilfelleDuration = Period.between(
-                oppfolgingstilfelleList.last().start,
-                oppfolgingstilfelleList.last().end,
+                oppfolgingstilfelleLast.start,
+                oppfolgingstilfelleLast.end,
             ).days
             secondTilfelleDuration shouldBeEqualTo 0
+            oppfolgingstilfelleLast.antallSykedager shouldBeEqualTo 1
         }
 
         it("should return 2 Oppfolgingstilfelle, if person has at least 16 Arbeidsdag+Feriedag and at at least 1 Feriedag between 2 Sykedag") {
@@ -1412,18 +1444,22 @@ class OppfolgingstilfelleBitSpek : Spek({
 
             val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
             oppfolgingstilfelleList.size shouldBeEqualTo 2
+            val oppfolgingstilfelle = oppfolgingstilfelleList.first()
 
             val firstTilfelleDuration = Period.between(
-                oppfolgingstilfelleList.first().start,
-                oppfolgingstilfelleList.first().end,
+                oppfolgingstilfelle.start,
+                oppfolgingstilfelle.end,
             ).days
             firstTilfelleDuration shouldBeEqualTo 0
+            oppfolgingstilfelle.antallSykedager shouldBeEqualTo 1
 
+            val oppfolgingstilfelleLast = oppfolgingstilfelleList.last()
             val secondTilfelleDuration = Period.between(
-                oppfolgingstilfelleList.last().start,
-                oppfolgingstilfelleList.last().end,
+                oppfolgingstilfelleLast.start,
+                oppfolgingstilfelleLast.end,
             ).days
             secondTilfelleDuration shouldBeEqualTo 0
+            oppfolgingstilfelleLast.antallSykedager shouldBeEqualTo 1
         }
     }
 })
