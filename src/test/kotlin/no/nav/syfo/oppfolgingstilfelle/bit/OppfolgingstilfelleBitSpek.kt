@@ -1474,5 +1474,39 @@ class OppfolgingstilfelleBitSpek : Spek({
             tilfelleDuration shouldBeEqualTo 10
             oppfolgingstilfelle.antallSykedager shouldBeEqualTo 11
         }
+        it("should return 1 Oppfolgingstilfelle with correct Sykedager even if egenmeldingsdager to begin with") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, EGENMELDING),
+                    fom = LocalDate.now().minusDays(30),
+                    tom = LocalDate.now().minusDays(28),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, EGENMELDING),
+                    fom = LocalDate.now().minusDays(20),
+                    tom = LocalDate.now().minusDays(20),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, INGEN_AKTIVITET),
+                    fom = LocalDate.now().minusDays(10),
+                    tom = LocalDate.now(),
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.size shouldBeEqualTo 1
+            val oppfolgingstilfelle = oppfolgingstilfelleList.first()
+
+            val tilfelleDuration = oppfolgingstilfelle.start.until(oppfolgingstilfelle.end, ChronoUnit.DAYS)
+
+            tilfelleDuration shouldBeEqualTo 30
+            oppfolgingstilfelle.antallSykedager shouldBeEqualTo 15
+        }
     }
 })
