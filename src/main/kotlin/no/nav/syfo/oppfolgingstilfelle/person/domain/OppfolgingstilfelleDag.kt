@@ -21,7 +21,7 @@ class OppfolgingstilfelleDag(
 fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelleList(): List<Oppfolgingstilfelle> {
     val oppfolgingstilfelleList = ArrayList<Oppfolgingstilfelle>()
     var oppfolgingstilfelleSykedagList = ArrayList<OppfolgingstilfelleDag>()
-    var sykedagerCounter = 0
+    var sykedagFoundInTilfelle = false
     var notSykedagSinceLastSykedagCounter = 0
 
     this.forEach {
@@ -34,17 +34,15 @@ fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelleList(): List<Oppfolgingsti
                 if (notSykedagSinceLastSykedagCounter > 0) {
                     // Only count Feriedag if at least one Arbeidsdag since last Sykedag
                     notSykedagSinceLastSykedagCounter++
-                } else if (sykedagerCounter > 0) {
+                } else if (sykedagFoundInTilfelle) {
                     // Counts as Sykedag if at least one Sykedag before
                     oppfolgingstilfelleSykedagList.add(it)
-                    sykedagerCounter++
-                    notSykedagSinceLastSykedagCounter = 0
                 }
             }
 
             else -> { // isSykedag
                 oppfolgingstilfelleSykedagList.add(it)
-                sykedagerCounter++
+                sykedagFoundInTilfelle = true
                 notSykedagSinceLastSykedagCounter = 0
             }
         }
@@ -57,7 +55,7 @@ fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelleList(): List<Oppfolgingsti
 
             // Reset variables
             oppfolgingstilfelleSykedagList = ArrayList()
-            sykedagerCounter = 0
+            sykedagFoundInTilfelle = false
             notSykedagSinceLastSykedagCounter = 0
         }
     }
