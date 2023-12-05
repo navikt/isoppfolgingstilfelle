@@ -25,6 +25,7 @@ data class Oppfolgingstilfelle(
     val gradertAtTilfelleEnd: Boolean, // True hvis alle biter på siste dag i tilfellet er gradert
     val start: LocalDate,
     val end: LocalDate,
+    val antallSykedager: Int?, // må tillate null siden tidligere persisterte oppfolgingstilfeller vil mangle dette feltet
     val virksomhetsnummerList: List<Virksomhetsnummer>,
 )
 
@@ -43,6 +44,7 @@ fun List<Oppfolgingstilfelle>.toOppfolgingstilfelleDTOList() =
             arbeidstakerAtTilfelleEnd = oppfolgingstilfelle.arbeidstakerAtTilfelleEnd,
             start = oppfolgingstilfelle.start,
             end = oppfolgingstilfelle.end,
+            antallSykedager = oppfolgingstilfelle.antallSykedager,
             virksomhetsnummerList = oppfolgingstilfelle.virksomhetsnummerList.map { it.value },
         )
     }
@@ -57,6 +59,7 @@ fun OppfolgingstilfellePerson.toKafkaOppfolgingstilfellePerson() = KafkaOppfolgi
             arbeidstakerAtTilfelleEnd = oppfolgingstilfelle.arbeidstakerAtTilfelleEnd,
             start = oppfolgingstilfelle.start,
             end = oppfolgingstilfelle.end,
+            antallSykedager = oppfolgingstilfelle.antallSykedager,
             virksomhetsnummerList = oppfolgingstilfelle.virksomhetsnummerList.map { virksomhetsnummer -> virksomhetsnummer.value },
         )
     },

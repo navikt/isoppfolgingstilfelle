@@ -18,6 +18,7 @@ fun generateOppfolgingstilfellePerson(
             arbeidstakerAtTilfelleEnd = false,
             start = LocalDate.now().minusMonths(6),
             end = LocalDate.now().minusMonths(2),
+            antallSykedager = 120,
             virksomhetsnummerList = listOf(),
             gradertAtTilfelleEnd = false,
         )
