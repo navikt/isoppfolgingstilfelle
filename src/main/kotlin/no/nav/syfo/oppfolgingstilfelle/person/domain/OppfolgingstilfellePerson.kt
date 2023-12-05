@@ -8,7 +8,10 @@ import no.nav.syfo.oppfolgingstilfelle.person.kafka.KafkaOppfolgingstilfelle
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.KafkaOppfolgingstilfellePerson
 import java.time.LocalDate
 import java.time.OffsetDateTime
+import java.time.temporal.ChronoUnit
 import java.util.*
+
+private const val DAYS_IN_WEEK = 7
 
 data class OppfolgingstilfellePerson(
     val uuid: UUID,
@@ -45,6 +48,7 @@ fun List<Oppfolgingstilfelle>.toOppfolgingstilfelleDTOList() =
             start = oppfolgingstilfelle.start,
             end = oppfolgingstilfelle.end,
             antallSykedager = oppfolgingstilfelle.antallSykedager,
+            varighetUker = oppfolgingstilfelle.calculateCurrentVarighetUker(),
             virksomhetsnummerList = oppfolgingstilfelle.virksomhetsnummerList.map { it.value },
         )
     }
@@ -67,3 +71,15 @@ fun OppfolgingstilfellePerson.toKafkaOppfolgingstilfellePerson() = KafkaOppfolgi
     referanseTilfelleBitInntruffet = this.referanseTilfelleBitInntruffet,
     dodsdato = this.dodsdato,
 )
+
+private fun Oppfolgingstilfelle.calculateCurrentVarighetUker(): Int {
+    val currentVarighetDaysBrutto = ChronoUnit.DAYS.between(start, minOf(LocalDate.now(), end)) + 1
+    val currentVarighetDays = if (antallSykedager == null) {
+        currentVarighetDaysBrutto
+    } else {
+        val totalVarighetDays = ChronoUnit.DAYS.between(start, end) + 1
+        val ikkeSykedager = totalVarighetDays - antallSykedager
+        currentVarighetDaysBrutto - ikkeSykedager
+    }
+    return currentVarighetDays.toInt() / DAYS_IN_WEEK
+}

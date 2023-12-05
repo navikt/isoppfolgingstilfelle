@@ -13,5 +13,6 @@ data class OppfolgingstilfelleDTO(
     val start: LocalDate,
     val end: LocalDate,
     val antallSykedager: Int?,
+    val varighetUker: Int,
     val virksomhetsnummerList: List<String>,
 )

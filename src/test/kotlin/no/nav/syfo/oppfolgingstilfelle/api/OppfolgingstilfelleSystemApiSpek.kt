@@ -7,6 +7,7 @@ import io.ktor.server.testing.*
 import io.mockk.*
 import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
 import no.nav.syfo.oppfolgingstilfelle.bit.cronjob.OppfolgingstilfelleCronjob
+import no.nav.syfo.oppfolgingstilfelle.bit.domain.Tag
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.syketilfelle.*
 import no.nav.syfo.oppfolgingstilfelle.person.OppfolgingstilfellePersonService
 import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfellePersonDTO
@@ -141,6 +142,192 @@ class OppfolgingstilfelleSystemApiSpek : Spek({
                             oppfolgingstilfelleDTO.arbeidstakerAtTilfelleEnd shouldBeEqualTo true
                             oppfolgingstilfelleDTO.start shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.fom
                             oppfolgingstilfelleDTO.end shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.tom
+                            oppfolgingstilfelleDTO.varighetUker shouldBeEqualTo 0
+                        }
+                    }
+                    it("should create OppfolgingstilfellePerson and return OppfolgingstilfelleDTO for Person with correct varighet 2 weeks") {
+                        val kafkaSyketilfelle = kafkaSyketilfellebitRelevantVirksomhet.copy(
+                            fom = LocalDate.now().minusDays(19),
+                            tom = LocalDate.now(),
+                        )
+                        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+                            mapOf(
+                                syketilfellebitTopicPartition to listOf(
+                                    ConsumerRecord(
+                                        SYKETILFELLEBIT_TOPIC,
+                                        partition,
+                                        1,
+                                        "key1",
+                                        kafkaSyketilfelle,
+                                    )
+                                )
+                            )
+                        )
+
+                        kafkaSyketilfellebitService.pollAndProcessRecords(
+                            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                        )
+                        oppfolgingstilfelleCronjob.runJob()
+                        with(
+                            handleRequest(HttpMethod.Get, url) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                            val oppfolgingstilfellePersonDTO: OppfolgingstilfellePersonDTO =
+                                objectMapper.readValue(response.content!!)
+                            val oppfolgingstilfelleDTO =
+                                oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.first()
+                            oppfolgingstilfelleDTO.start shouldBeEqualTo kafkaSyketilfelle.fom
+                            oppfolgingstilfelleDTO.end shouldBeEqualTo kafkaSyketilfelle.tom
+                            oppfolgingstilfelleDTO.antallSykedager shouldBeEqualTo 20
+                            oppfolgingstilfelleDTO.varighetUker shouldBeEqualTo 2
+                        }
+                    }
+                    it("should create OppfolgingstilfellePerson and return OppfolgingstilfelleDTO for Person with correct varighet 3 weeks") {
+                        val kafkaSyketilfelle = kafkaSyketilfellebitRelevantVirksomhet.copy(
+                            fom = LocalDate.now().minusDays(20),
+                            tom = LocalDate.now(),
+                        )
+                        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+                            mapOf(
+                                syketilfellebitTopicPartition to listOf(
+                                    ConsumerRecord(
+                                        SYKETILFELLEBIT_TOPIC,
+                                        partition,
+                                        1,
+                                        "key1",
+                                        kafkaSyketilfelle,
+                                    )
+                                )
+                            )
+                        )
+
+                        kafkaSyketilfellebitService.pollAndProcessRecords(
+                            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                        )
+                        oppfolgingstilfelleCronjob.runJob()
+                        with(
+                            handleRequest(HttpMethod.Get, url) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                            val oppfolgingstilfellePersonDTO: OppfolgingstilfellePersonDTO =
+                                objectMapper.readValue(response.content!!)
+                            val oppfolgingstilfelleDTO =
+                                oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.first()
+                            oppfolgingstilfelleDTO.start shouldBeEqualTo kafkaSyketilfelle.fom
+                            oppfolgingstilfelleDTO.end shouldBeEqualTo kafkaSyketilfelle.tom
+                            oppfolgingstilfelleDTO.antallSykedager shouldBeEqualTo 21
+                            oppfolgingstilfelleDTO.varighetUker shouldBeEqualTo 3
+                        }
+                    }
+                    it("should create OppfolgingstilfellePerson and return OppfolgingstilfelleDTO for Person with correct varighet relative to today") {
+                        val kafkaSyketilfelle = kafkaSyketilfellebitRelevantVirksomhet.copy(
+                            fom = LocalDate.now().minusDays(19),
+                            tom = LocalDate.now().plusDays(4),
+                        )
+                        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+                            mapOf(
+                                syketilfellebitTopicPartition to listOf(
+                                    ConsumerRecord(
+                                        SYKETILFELLEBIT_TOPIC,
+                                        partition,
+                                        1,
+                                        "key1",
+                                        kafkaSyketilfelle,
+                                    )
+                                )
+                            )
+                        )
+
+                        kafkaSyketilfellebitService.pollAndProcessRecords(
+                            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                        )
+                        oppfolgingstilfelleCronjob.runJob()
+                        with(
+                            handleRequest(HttpMethod.Get, url) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                            val oppfolgingstilfellePersonDTO: OppfolgingstilfellePersonDTO =
+                                objectMapper.readValue(response.content!!)
+                            val oppfolgingstilfelleDTO =
+                                oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.first()
+                            oppfolgingstilfelleDTO.start shouldBeEqualTo kafkaSyketilfelle.fom
+                            oppfolgingstilfelleDTO.end shouldBeEqualTo kafkaSyketilfelle.tom
+                            oppfolgingstilfelleDTO.varighetUker shouldBeEqualTo 2
+                        }
+                    }
+                    it("should create OppfolgingstilfellePerson and return OppfolgingstilfelleDTO for Person with egenmelding") {
+                        val kafkaEgenmelding = kafkaSyketilfellebitRelevantVirksomhet.copy(
+                            id = UUID.randomUUID().toString(),
+                            opprettet = nowUTC(),
+                            inntruffet = nowUTC().minusDays(24),
+                            fom = LocalDate.now().minusDays(24),
+                            tom = LocalDate.now().minusDays(23),
+                            tags = listOf(
+                                Tag.SYKMELDING,
+                                Tag.SENDT,
+                                Tag.EGENMELDING,
+                            ).map { tag -> tag.name },
+                        )
+                        val kafkaSyketilfelle = kafkaSyketilfellebitRelevantVirksomhet.copy(
+                            id = UUID.randomUUID().toString(),
+                            opprettet = nowUTC(),
+                            inntruffet = nowUTC(),
+                            fom = LocalDate.now().minusDays(18),
+                            tom = LocalDate.now(),
+                        )
+                        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+                            mapOf(
+                                syketilfellebitTopicPartition to listOf(
+                                    ConsumerRecord(
+                                        SYKETILFELLEBIT_TOPIC,
+                                        partition,
+                                        1,
+                                        "key1",
+                                        kafkaEgenmelding,
+                                    ),
+                                    ConsumerRecord(
+                                        SYKETILFELLEBIT_TOPIC,
+                                        partition,
+                                        2,
+                                        "key2",
+                                        kafkaSyketilfelle,
+                                    ),
+                                )
+                            )
+                        )
+
+                        kafkaSyketilfellebitService.pollAndProcessRecords(
+                            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                        )
+                        oppfolgingstilfelleCronjob.runJob()
+                        with(
+                            handleRequest(HttpMethod.Get, url) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                            val oppfolgingstilfellePersonDTO: OppfolgingstilfellePersonDTO =
+                                objectMapper.readValue(response.content!!)
+                            val oppfolgingstilfelleDTO =
+                                oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.first()
+                            oppfolgingstilfelleDTO.start shouldBeEqualTo kafkaEgenmelding.fom
+                            oppfolgingstilfelleDTO.end shouldBeEqualTo kafkaSyketilfelle.tom
+                            oppfolgingstilfelleDTO.antallSykedager shouldBeEqualTo 21
+                            oppfolgingstilfelleDTO.varighetUker shouldBeEqualTo 3
                         }
                     }
                     it("should not return future oppfolgingstilfelle when using get in api") {
