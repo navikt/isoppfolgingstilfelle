@@ -142,6 +142,7 @@ class OppfolgingstilfelleSystemApiSpek : Spek({
                             oppfolgingstilfelleDTO.arbeidstakerAtTilfelleEnd shouldBeEqualTo true
                             oppfolgingstilfelleDTO.start shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.fom
                             oppfolgingstilfelleDTO.end shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.tom
+                            oppfolgingstilfelleDTO.antallSykedager shouldBeEqualTo 3
                             oppfolgingstilfelleDTO.varighetUker shouldBeEqualTo 0
                         }
                     }
@@ -264,6 +265,7 @@ class OppfolgingstilfelleSystemApiSpek : Spek({
                                 oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.first()
                             oppfolgingstilfelleDTO.start shouldBeEqualTo kafkaSyketilfelle.fom
                             oppfolgingstilfelleDTO.end shouldBeEqualTo kafkaSyketilfelle.tom
+                            oppfolgingstilfelleDTO.antallSykedager shouldBeEqualTo 24
                             oppfolgingstilfelleDTO.varighetUker shouldBeEqualTo 2
                         }
                     }
@@ -384,6 +386,8 @@ class OppfolgingstilfelleSystemApiSpek : Spek({
                             oppfolgingstilfelleDTO.arbeidstakerAtTilfelleEnd shouldBeEqualTo true
                             oppfolgingstilfelleDTO.start shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.fom
                             oppfolgingstilfelleDTO.end shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.tom
+                            oppfolgingstilfelleDTO.antallSykedager shouldBeEqualTo 3
+                            oppfolgingstilfelleDTO.varighetUker shouldBeEqualTo 0
                         }
                     }
                 }
