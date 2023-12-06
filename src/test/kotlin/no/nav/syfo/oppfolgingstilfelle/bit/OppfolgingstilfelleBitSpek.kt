@@ -1351,7 +1351,6 @@ class OppfolgingstilfelleBitSpek : Spek({
             secondTilfelleDuration shouldBeEqualTo 0
             oppfolgingstilfelleLast.antallSykedager shouldBeEqualTo 1
             oppfolgingstilfelleLast.calculateCurrentVarighetUker() shouldBeEqualTo 0
-
         }
 
         it("should return 2 Oppfolgingstilfelle, if person has at least 16 Arbeidsdag+Feriedag and at at least 1 Feriedag between 2 Sykedag") {
@@ -1448,7 +1447,6 @@ class OppfolgingstilfelleBitSpek : Spek({
             tilfelleDuration shouldBeEqualTo 30
             oppfolgingstilfelle.antallSykedager shouldBeEqualTo 12
             oppfolgingstilfelle.calculateCurrentVarighetUker() shouldBeEqualTo 1
-
         }
         it("should return 1 Oppfolgingstilfelle with correct Sykedager even if multiple ferieperioder with arbeidsdag in between") {
             val oppfolgingstilfelleBitList = listOf(
@@ -1484,7 +1482,6 @@ class OppfolgingstilfelleBitSpek : Spek({
             tilfelleDuration shouldBeEqualTo 10
             oppfolgingstilfelle.antallSykedager shouldBeEqualTo 11
             oppfolgingstilfelle.calculateCurrentVarighetUker() shouldBeEqualTo 1
-
         }
         it("should return 1 Oppfolgingstilfelle with correct Sykedager even if egenmeldingsdager to begin with") {
             val oppfolgingstilfelleBitList = listOf(
