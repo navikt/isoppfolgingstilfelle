@@ -1270,7 +1270,7 @@ class OppfolgingstilfelleBitSpek : Spek({
             val tilfelleDuration = oppfolgingstilfelle.start.until(oppfolgingstilfelle.end, ChronoUnit.DAYS)
             tilfelleDuration shouldBeEqualTo 10
             oppfolgingstilfelle.antallSykedager shouldBeEqualTo 11
-            oppfolgingstilfelleLast.calculateCurrentVarighetUker() shouldBeEqualTo 1
+            oppfolgingstilfelle.calculateCurrentVarighetUker() shouldBeEqualTo 1
         }
 
         it("should return 2 Oppfolgingstilfelle, if person has at least 16 Arbeidsdag between 2 Sykedag") {
