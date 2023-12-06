@@ -167,6 +167,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                                 oppfolgingstilfelleDTO.start,
                                 oppfolgingstilfelleDTO.end,
                             ).toInt() + 1
+                            oppfolgingstilfelleDTO.varighetUker shouldBeEqualTo 0
                         }
                     }
                     it("should create OppfolgingstilfellePerson with dodsdato if set") {
@@ -409,6 +410,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                             oppfolgingstilfelleDTO.arbeidstakerAtTilfelleEnd shouldBeEqualTo false
                             oppfolgingstilfelleDTO.start shouldBeEqualTo kafkaSyketilfellebitRelevantVirksomhet.fom
                             oppfolgingstilfelleDTO.end shouldBeEqualTo kafkaSyketilfellebitRelevantSykmeldingBekreftet.tom
+                            oppfolgingstilfelleDTO.varighetUker shouldBeEqualTo 0
                         }
                     }
                 }
