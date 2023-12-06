@@ -72,7 +72,7 @@ fun OppfolgingstilfellePerson.toKafkaOppfolgingstilfellePerson() = KafkaOppfolgi
     dodsdato = this.dodsdato,
 )
 
-private fun Oppfolgingstilfelle.calculateCurrentVarighetUker(): Int {
+fun Oppfolgingstilfelle.calculateCurrentVarighetUker(): Int {
     val currentVarighetDaysBrutto = ChronoUnit.DAYS.between(start, minOf(LocalDate.now(), end)) + 1
     val currentVarighetDays = if (antallSykedager == null) {
         currentVarighetDaysBrutto
