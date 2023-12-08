@@ -37,7 +37,7 @@ fun List<Oppfolgingstilfelle>?.toOppfolgingstilfellePersonDTO(
     personIdent: PersonIdentNumber,
     dodsdato: LocalDate?,
 ) = OppfolgingstilfellePersonDTO(
-    oppfolgingstilfelleList = this?.toOppfolgingstilfelleDTOList(uuid) ?: emptyList(),
+    oppfolgingstilfelleList = this?.toOppfolgingstilfelleDTOList() ?: emptyList(),
     personIdent = personIdent.value,
     dodsdato = dodsdato,
 )
