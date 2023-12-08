@@ -10,6 +10,7 @@ import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
+import kotlin.math.max
 
 private const val DAYS_IN_WEEK = 7
 
@@ -79,7 +80,8 @@ fun Oppfolgingstilfelle.calculateCurrentVarighetUker(): Int {
     } else {
         val totalVarighetDays = ChronoUnit.DAYS.between(start, end) + 1
         val ikkeSykedager = totalVarighetDays - antallSykedager
-        currentVarighetDaysBrutto - ikkeSykedager
+        val sykedagerTilIDag = currentVarighetDaysBrutto - ikkeSykedager
+        max(0, sykedagerTilIDag)
     }
     return currentVarighetDays.toInt() / DAYS_IN_WEEK
 }
