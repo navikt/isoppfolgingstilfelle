@@ -9,7 +9,7 @@ version = "1.0.0"
 object Versions {
     const val confluent = "7.5.1"
     const val flyway = "9.22.3"
-    const val hikari = "5.0.1"
+    const val hikari = "5.1.0"
     const val jackson = "2.16.0"
     const val jedis = "5.1.0"
     const val kafka = "3.6.0"
