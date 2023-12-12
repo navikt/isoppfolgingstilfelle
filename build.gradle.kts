@@ -7,33 +7,33 @@ group = "no.nav.syfo"
 version = "1.0.0"
 
 object Versions {
-    const val confluent = "7.2.1"
-    const val flyway = "8.5.13"
+    const val confluent = "7.5.1"
+    const val flyway = "9.22.3"
     const val hikari = "5.0.1"
-    const val jackson = "2.13.3"
-    const val jedis = "4.2.3"
-    const val kafka = "3.2.3"
-    const val kafkaEmbedded = "3.2.1"
-    const val ktor = "2.1.2"
-    const val kluent = "1.68"
-    const val logback = "1.2.11"
-    const val logstashEncoder = "7.2"
-    const val mockk = "1.12.4"
-    const val nimbusJoseJwt = "9.25.3"
-    const val micrometerRegistry = "1.9.4"
-    const val postgres = "42.5.1"
+    const val jackson = "2.16.0"
+    const val jedis = "5.1.0"
+    const val kafka = "3.6.0"
+    const val kafkaEmbedded = "3.2.3"
+    const val ktor = "2.3.7"
+    const val kluent = "1.73"
+    const val logback = "1.4.14"
+    const val logstashEncoder = "7.4"
+    const val mockk = "1.13.8"
+    const val nimbusJoseJwt = "9.37.2"
+    const val micrometerRegistry = "1.12.0"
+    const val postgres = "42.6.0"
     val postgresEmbedded = if (Os.isFamily(Os.FAMILY_MAC)) "1.0.0" else "0.13.4"
     const val redisEmbedded = "0.7.3"
-    const val scala = "2.13.9"
-    const val spek = "2.0.18"
-    const val nimbusjosejwt = "9.25.1"
+    const val scala = "2.13.12"
+    const val spek = "2.0.19"
+    const val nimbusjosejwt = "9.37.2"
 }
 
 plugins {
-    kotlin("jvm") version "1.9.0"
+    kotlin("jvm") version "1.9.21"
     id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("org.jlleitschuh.gradle.ktlint") version "11.3.1"
-    id("com.github.davidmc24.gradle.plugin.avro") version "1.7.1"
+    id("org.jlleitschuh.gradle.ktlint") version "11.4.2"
+    id("com.github.davidmc24.gradle.plugin.avro") version "1.9.1"
 }
 
 val githubUser: String by project
@@ -107,13 +107,13 @@ dependencies {
         implementation("org.eclipse.jetty.http2:http2-server") {
             because("no.nav:kafka-embedded-env:${Versions.kafkaEmbedded} -> https://advisory.checkmarx.net/advisory/vulnerability/CVE-2022-2048/")
             version {
-                require("9.4.48.v20220622")
+                require("9.4.53.v20231009")
             }
         }
         implementation("com.google.protobuf:protobuf-java") {
             because("no.nav:kafka-embedded-env:${Versions.kafkaEmbedded} -> https://cwe.mitre.org/data/definitions/400.html")
             version {
-                require("3.21.7")
+                require("3.25.1")
             }
         }
     }
