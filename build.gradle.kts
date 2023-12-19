@@ -89,6 +89,12 @@ dependencies {
     implementation("io.confluent:kafka-avro-serializer:${Versions.confluent}", excludeLog4j)
     implementation("org.apache.kafka:kafka_2.13:${Versions.kafka}", excludeLog4j)
     constraints {
+        implementation("org.apache.zookeeper:zookeeper") {
+            because("org.apache.kafka:kafka_2.13:${Versions.kafka} -> https://www.cve.org/CVERecord?id=CVE-2023-44981")
+            version {
+                require("3.7.2")
+            }
+        }
         implementation("org.scala-lang:scala-library") {
             because("org.apache.kafka:kafka_2.13:${Versions.kafka} -> https://www.cve.org/CVERecord?id=CVE-2022-36944")
             version {
