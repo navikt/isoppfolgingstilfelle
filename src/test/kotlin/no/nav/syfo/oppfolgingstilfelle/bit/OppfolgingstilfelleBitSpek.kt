@@ -1246,6 +1246,21 @@ class OppfolgingstilfelleBitSpek : Spek({
             oppfolgingstilfelleList.size shouldBeEqualTo 0
         }
 
+        it("should return no Oppfolgingstilfelle, if person has only reisetilskudd") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKMELDING, SENDT, PERIODE, REISETILSKUDD, UKJENT_AKTIVITET),
+                    fom = LocalDate.now().minusDays(18),
+                    tom = LocalDate.now(),
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.size shouldBeEqualTo 0
+        }
+
         it("should return Oppfolgingstilfelle and exclude behandlingsdager from the interval") {
             val oppfolgingstilfelleBitList = listOf(
                 defaultBit.copy(
