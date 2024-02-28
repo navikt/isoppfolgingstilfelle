@@ -10,27 +10,27 @@ object Versions {
     const val confluent = "7.5.1"
     const val flyway = "9.22.3"
     const val hikari = "5.1.0"
-    const val jackson = "2.16.0"
+    const val jackson = "2.16.1"
     const val jedis = "5.1.0"
-    const val kafka = "3.6.0"
+    const val kafka = "3.6.1"
     const val kafkaEmbedded = "3.2.3"
-    const val ktor = "2.3.7"
+    const val ktor = "2.3.8"
     const val kluent = "1.73"
     const val logback = "1.4.14"
     const val logstashEncoder = "7.4"
-    const val mockk = "1.13.8"
-    const val nimbusJoseJwt = "9.37.2"
-    const val micrometerRegistry = "1.12.0"
-    const val postgres = "42.6.0"
+    const val mockk = "1.13.9"
+    const val nimbusJoseJwt = "9.37.3"
+    const val micrometerRegistry = "1.12.2"
+    const val postgres = "42.7.2"
     val postgresEmbedded = if (Os.isFamily(Os.FAMILY_MAC)) "1.0.0" else "0.13.4"
     const val redisEmbedded = "0.7.3"
     const val scala = "2.13.12"
     const val spek = "2.0.19"
-    const val nimbusjosejwt = "9.37.2"
+    const val nimbusjosejwt = "9.37.3"
 }
 
 plugins {
-    kotlin("jvm") version "1.9.21"
+    kotlin("jvm") version "1.9.22"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("org.jlleitschuh.gradle.ktlint") version "11.4.2"
     id("com.github.davidmc24.gradle.plugin.avro") version "1.9.1"
@@ -92,6 +92,12 @@ dependencies {
             because("io.confluent:kafka-avro-serializer:${Versions.confluent} -> https://www.cve.org/CVERecord?id=CVE-2023-39410")
             version {
                 require("1.11.3")
+            }
+        }
+        implementation("org.apache.commons:commons-compress") {
+            because("org.apache.commons:commons-compress:1.22 -> https://www.cve.org/CVERecord?id=CVE-2012-2098")
+            version {
+                require("1.26.0")
             }
         }
     }
