@@ -18,12 +18,8 @@ fun Route.registerOppfolgingstilfelleArbeidstakerApi(
 ) {
     route(oppfolgingstilfelleArbeidstakerApiV1Path) {
         get {
-            val token = this.getBearerHeader()
+            this.getBearerHeader()
                 ?: throw IllegalArgumentException("Failed to retrieve oppfolgingstilfelle: No token supplied in request header")
-            apiConsumerAccessService.validateConsumerApplicationAZP(
-                authorizedApplicationNames = authorizedApplicationNames,
-                token = token,
-            )
             val arbeidstakerPersonIdent = call.personIdent()
                 ?: throw IllegalArgumentException("Failed to retrieve oppfolgingstilfelle: No pid found in token")
             val oppfolgingstilfelleDTOList = oppfolgingstilfelleService.getOppfolgingstilfeller(

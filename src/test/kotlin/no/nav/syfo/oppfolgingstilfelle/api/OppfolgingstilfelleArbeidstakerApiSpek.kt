@@ -43,12 +43,6 @@ class OppfolgingstilfelleArbeidstakerApiSpek : Spek({
             issuer = externalMockEnvironment.wellKnownSelvbetjening.issuer,
             pid = UserConstants.ARBEIDSTAKER_2_FNR.value,
         )
-        val validTokenOtherAzp = generateJWT(
-            audience = externalMockEnvironment.environment.tokenx.clientId,
-            azp = testIsnarmesteLederClientId,
-            issuer = externalMockEnvironment.wellKnownSelvbetjening.issuer,
-            pid = personIdent.value,
-        )
 
         beforeEachTest {
             database.dropData()
@@ -83,17 +77,6 @@ class OppfolgingstilfelleArbeidstakerApiSpek : Spek({
                             response.status() shouldBeEqualTo HttpStatusCode.OK
                             val content = objectMapper.readValue<List<OppfolgingstilfelleDTO>>(response.content!!)
                             content.size shouldBeEqualTo 0
-                        }
-                    }
-                }
-                describe("unhappy path") {
-                    it("wrong azp") {
-                        with(
-                            handleRequest(HttpMethod.Get, oppfolgingstilfelleArbeidstakerApiV1Path) {
-                                addHeader(HttpHeaders.Authorization, bearerHeader(validTokenOtherAzp))
-                            }
-                        ) {
-                            response.status() shouldBeEqualTo HttpStatusCode.Forbidden
                         }
                     }
                 }
