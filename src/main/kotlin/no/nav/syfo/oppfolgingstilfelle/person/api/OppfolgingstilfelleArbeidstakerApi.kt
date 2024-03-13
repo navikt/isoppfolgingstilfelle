@@ -17,7 +17,7 @@ fun Route.registerOppfolgingstilfelleArbeidstakerApi(
     oppfolgingstilfelleService: OppfolgingstilfelleService,
 ) {
     route(oppfolgingstilfelleArbeidstakerApiV1Path) {
-        get() {
+        get {
             val token = this.getBearerHeader()
                 ?: throw IllegalArgumentException("Failed to retrieve oppfolgingstilfelle: No token supplied in request header")
             apiConsumerAccessService.validateConsumerApplicationAZP(

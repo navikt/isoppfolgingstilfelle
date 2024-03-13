@@ -97,7 +97,7 @@ val testAzureAppPreAuthorizedApps = listOf(
         clientId = testIsdialogmoteClientId,
     ),
     PreAuthorizedClient(
-        name = "dev-gcp:teamsykefravr:meroppfolging-backend",
+        name = "dev-gcp:team-esyfo:meroppfolging-backend",
         clientId = testMeroppfolgingBackendClientId,
     ),
 )
