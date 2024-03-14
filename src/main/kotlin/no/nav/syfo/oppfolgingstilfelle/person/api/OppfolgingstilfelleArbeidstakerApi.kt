@@ -12,8 +12,6 @@ import no.nav.syfo.util.*
 const val oppfolgingstilfelleArbeidstakerApiV1Path = "/api/v1/arbeidstaker/oppfolgingstilfelle"
 
 fun Route.registerOppfolgingstilfelleArbeidstakerApi(
-    apiConsumerAccessService: APIConsumerAccessService,
-    authorizedApplicationNames: List<String>,
     oppfolgingstilfelleService: OppfolgingstilfelleService,
 ) {
     route(oppfolgingstilfelleArbeidstakerApiV1Path) {

@@ -96,8 +96,6 @@ fun Application.apiModule(
                 narmesteLederAccessService = narmesteLederAccessService
             )
             registerOppfolgingstilfelleArbeidstakerApi(
-                apiConsumerAccessService = apiConsumerAccessService,
-                authorizedApplicationNames = environment.arbeidstakerAPIAuthorizedConsumerApplicationNames,
                 oppfolgingstilfelleService = oppfolgingstilfelleService,
             )
         }

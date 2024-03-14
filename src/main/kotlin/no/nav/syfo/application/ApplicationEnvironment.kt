@@ -80,10 +80,6 @@ data class Environment(
         isdialogmoteApplicationName,
         isdialogmotekandidatApplicationName,
     ),
-    private val meroppfolgingBackendApplicationName: String = "meroppfolging-backend",
-    val arbeidstakerAPIAuthorizedConsumerApplicationNames: List<String> = listOf(
-        meroppfolgingBackendApplicationName,
-    ),
 )
 
 fun getEnvVar(
