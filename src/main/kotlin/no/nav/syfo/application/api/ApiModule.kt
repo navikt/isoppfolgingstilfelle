@@ -19,6 +19,7 @@ import no.nav.syfo.narmesteleder.NarmesteLederAccessService
 import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
 import no.nav.syfo.narmesteleder.api.registerOppfolgingstilfelleNarmesteLederApi
 import no.nav.syfo.oppfolgingstilfelle.person.api.registerOppfolgingstilfelleApi
+import no.nav.syfo.oppfolgingstilfelle.person.api.registerOppfolgingstilfelleArbeidstakerApi
 import no.nav.syfo.oppfolgingstilfelle.person.api.registerOppfolgingstilfelleSystemApi
 
 fun Application.apiModule(
@@ -93,6 +94,9 @@ fun Application.apiModule(
             registerOppfolgingstilfelleNarmesteLederApi(
                 oppfolgingstilfelleService = oppfolgingstilfelleService,
                 narmesteLederAccessService = narmesteLederAccessService
+            )
+            registerOppfolgingstilfelleArbeidstakerApi(
+                oppfolgingstilfelleService = oppfolgingstilfelleService,
             )
         }
     }

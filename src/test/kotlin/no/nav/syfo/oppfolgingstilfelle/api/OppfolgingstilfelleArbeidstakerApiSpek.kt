@@ -1,10 +1,11 @@
-package no.nav.syfo.narmesteleder.api
+package no.nav.syfo.oppfolgingstilfelle.api
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfelleDTO
+import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleArbeidstakerApiV1Path
 import no.nav.syfo.oppfolgingstilfelle.person.database.createOppfolgingstilfellePerson
 import no.nav.syfo.util.*
 import org.amshove.kluent.shouldBeEqualTo
@@ -13,7 +14,7 @@ import org.spekframework.spek2.style.specification.describe
 import testhelper.*
 import testhelper.generator.*
 
-class OppfolgingstilfelleNarmesteLederApiSpek : Spek({
+class OppfolgingstilfelleArbeidstakerApiSpek : Spek({
     val objectMapper: ObjectMapper = configuredJacksonMapper()
     with(TestApplicationEngine()) {
         start()
@@ -25,9 +26,23 @@ class OppfolgingstilfelleNarmesteLederApiSpek : Spek({
             externalMockEnvironment = externalMockEnvironment,
         )
 
-        val personIdentDefault = UserConstants.PERSONIDENTNUMBER_DEFAULT
+        val personIdent = UserConstants.ARBEIDSTAKER_FNR
 
-        val oppfolgingstilfellePerson = generateOppfolgingstilfellePerson()
+        val oppfolgingstilfellePerson = generateOppfolgingstilfellePerson(
+            personIdent = personIdent,
+        )
+        val validToken = generateJWT(
+            audience = externalMockEnvironment.environment.tokenx.clientId,
+            azp = testMeroppfolgingBackendClientId,
+            issuer = externalMockEnvironment.wellKnownSelvbetjening.issuer,
+            pid = personIdent.value,
+        )
+        val validTokenOther = generateJWT(
+            audience = externalMockEnvironment.environment.tokenx.clientId,
+            azp = testMeroppfolgingBackendClientId,
+            issuer = externalMockEnvironment.wellKnownSelvbetjening.issuer,
+            pid = UserConstants.ARBEIDSTAKER_2_FNR.value,
+        )
 
         beforeEachTest {
             database.dropData()
@@ -36,21 +51,14 @@ class OppfolgingstilfelleNarmesteLederApiSpek : Spek({
             }
         }
 
-        describe(OppfolgingstilfelleNarmesteLederApiSpek::class.java.simpleName) {
-            describe("$oppfolgingstilfelleApiV1Path") {
-                val validToken = generateJWT(
-                    audience = externalMockEnvironment.environment.tokenx.clientId,
-                    azp = testIsnarmesteLederClientId,
-                    issuer = externalMockEnvironment.wellKnownSelvbetjening.issuer,
-                )
+        describe(OppfolgingstilfelleArbeidstakerApiSpek::class.java.simpleName) {
+            describe("$oppfolgingstilfelleArbeidstakerApiV1Path") {
 
                 describe("happy path") {
                     it("GET base path") {
                         with(
-                            handleRequest(HttpMethod.Get, oppfolgingstilfelleApiV1Path) {
+                            handleRequest(HttpMethod.Get, oppfolgingstilfelleArbeidstakerApiV1Path) {
                                 addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
-                                addHeader(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
-                                addHeader(NAV_VIRKSOMHETSNUMMER, UserConstants.VIRKSOMHETSNUMMER_DEFAULT.value)
                             }
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.OK
@@ -60,21 +68,15 @@ class OppfolgingstilfelleNarmesteLederApiSpek : Spek({
                             oppfolgingstilfelleDTO.start shouldBeEqualTo oppfolgingstilfellePerson.oppfolgingstilfelleList[0].start
                         }
                     }
-                }
-
-                describe("unhappy path") {
-                    it("GET base path with invalid narmeste leder relasjon returns status code forbidden") {
+                    it("GET base path, no oppfolgingstilfelle") {
                         with(
-                            handleRequest(HttpMethod.Get, oppfolgingstilfelleApiV1Path) {
-                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
-                                addHeader(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
-                                addHeader(
-                                    NAV_VIRKSOMHETSNUMMER,
-                                    "912000000",
-                                )
+                            handleRequest(HttpMethod.Get, oppfolgingstilfelleArbeidstakerApiV1Path) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validTokenOther))
                             }
                         ) {
-                            response.status() shouldBeEqualTo HttpStatusCode.Forbidden
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+                            val content = objectMapper.readValue<List<OppfolgingstilfelleDTO>>(response.content!!)
+                            content.size shouldBeEqualTo 0
                         }
                     }
                 }

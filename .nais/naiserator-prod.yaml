@@ -53,6 +53,8 @@ spec:
         - application: isdialogmotekandidat
         - application: syfomodiaperson
         - application: isbehandlerdialog
+        - application: meroppfolging-backend
+          namespace: team-esyfo
     outbound:
       external:
         - host: "pdl-api.prod-fss-pub.nais.io"
