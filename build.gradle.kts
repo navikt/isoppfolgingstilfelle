@@ -13,7 +13,6 @@ object Versions {
     const val jackson = "2.16.1"
     const val jedis = "5.1.0"
     const val kafka = "3.6.1"
-    const val kafkaEmbedded = "3.2.3"
     const val ktor = "2.3.8"
     const val kluent = "1.73"
     const val logback = "1.4.14"
@@ -113,27 +112,6 @@ dependencies {
             because("org.apache.kafka:kafka_2.13:${Versions.kafka} -> https://www.cve.org/CVERecord?id=CVE-2022-36944")
             version {
                 require(Versions.scala)
-            }
-        }
-    }
-    testImplementation("no.nav:kafka-embedded-env:${Versions.kafkaEmbedded}", excludeLog4j)
-    constraints {
-        implementation("org.yaml:snakeyaml") {
-            because("no.nav:kafka-embedded-env:${Versions.kafkaEmbedded} -> https://advisory.checkmarx.net/advisory/vulnerability/CVE-2022-25857/")
-            version {
-                require("1.33")
-            }
-        }
-        implementation("org.eclipse.jetty.http2:http2-server") {
-            because("no.nav:kafka-embedded-env:${Versions.kafkaEmbedded} -> https://advisory.checkmarx.net/advisory/vulnerability/CVE-2022-2048/")
-            version {
-                require("9.4.53.v20231009")
-            }
-        }
-        implementation("com.google.protobuf:protobuf-java") {
-            because("no.nav:kafka-embedded-env:${Versions.kafkaEmbedded} -> https://cwe.mitre.org/data/definitions/400.html")
-            version {
-                require("3.25.1")
             }
         }
     }
