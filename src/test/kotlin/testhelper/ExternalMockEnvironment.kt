@@ -1,13 +1,11 @@
 package testhelper
 
-import no.nav.common.KafkaEnvironment
 import no.nav.syfo.application.ApplicationState
 import testhelper.mock.*
 
 class ExternalMockEnvironment private constructor() {
     val applicationState: ApplicationState = testAppState()
     val database = TestDatabase()
-    val embeddedEnvironment: KafkaEnvironment = testKafka()
 
     private val azureAdMock = AzureAdMock()
     private val pdlMock = PdlMock()
@@ -26,7 +24,6 @@ class ExternalMockEnvironment private constructor() {
     )
 
     val environment = testEnvironment(
-        kafkaBootstrapServers = embeddedEnvironment.brokersURL,
         azureOpenIdTokenEndpoint = azureAdMock.url,
         pdlUrl = pdlMock.url,
         istilgangskontrollUrl = tilgangskontrollMock.url,
@@ -52,7 +49,6 @@ class ExternalMockEnvironment private constructor() {
 }
 
 fun ExternalMockEnvironment.startExternalMocks() {
-    this.embeddedEnvironment.start()
     this.externalMocks.forEach { (_, externalMock) -> externalMock.start() }
     this.redisServer.start()
 }

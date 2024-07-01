@@ -15,7 +15,6 @@ import java.net.ServerSocket
 
 fun testEnvironment(
     azureOpenIdTokenEndpoint: String,
-    kafkaBootstrapServers: String,
     pdlUrl: String,
     istilgangskontrollUrl: String,
     narmestelederUrl: String,
@@ -43,7 +42,7 @@ fun testEnvironment(
         username = "username",
     ),
     kafka = KafkaEnvironment(
-        aivenBootstrapServers = kafkaBootstrapServers,
+        aivenBootstrapServers = "kafkaBootstrapServers",
         aivenCredstorePassword = "credstorepassord",
         aivenKeystoreLocation = "keystore",
         aivenSecurityProtocol = "SSL",
