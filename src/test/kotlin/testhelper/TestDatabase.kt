@@ -1,6 +1,6 @@
 package testhelper
 
-import com.opentable.db.postgres.embedded.EmbeddedPostgres
+import io.zonky.test.db.postgres.embedded.EmbeddedPostgres
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingstilfelle.bit.database.isTilfelleBitAvbrutt

@@ -1,34 +1,30 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import org.apache.tools.ant.taskdefs.condition.Os
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jlleitschuh.gradle.ktlint.tasks.KtLintCheckTask
 
 group = "no.nav.syfo"
 version = "1.0.0"
 
 val confluent = "7.5.1"
-val flyway = "9.22.3"
+val flyway = "10.17.2"
 val hikari = "5.1.0"
-val jackson = "2.16.1"
+val jackson = "2.17.2"
 val jedis = "5.1.0"
-val kafka = "3.6.1"
-val ktor = "2.3.8"
+val kafka = "3.7.0"
+val ktor = "2.3.12"
 val kluent = "1.73"
-val logback = "1.4.14"
+val logback = "1.5.7"
 val logstashEncoder = "7.4"
 val mockk = "1.13.9"
-val nimbusJoseJwt = "9.37.3"
+val nimbusJoseJwt = "9.40"
 val micrometerRegistry = "1.12.2"
-val postgres = "42.7.2"
-val postgresEmbedded = if (Os.isFamily(Os.FAMILY_MAC)) "1.0.0" else "0.13.4"
+val postgres = "42.7.4"
+val postgresEmbedded = "2.0.7"
 val redisEmbedded = "0.7.3"
 val scala = "2.13.12"
 val spek = "2.0.19"
-val nimbusjosejwt = "9.37.3"
 
 plugins {
-    kotlin("jvm") version "2.0.10"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    kotlin("jvm") version "2.0.20"
+    id("com.gradleup.shadow") version "8.3.1"
     id("org.jlleitschuh.gradle.ktlint") version "11.4.2"
     id("com.github.davidmc24.gradle.plugin.avro") version "1.9.1"
 }
@@ -71,13 +67,13 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
 
     // Database
-    implementation("org.flywaydb:flyway-core:$flyway")
+    implementation("org.flywaydb:flyway-database-postgresql:$flyway")
     implementation("com.zaxxer:HikariCP:$hikari")
     implementation("org.postgresql:postgresql:$postgres")
-    testImplementation("com.opentable.components:otj-pg-embedded:$postgresEmbedded")
+    testImplementation("io.zonky.test:embedded-postgres:$postgresEmbedded")
 
     // JWT
-    implementation("com.nimbusds:nimbus-jose-jwt:$nimbusjosejwt")
+    implementation("com.nimbusds:nimbus-jose-jwt:$nimbusJoseJwt")
 
     // Kafka
     val excludeLog4j = fun ExternalModuleDependency.() {
@@ -131,7 +127,7 @@ kotlin {
 }
 
 tasks {
-    withType<Jar> {
+    jar {
         manifest.attributes["Main-Class"] = "no.nav.syfo.AppKt"
     }
 
@@ -141,22 +137,24 @@ tasks {
         }
     }
 
-    withType<KotlinCompile> {
-        dependsOn(":generateAvroJava")
-    }
-
-    withType<ShadowJar> {
+    shadowJar {
+        mergeServiceFiles()
         archiveBaseName.set("app")
         archiveClassifier.set("")
         archiveVersion.set("")
     }
 
-    withType<Test> {
+    test {
         useJUnitPlatform {
             includeEngines("spek2")
         }
         testLogging.showStandardStreams = true
     }
+
+    compileKotlin {
+        dependsOn(":generateAvroJava")
+    }
+
     withType<KtLintCheckTask> {
         dependsOn(":generateTestAvroJava")
     }
