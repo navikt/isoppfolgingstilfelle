@@ -55,6 +55,8 @@ spec:
         - application: isbehandlerdialog
         - application: meroppfolging-backend
           namespace: team-esyfo
+        - application: amt-deltaker
+          namespace: amt
     outbound:
       external:
         - host: "pdl-api.dev-fss-pub.nais.io"
