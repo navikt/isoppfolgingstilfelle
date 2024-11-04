@@ -57,6 +57,8 @@ spec:
           namespace: team-esyfo
         - application: amt-deltaker
           namespace: amt
+        - application: mulighetsrommet-api
+          namespace: team-mulighetsrommet
     outbound:
       external:
         - host: "pdl-api.dev-fss-pub.nais.io"
