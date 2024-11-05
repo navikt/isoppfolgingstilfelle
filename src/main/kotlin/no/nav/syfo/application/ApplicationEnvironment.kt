@@ -75,10 +75,12 @@ data class Environment(
     private val isbehandlerdialogApplicationName: String = "isbehandlerdialog",
     private val isdialogmoteApplicationName: String = "isdialogmote",
     private val isdialogmotekandidatApplicationName: String = "isdialogmotekandidat",
+    private val amtDeltakerApplicationName: String = "amt-deltaker",
     val systemAPIAuthorizedConsumerApplicationNames: List<String> = listOf(
         isbehandlerdialogApplicationName,
         isdialogmoteApplicationName,
         isdialogmotekandidatApplicationName,
+        amtDeltakerApplicationName,
     ),
 )
 
