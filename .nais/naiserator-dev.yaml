@@ -68,7 +68,6 @@ spec:
         - host: "pdl-api.dev-fss-pub.nais.io"
         - host: "aareg-services-q1.dev-fss-pub.nais.io"
       rules:
-        - application: isoppfolgingstilfelle-redis
         - application: isnarmesteleder
         - application: istilgangskontroll
   azure:
@@ -78,10 +77,11 @@ spec:
       claims:
         extra:
           - "NAVident"
+  redis:
+    - instance: cache
+      access: readwrite
   tokenx:
     enabled: true
-  envFrom:
-    - secret: isoppfolgingstilfelle-redis-password
   kafka:
     pool: nav-dev
   env:
@@ -91,8 +91,6 @@ spec:
       value: "dev-fss.pdl.pdl-api"
     - name: PDL_URL
       value: "https://pdl-api.dev-fss-pub.nais.io/graphql"
-    - name: REDIS_HOST
-      value: "isoppfolgingstilfelle-redis.teamsykefravr.svc.cluster.local"
     - name: ISTILGANGSKONTROLL_CLIENT_ID
       value: "dev-gcp.teamsykefravr.istilgangskontroll"
     - name: ISTILGANGSKONTROLL_URL
