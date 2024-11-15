@@ -6,7 +6,6 @@ import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
-import no.nav.syfo.application.cache.RedisStore
 import no.nav.syfo.client.arbeidsforhold.ArbeidsforholdClient
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
@@ -143,9 +142,7 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
             arbeidsforholdClient = ArbeidsforholdClient(
                 azureAdClient = AzureAdClient(
                     azureEnviroment = externalMockEnvironment.environment.azure,
-                    redisStore = RedisStore(
-                        redisEnvironment = externalMockEnvironment.environment.redis,
-                    )
+                    redisStore = externalMockEnvironment.redisStore,
                 ),
                 clientEnvironment = externalMockEnvironment.environment.clients.arbeidsforhold,
             )

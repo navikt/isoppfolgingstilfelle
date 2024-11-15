@@ -1,6 +1,7 @@
 package testhelper
 
 import no.nav.syfo.application.ApplicationState
+import no.nav.syfo.application.cache.RedisStore
 import testhelper.mock.*
 
 class ExternalMockEnvironment private constructor() {
@@ -33,8 +34,11 @@ class ExternalMockEnvironment private constructor() {
     )
 
     val redisServer = testRedis(
-        redisEnvironment = environment.redis,
+        port = environment.redisConfig.redisUri.port,
+        secret = environment.redisConfig.redisPassword,
     )
+
+    lateinit var redisStore: RedisStore
 
     val wellKnownInternalAzureAD = wellKnownInternalAzureAD()
     val wellKnownSelvbetjening = wellKnownSelvbetjeningMock()
