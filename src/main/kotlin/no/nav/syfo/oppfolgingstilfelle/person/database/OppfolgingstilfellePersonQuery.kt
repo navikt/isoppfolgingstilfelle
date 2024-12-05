@@ -9,6 +9,7 @@ import no.nav.syfo.oppfolgingstilfelle.person.domain.OppfolgingstilfellePerson
 import no.nav.syfo.util.configuredJacksonMapper
 import no.nav.syfo.util.toOffsetDateTimeUTC
 import java.sql.*
+import java.time.LocalDate
 import java.util.*
 
 private val mapper = configuredJacksonMapper()
@@ -78,3 +79,23 @@ fun ResultSet.toPOppfolgingstilfellePerson(): POppfolgingstilfellePerson =
             object : TypeReference<List<Oppfolgingstilfelle>>() {}
         ),
     )
+
+const val queryGetOppfolgingstilfellerPersoner =
+    """
+        SELECT op.*, p.dodsdato
+        FROM OPPFOLGINGSTILFELLE_PERSON op
+        LEFT JOIN person p ON op.personident = p.personident
+        WHERE op.personident = ANY (string_to_array(?, ','))
+        ORDER BY op.referanse_tilfelle_bit_inntruffet ASC, op.id ASC;
+    """
+
+fun Connection.getOppfolgingstilfelleMedDodsdatoForPersoner(personIdenter: List<PersonIdentNumber>): Map<PersonIdentNumber, Pair<POppfolgingstilfellePerson, LocalDate?>> =
+    this.prepareStatement(queryGetOppfolgingstilfellerPersoner).use { ps ->
+        ps.setString(1, personIdenter.joinToString(",") { it.value })
+        ps.executeQuery().toList {
+            Pair(toPOppfolgingstilfellePerson(), getDate("dodsdato")?.toLocalDate())
+        }.associateBy { (pOppfolgingstilfellePerson, _) ->
+            // Lista kan inneholde flere rader for samme person, vi ønsker kun å legge det nyeste tilfellet i mappet
+            pOppfolgingstilfellePerson.personIdentNumber
+        }
+    }
