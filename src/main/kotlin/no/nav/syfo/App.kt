@@ -86,17 +86,23 @@ fun main() {
 
     lateinit var oppfolgingstilfellePersonService: OppfolgingstilfellePersonService
 
-    val applicationEngineEnvironment = applicationEngineEnvironment {
+    val applicationEngineEnvironment = applicationEnvironment {
         log = LoggerFactory.getLogger("ktor.application")
-        config = HoconApplicationConfig(
-            config = ConfigFactory.load(),
-        )
+        config = HoconApplicationConfig(ConfigFactory.load())
+    }
 
-        connector {
-            port = applicationPort
-        }
-
-        module {
+    val server = embeddedServer(
+        Netty,
+        environment = applicationEngineEnvironment,
+        configure = {
+            connector {
+                port = applicationPort
+            }
+            connectionGroupSize = 8
+            workerGroupSize = 8
+            callGroupSize = 16
+        },
+        module = {
             databaseModule(
                 databaseEnvironment = environment.database,
             )
@@ -121,67 +127,57 @@ fun main() {
                     clientEnvironment = environment.clients.tilgangskontroll,
                 ),
             )
+            monitor.subscribe(ApplicationStarted) { application ->
+                applicationState.ready = true
+                application.environment.log.info("Application is ready, running Java VM ${Runtime.version()}")
+                val kafkaSyketilfellebitService = KafkaSyketilfellebitService(
+                    database = applicationDatabase,
+                    oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(),
+                )
+
+                launchKafkaTaskSyketilfelleBit(
+                    applicationState = applicationState,
+                    kafkaEnvironment = environment.kafka,
+                    kafkaSyketilfellebitService = kafkaSyketilfellebitService,
+                )
+
+                val kafkaSykmeldingstatusService = KafkaSykmeldingstatusService(
+                    database = applicationDatabase,
+                )
+                launchKafkaTaskStatusendring(
+                    applicationState = applicationState,
+                    kafkaEnvironment = environment.kafka,
+                    kafkaSykmeldingstatusService = kafkaSykmeldingstatusService,
+                )
+
+                val identhendelseService = IdenthendelseService(
+                    database = applicationDatabase,
+                    pdlClient = pdlClient,
+                )
+                val kafkaIdenthendelseConsumerService = IdenthendelseConsumerService(
+                    identhendelseService = identhendelseService,
+                )
+                launchKafkaTaskIdenthendelse(
+                    applicationState = applicationState,
+                    kafkaEnvironment = environment.kafka,
+                    kafkaIdenthendelseConsumerService = kafkaIdenthendelseConsumerService,
+                )
+
+                launchKafkaTaskPersonhendelse(
+                    applicationState = applicationState,
+                    kafkaEnvironment = environment.kafka,
+                    database = applicationDatabase,
+                )
+                launchCronjobModule(
+                    applicationState = applicationState,
+                    environment = environment,
+                    database = applicationDatabase,
+                    oppfolgingstilfellePersonService = oppfolgingstilfellePersonService,
+                    redisStore = redisStore,
+                )
+            }
         }
-    }
-
-    applicationEngineEnvironment.monitor.subscribe(ApplicationStarted) { application ->
-        applicationState.ready = true
-        application.environment.log.info("Application is ready, running Java VM ${Runtime.version()}")
-        val kafkaSyketilfellebitService = KafkaSyketilfellebitService(
-            database = applicationDatabase,
-            oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(),
-        )
-
-        launchKafkaTaskSyketilfelleBit(
-            applicationState = applicationState,
-            kafkaEnvironment = environment.kafka,
-            kafkaSyketilfellebitService = kafkaSyketilfellebitService,
-        )
-
-        val kafkaSykmeldingstatusService = KafkaSykmeldingstatusService(
-            database = applicationDatabase,
-        )
-        launchKafkaTaskStatusendring(
-            applicationState = applicationState,
-            kafkaEnvironment = environment.kafka,
-            kafkaSykmeldingstatusService = kafkaSykmeldingstatusService,
-        )
-
-        val identhendelseService = IdenthendelseService(
-            database = applicationDatabase,
-            pdlClient = pdlClient,
-        )
-        val kafkaIdenthendelseConsumerService = IdenthendelseConsumerService(
-            identhendelseService = identhendelseService,
-        )
-        launchKafkaTaskIdenthendelse(
-            applicationState = applicationState,
-            kafkaEnvironment = environment.kafka,
-            kafkaIdenthendelseConsumerService = kafkaIdenthendelseConsumerService,
-        )
-
-        launchKafkaTaskPersonhendelse(
-            applicationState = applicationState,
-            kafkaEnvironment = environment.kafka,
-            database = applicationDatabase,
-        )
-        launchCronjobModule(
-            applicationState = applicationState,
-            environment = environment,
-            database = applicationDatabase,
-            oppfolgingstilfellePersonService = oppfolgingstilfellePersonService,
-            redisStore = redisStore,
-        )
-    }
-
-    val server = embeddedServer(
-        factory = Netty,
-        environment = applicationEngineEnvironment,
-    ) {
-        connectionGroupSize = 8
-        workerGroupSize = 8
-        callGroupSize = 16
-    }
+    )
 
     Runtime.getRuntime().addShutdownHook(
         Thread {
