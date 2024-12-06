@@ -1,5 +1,6 @@
 package no.nav.syfo.client.arbeidsforhold
 
+import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
@@ -15,11 +16,10 @@ import org.slf4j.LoggerFactory
 class ArbeidsforholdClient(
     private val azureAdClient: AzureAdClient,
     private val clientEnvironment: ClientEnvironment,
+    private val httpClient: HttpClient = httpClientDefault(),
 ) {
 
     private val arbeidsforholdPath = "${clientEnvironment.baseUrl}$ARBEIDSFORHOLD_PATH"
-
-    private val httpClient = httpClientDefault()
 
     suspend fun getArbeidsforhold(personIdent: PersonIdentNumber): List<AaregArbeidsforhold> =
         try {

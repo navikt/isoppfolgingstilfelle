@@ -1,16 +1,10 @@
 package testhelper.mock
 
-import io.ktor.server.application.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import no.nav.syfo.application.api.installContentNegotiation
+import io.ktor.client.engine.mock.*
+import io.ktor.client.request.*
 import no.nav.syfo.client.pdl.domain.*
 import no.nav.syfo.domain.PersonIdentNumber
 import testhelper.UserConstants
-import testhelper.getRandomPort
 
 fun PersonIdentNumber.toHistoricalPersonIdentNumber(): PersonIdentNumber {
     val firstDigit = this.value[0].digitToInt()
@@ -56,30 +50,17 @@ fun generatePdlError(code: String? = null) = listOf(
     )
 )
 
-class PdlMock {
-    private val port = getRandomPort()
-    val url = "http://localhost:$port"
-    val name = "pdl"
-    val server = embeddedServer(
-        factory = Netty,
-        port = port
-    ) {
-        installContentNegotiation()
-        routing {
-            post {
-                val pdlRequest = call.receive<PdlHentIdenterRequest>()
-                when (val personIdentNumber = PersonIdentNumber(pdlRequest.variables.ident)) {
-                    UserConstants.ARBEIDSTAKER_3_FNR -> {
-                        call.respond(generatePdlIdenterResponse(PersonIdentNumber("11111111111")))
-                    }
-                    UserConstants.ARBEIDSTAKER_WITH_ERROR -> {
-                        call.respond(generatePdlIdenterResponse(personIdentNumber).copy(errors = generatePdlError(code = "not_found")))
-                    }
-                    else -> {
-                        call.respond(generatePdlIdenterResponse(personIdentNumber))
-                    }
-                }
-            }
+suspend fun MockRequestHandleScope.pdlMockResponse(request: HttpRequestData): HttpResponseData {
+    val pdlRequest = request.receiveBody<PdlHentIdenterRequest>()
+    return when (val personIdentNumber = PersonIdentNumber(pdlRequest.variables.ident)) {
+        UserConstants.ARBEIDSTAKER_3_FNR -> {
+            respondOk(generatePdlIdenterResponse(PersonIdentNumber("11111111111")))
+        }
+        UserConstants.ARBEIDSTAKER_WITH_ERROR -> {
+            respondOk(generatePdlIdenterResponse(personIdentNumber).copy(errors = generatePdlError(code = "not_found")))
+        }
+        else -> {
+            respondOk(generatePdlIdenterResponse(personIdentNumber))
         }
     }
 }

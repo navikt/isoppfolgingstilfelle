@@ -7,12 +7,9 @@ import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.Environment
 import no.nav.syfo.application.api.access.APIConsumerAccessService
 import no.nav.syfo.application.api.authentication.*
-import no.nav.syfo.application.cache.RedisStore
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.metric.api.registerMetricApi
-import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.narmesteLeder.NarmesteLederClient
-import no.nav.syfo.client.tokendings.TokendingsClient
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.client.wellknown.WellKnown
 import no.nav.syfo.narmesteleder.NarmesteLederAccessService
@@ -24,12 +21,12 @@ import no.nav.syfo.oppfolgingstilfelle.person.api.registerOppfolgingstilfelleSys
 
 fun Application.apiModule(
     applicationState: ApplicationState,
-    azureAdClient: AzureAdClient,
     database: DatabaseInterface,
     environment: Environment,
     wellKnownInternalAzureAD: WellKnown,
     wellKnownSelvbetjening: WellKnown,
-    redisStore: RedisStore,
+    narmesteLederClient: NarmesteLederClient,
+    veilederTilgangskontrollClient: VeilederTilgangskontrollClient,
 ) {
     installMetrics()
     installCallId()
@@ -50,24 +47,9 @@ fun Application.apiModule(
     )
     installStatusPages()
 
-    val tokendingsClient = TokendingsClient(
-        tokenxClientId = environment.tokenx.clientId,
-        tokenxEndpoint = environment.tokenx.endpoint,
-        tokenxPrivateJWK = environment.tokenx.privateJWK,
-    )
-    val narmesteLederClient = NarmesteLederClient(
-        narmesteLederBaseUrl = environment.clients.narmesteLeder.baseUrl,
-        narmestelederClientId = environment.clients.narmesteLeder.clientId,
-        tokendingsClient = tokendingsClient,
-        redisStore = redisStore,
-    )
     val narmesteLederAccessService = NarmesteLederAccessService(narmesteLederClient = narmesteLederClient)
     val oppfolgingstilfelleService = OppfolgingstilfelleService(
         database = database,
-    )
-    val veilederTilgangskontrollClient = VeilederTilgangskontrollClient(
-        azureAdClient = azureAdClient,
-        clientEnvironment = environment.clients.tilgangskontroll,
     )
     val apiConsumerAccessService = APIConsumerAccessService(
         azureAppPreAuthorizedApps = environment.azure.appPreAuthorizedApps,

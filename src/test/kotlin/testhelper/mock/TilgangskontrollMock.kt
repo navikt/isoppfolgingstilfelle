@@ -1,50 +1,31 @@
 package testhelper.mock
 
-import io.ktor.server.application.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import no.nav.syfo.application.api.installContentNegotiation
+import io.ktor.client.engine.mock.*
+import io.ktor.client.request.*
 import no.nav.syfo.client.veiledertilgang.Tilgang
-import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
-import no.nav.syfo.util.personIdentHeader
+import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 import testhelper.UserConstants.PERSONIDENTNUMBER_VEILEDER_NO_ACCESS
-import testhelper.getRandomPort
 
-class TilgangskontrollMock {
-    private val port = getRandomPort()
-    val url = "http://localhost:$port"
+suspend fun MockRequestHandleScope.tilgangskontrollResponse(request: HttpRequestData): HttpResponseData {
+    val requestUrl = request.url.encodedPath
 
-    val name = "istilgangskontroll"
-    val server = mockTilgangskontroll(
-        port
-    )
-
-    private fun mockTilgangskontroll(port: Int): NettyApplicationEngine {
-        return embeddedServer(
-            factory = Netty,
-            port = port,
-        ) {
-            installContentNegotiation()
-            routing {
-                get(VeilederTilgangskontrollClient.TILGANGSKONTROLL_PERSON_PATH) {
-                    when (personIdentHeader()) {
-                        PERSONIDENTNUMBER_VEILEDER_NO_ACCESS.value -> call.respond(
-                            Tilgang(erGodkjent = false)
-                        )
-
-                        else -> call.respond(
-                            Tilgang(erGodkjent = true)
-                        )
-                    }
+    return when {
+        requestUrl.endsWith("tilgang/navident/person") -> {
+            val personident = request.headers[NAV_PERSONIDENT_HEADER]
+            when (personident) {
+                PERSONIDENTNUMBER_VEILEDER_NO_ACCESS.value -> {
+                    respondOk(Tilgang(erGodkjent = false))
                 }
-                post(VeilederTilgangskontrollClient.TILGANGSKONTROLL_PERSON_LIST_PATH) {
-                    val personidenter = call.receive<List<String>>()
-                    call.respond(personidenter.filter { it != PERSONIDENTNUMBER_VEILEDER_NO_ACCESS.value })
+
+                else -> {
+                    respondOk(Tilgang(erGodkjent = true))
                 }
             }
         }
+        requestUrl.endsWith("tilgang/navident/brukere") -> {
+            val personidenter = request.receiveBody<List<String>>()
+            respondOk(personidenter.filter { it != PERSONIDENTNUMBER_VEILEDER_NO_ACCESS.value })
+        }
+        else -> error("Unhandled path $requestUrl")
     }
 }

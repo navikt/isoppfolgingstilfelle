@@ -18,7 +18,10 @@ import no.nav.syfo.oppfolgingstilfelle.bit.kafka.syketilfelle.launchKafkaTaskSyk
 import no.nav.syfo.oppfolgingstilfelle.person.OppfolgingstilfellePersonService
 import no.nav.syfo.application.cronjob.launchCronjobModule
 import no.nav.syfo.client.azuread.AzureAdClient
+import no.nav.syfo.client.narmesteLeder.NarmesteLederClient
 import no.nav.syfo.client.pdl.PdlClient
+import no.nav.syfo.client.tokendings.TokendingsClient
+import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.identhendelse.IdenthendelseService
 import no.nav.syfo.identhendelse.kafka.IdenthendelseConsumerService
 import no.nav.syfo.identhendelse.kafka.launchKafkaTaskIdenthendelse
@@ -63,6 +66,11 @@ fun main() {
         azureEnviroment = environment.azure,
         redisStore = redisStore,
     )
+    val tokendingsClient = TokendingsClient(
+        tokenxClientId = environment.tokenx.clientId,
+        tokenxEndpoint = environment.tokenx.endpoint,
+        tokenxPrivateJWK = environment.tokenx.privateJWK,
+    )
     val pdlClient = PdlClient(
         azureAdClient = azureAdClient,
         clientEnvironment = environment.clients.pdl,
@@ -98,12 +106,20 @@ fun main() {
             )
             apiModule(
                 applicationState = applicationState,
-                azureAdClient = azureAdClient,
                 database = applicationDatabase,
                 environment = environment,
                 wellKnownInternalAzureAD = wellKnownInternalAzureAD,
                 wellKnownSelvbetjening = wellKnownSelvbetjening,
-                redisStore = redisStore,
+                narmesteLederClient = NarmesteLederClient(
+                    narmesteLederBaseUrl = environment.clients.narmesteLeder.baseUrl,
+                    narmestelederClientId = environment.clients.narmesteLeder.clientId,
+                    tokendingsClient = tokendingsClient,
+                    redisStore = redisStore,
+                ),
+                veilederTilgangskontrollClient = VeilederTilgangskontrollClient(
+                    azureAdClient = azureAdClient,
+                    clientEnvironment = environment.clients.tilgangskontroll,
+                ),
             )
         }
     }

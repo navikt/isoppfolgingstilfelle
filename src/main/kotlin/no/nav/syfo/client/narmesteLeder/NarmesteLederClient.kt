@@ -1,5 +1,6 @@
 package no.nav.syfo.client.narmesteLeder
 
+import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
@@ -18,10 +19,9 @@ class NarmesteLederClient(
     private val narmestelederClientId: String,
     private val tokendingsClient: TokendingsClient,
     private val redisStore: RedisStore,
+    private val httpClient: HttpClient = httpClientDefault(),
 ) {
     private val ansatteNarmesteLederSelvbetjeningPath = "$narmesteLederBaseUrl$NARMESTELEDERE_SELVBETJENING_PATH"
-
-    private val httpClient = httpClientDefault()
 
     suspend fun getAktiveAnsatte(
         narmesteLederIdent: PersonIdentNumber,

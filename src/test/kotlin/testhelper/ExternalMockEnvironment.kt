@@ -2,43 +2,35 @@ package testhelper
 
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.cache.RedisStore
+import redis.clients.jedis.DefaultJedisClientConfig
+import redis.clients.jedis.HostAndPort
+import redis.clients.jedis.JedisPool
+import redis.clients.jedis.JedisPoolConfig
 import testhelper.mock.*
 
 class ExternalMockEnvironment private constructor() {
     val applicationState: ApplicationState = testAppState()
     val database = TestDatabase()
 
-    private val azureAdMock = AzureAdMock()
-    private val pdlMock = PdlMock()
-    private val tilgangskontrollMock = TilgangskontrollMock()
-    private val narmesteLederMock = NarmesteLederMock()
-    private val tokendingsMock = TokendingsMock()
-    private val arbeidsforholdMock = ArbeidsforholdMock()
+    val environment = testEnvironment()
+    val mockHttpClient = mockHttpClient(environment = environment)
 
-    val externalMocks = hashMapOf(
-        azureAdMock.name to azureAdMock.server,
-        pdlMock.name to pdlMock.server,
-        tilgangskontrollMock.name to tilgangskontrollMock.server,
-        narmesteLederMock.name to narmesteLederMock.server,
-        tokendingsMock.name to tokendingsMock.server,
-        arbeidsforholdMock.name to arbeidsforholdMock.server,
-    )
-
-    val environment = testEnvironment(
-        azureOpenIdTokenEndpoint = azureAdMock.url,
-        pdlUrl = pdlMock.url,
-        istilgangskontrollUrl = tilgangskontrollMock.url,
-        narmestelederUrl = narmesteLederMock.url,
-        tokendingsUrl = tokendingsMock.url,
-        arbeidsforholdUrl = arbeidsforholdMock.url,
-    )
-
+    private val redisConfig = environment.redisConfig
     val redisServer = testRedis(
-        port = environment.redisConfig.redisUri.port,
-        secret = environment.redisConfig.redisPassword,
+        port = redisConfig.redisUri.port,
+        secret = redisConfig.redisPassword,
     )
 
-    lateinit var redisStore: RedisStore
+    val redisStore = RedisStore(
+        JedisPool(
+            JedisPoolConfig(),
+            HostAndPort(redisConfig.host, redisConfig.port),
+            DefaultJedisClientConfig.builder()
+                .ssl(redisConfig.ssl)
+                .password(redisConfig.redisPassword)
+                .build()
+        )
+    )
 
     val wellKnownInternalAzureAD = wellKnownInternalAzureAD()
     val wellKnownSelvbetjening = wellKnownSelvbetjeningMock()
@@ -46,13 +38,8 @@ class ExternalMockEnvironment private constructor() {
     companion object {
         val instance: ExternalMockEnvironment by lazy {
             ExternalMockEnvironment().also {
-                it.startExternalMocks()
+                it.redisServer.start()
             }
         }
     }
-}
-
-fun ExternalMockEnvironment.startExternalMocks() {
-    this.externalMocks.forEach { (_, externalMock) -> externalMock.start() }
-    this.redisServer.start()
 }

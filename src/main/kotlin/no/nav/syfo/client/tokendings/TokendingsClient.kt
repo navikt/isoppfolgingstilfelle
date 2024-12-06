@@ -5,6 +5,7 @@ import com.nimbusds.jose.crypto.RSASSASigner
 import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
+import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
@@ -22,8 +23,8 @@ class TokendingsClient(
     private val tokenxClientId: String,
     private val tokenxEndpoint: String,
     tokenxPrivateJWK: String,
+    private val httpClient: HttpClient = httpClientProxy(),
 ) {
-    private val httpClient = httpClientProxy()
     private val privateKey: RSAKey
     private val jwsSigner: JWSSigner
     private val jwsHeader: JWSHeader

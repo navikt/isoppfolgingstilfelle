@@ -11,27 +11,19 @@ import no.nav.syfo.client.ClientEnvironment
 import no.nav.syfo.client.ClientsEnvironment
 import no.nav.syfo.client.azuread.AzureEnvironment
 import no.nav.syfo.util.configuredJacksonMapper
-import java.net.ServerSocket
 import java.net.URI
 
-fun testEnvironment(
-    azureOpenIdTokenEndpoint: String,
-    pdlUrl: String,
-    istilgangskontrollUrl: String,
-    narmestelederUrl: String,
-    tokendingsUrl: String,
-    arbeidsforholdUrl: String,
-) = Environment(
+fun testEnvironment() = Environment(
     azure = AzureEnvironment(
         appClientId = "isoppfolgingstilfelle-client-id",
         appClientSecret = "isoppfolgingstilfelle-secret",
         appPreAuthorizedApps = configuredJacksonMapper().writeValueAsString(testAzureAppPreAuthorizedApps),
         appWellKnownUrl = "wellknown",
-        openidConfigTokenEndpoint = azureOpenIdTokenEndpoint,
+        openidConfigTokenEndpoint = "azureOpenIdTokenEndpoint",
     ),
     tokenx = TokenxEnvironment(
         clientId = "tokenx-client-id",
-        endpoint = tokendingsUrl,
+        endpoint = "tokendingsUrl",
         wellKnownUrl = "tokenx-wellknown",
         privateJWK = getDefaultRSAKey().toJSONString()
     ),
@@ -54,19 +46,19 @@ fun testEnvironment(
     ),
     clients = ClientsEnvironment(
         pdl = ClientEnvironment(
-            baseUrl = pdlUrl,
+            baseUrl = "pdlUrl",
             clientId = "dev-fss.pdl.pdl-api",
         ),
         tilgangskontroll = ClientEnvironment(
-            baseUrl = istilgangskontrollUrl,
+            baseUrl = "istilgangskontrollUrl",
             clientId = "dev-gcp.teamsykefravr.istilgangskontroll",
         ),
         narmesteLeder = ClientEnvironment(
-            baseUrl = narmestelederUrl,
+            baseUrl = "narmestelederUrl",
             clientId = "narmestelederClientId",
         ),
         arbeidsforhold = ClientEnvironment(
-            baseUrl = arbeidsforholdUrl,
+            baseUrl = "arbeidsforholdUrl",
             clientId = "aaregClientId",
         ),
     ),
@@ -84,10 +76,6 @@ fun testAppState() = ApplicationState(
     alive = true,
     ready = true,
 )
-
-fun getRandomPort() = ServerSocket(0).use {
-    it.localPort
-}
 
 const val testIsdialogmoteClientId = "isdialogmote-client-id"
 const val testIsnarmesteLederClientId = "isnarmesteleder-client-id"

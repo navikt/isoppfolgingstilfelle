@@ -1,20 +1,14 @@
 package testhelper.mock
 
+import io.ktor.client.engine.mock.*
+import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.server.application.call
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
-import io.ktor.server.netty.NettyApplicationEngine
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import no.nav.syfo.application.api.installContentNegotiation
 import no.nav.syfo.client.arbeidsforhold.*
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 import testhelper.UserConstants
 import testhelper.UserConstants.ARBEIDSTAKER_UNKNOWN_AAREG
 import testhelper.UserConstants.ARBEIDSTAKER_VIRKSOMHET_NO_NARMESTELEDER
-import testhelper.getRandomPort
-import java.time.*
+import java.time.LocalDate
 
 val arbeidsforhold = AaregArbeidsforhold(
     navArbeidsforholdId = 1,
@@ -43,33 +37,18 @@ val arbeidsforhold = AaregArbeidsforhold(
     )
 )
 
-class ArbeidsforholdMock {
-    private val port = getRandomPort()
-    val url = "http://localhost:$port"
-    val name = "arbeidsforhold"
-    val server = mockArbeidsforholdServer(port)
-
-    private fun mockArbeidsforholdServer(port: Int): NettyApplicationEngine {
-        return embeddedServer(
-            factory = Netty,
-            port = port
-        ) {
-            installContentNegotiation()
-            routing {
-                get(ArbeidsforholdClient.ARBEIDSFORHOLD_PATH) {
-                    if (call.request.headers[NAV_PERSONIDENT_HEADER] == ARBEIDSTAKER_VIRKSOMHET_NO_NARMESTELEDER.value) {
-                        call.respond(emptyList<AaregArbeidsforhold>())
-                    } else if (call.request.headers[NAV_PERSONIDENT_HEADER] == ARBEIDSTAKER_UNKNOWN_AAREG.value) {
-                        call.respond(HttpStatusCode.NotFound, "Ukjent ident")
-                    } else {
-                        call.respond(
-                            listOf(
-                                arbeidsforhold,
-                            )
-                        )
-                    }
-                }
-            }
-        }
+fun MockRequestHandleScope.arbeidsforholdMockResponse(request: HttpRequestData): HttpResponseData = when {
+    request.headers[NAV_PERSONIDENT_HEADER] == ARBEIDSTAKER_VIRKSOMHET_NO_NARMESTELEDER.value -> {
+        respondOk(emptyList<AaregArbeidsforhold>())
+    }
+    request.headers[NAV_PERSONIDENT_HEADER] == ARBEIDSTAKER_UNKNOWN_AAREG.value -> {
+        respondError(HttpStatusCode.NotFound)
+    }
+    else -> {
+        respondOk(
+            listOf(
+                arbeidsforhold,
+            )
+        )
     }
 }

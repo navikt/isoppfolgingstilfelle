@@ -2,40 +2,42 @@ package testhelper
 
 import io.ktor.server.application.*
 import no.nav.syfo.application.api.apiModule
-import no.nav.syfo.application.cache.RedisStore
 import no.nav.syfo.client.azuread.AzureAdClient
-import redis.clients.jedis.DefaultJedisClientConfig
-import redis.clients.jedis.HostAndPort
-import redis.clients.jedis.JedisPool
-import redis.clients.jedis.JedisPoolConfig
+import no.nav.syfo.client.narmesteLeder.NarmesteLederClient
+import no.nav.syfo.client.tokendings.TokendingsClient
+import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 
 fun Application.testApiModule(
     externalMockEnvironment: ExternalMockEnvironment,
 ) {
-    val redisConfig = externalMockEnvironment.environment.redisConfig
-    val redisStore = RedisStore(
-        JedisPool(
-            JedisPoolConfig(),
-            HostAndPort(redisConfig.host, redisConfig.port),
-            DefaultJedisClientConfig.builder()
-                .ssl(redisConfig.ssl)
-                .password(redisConfig.redisPassword)
-                .build()
-        )
-    )
-    externalMockEnvironment.redisStore = redisStore
-
     val azureAdClient = AzureAdClient(
         azureEnviroment = externalMockEnvironment.environment.azure,
-        redisStore = redisStore,
+        redisStore = externalMockEnvironment.redisStore,
+        httpClient = externalMockEnvironment.mockHttpClient,
+    )
+    val tokendingsClient = TokendingsClient(
+        tokenxClientId = externalMockEnvironment.environment.tokenx.clientId,
+        tokenxEndpoint = externalMockEnvironment.environment.tokenx.endpoint,
+        tokenxPrivateJWK = externalMockEnvironment.environment.tokenx.privateJWK,
+        httpClient = externalMockEnvironment.mockHttpClient,
     )
     this.apiModule(
         applicationState = externalMockEnvironment.applicationState,
-        azureAdClient = azureAdClient,
         database = externalMockEnvironment.database,
         environment = externalMockEnvironment.environment,
         wellKnownInternalAzureAD = externalMockEnvironment.wellKnownInternalAzureAD,
         wellKnownSelvbetjening = externalMockEnvironment.wellKnownSelvbetjening,
-        redisStore = redisStore,
+        narmesteLederClient = NarmesteLederClient(
+            narmesteLederBaseUrl = externalMockEnvironment.environment.clients.narmesteLeder.baseUrl,
+            narmestelederClientId = externalMockEnvironment.environment.clients.narmesteLeder.clientId,
+            tokendingsClient = tokendingsClient,
+            redisStore = externalMockEnvironment.redisStore,
+            httpClient = externalMockEnvironment.mockHttpClient,
+        ),
+        veilederTilgangskontrollClient = VeilederTilgangskontrollClient(
+            azureAdClient = azureAdClient,
+            clientEnvironment = externalMockEnvironment.environment.clients.tilgangskontroll,
+            httpClient = externalMockEnvironment.mockHttpClient,
+        ),
     )
 }

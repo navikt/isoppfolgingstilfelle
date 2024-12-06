@@ -1,14 +1,9 @@
 package testhelper.mock
 
-import io.ktor.server.application.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import no.nav.syfo.application.api.installContentNegotiation
+import io.ktor.client.engine.mock.*
+import io.ktor.client.request.*
 import no.nav.syfo.client.tokendings.TokenendingsTokenDTO
 import no.nav.syfo.client.wellknown.WellKnown
-import testhelper.getRandomPort
 import java.nio.file.Paths
 import java.util.*
 
@@ -21,35 +16,11 @@ fun wellKnownSelvbetjeningMock(): WellKnown {
     )
 }
 
-class TokendingsMock {
-    private val port = getRandomPort()
-    val url = "http://localhost:$port"
-
-    var uuid: String = UUID.randomUUID().toString()
-
-    val tokenResponse = TokenendingsTokenDTO(
-        access_token = uuid,
+fun MockRequestHandleScope.tokendingsMockResponse(): HttpResponseData = respondOk(
+    TokenendingsTokenDTO(
+        access_token = UUID.randomUUID().toString(),
         issued_token_type = "issued_token_type",
         token_type = "token_type",
         expires_in = 3600,
     )
-
-    val name = "tokendings"
-    val server = mockTokendingsServer(port = port)
-
-    private fun mockTokendingsServer(
-        port: Int
-    ): NettyApplicationEngine {
-        return embeddedServer(
-            factory = Netty,
-            port = port
-        ) {
-            installContentNegotiation()
-            routing {
-                post {
-                    call.respond(tokenResponse)
-                }
-            }
-        }
-    }
-}
+)
