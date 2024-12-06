@@ -9,7 +9,6 @@ import java.util.*
 
 fun generateOppfolgingstilfellePerson(
     personIdent: PersonIdentNumber = UserConstants.PERSONIDENTNUMBER_DEFAULT,
-    antallSykedager: Int = 120,
 ) = OppfolgingstilfellePerson(
     uuid = UUID.randomUUID(),
     createdAt = nowUTC(),
@@ -19,7 +18,7 @@ fun generateOppfolgingstilfellePerson(
             arbeidstakerAtTilfelleEnd = false,
             start = LocalDate.now().minusMonths(6),
             end = LocalDate.now().minusMonths(2),
-            antallSykedager = antallSykedager,
+            antallSykedager = 120,
             virksomhetsnummerList = listOf(),
             gradertAtTilfelleEnd = false,
         )

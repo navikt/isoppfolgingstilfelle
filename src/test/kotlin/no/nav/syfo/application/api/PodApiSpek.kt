@@ -34,6 +34,7 @@ object PodApiSpek : Spek({
             }
             it("Returns true if pod is ready") {
                 with(handleRequest(HttpMethod.Get, podReadinessPath)) {
+                    println(response.status())
                     response.status()?.isSuccess() shouldBeEqualTo true
                     response.content shouldNotBeEqualTo null
                 }
