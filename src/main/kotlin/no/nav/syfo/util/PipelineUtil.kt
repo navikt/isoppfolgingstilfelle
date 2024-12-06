@@ -3,15 +3,16 @@ package no.nav.syfo.util
 import com.auth0.jwt.JWT
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
 
 const val JWT_CLAIM_AZP = "azp"
 
-fun PipelineContext<out Unit, ApplicationCall>.getBearerHeader(): String? {
+fun RoutingContext.getBearerHeader(): String? {
     return this.call.getBearerHeader()
 }
 
-fun PipelineContext<out Unit, ApplicationCall>.getCallId(): String {
+fun RoutingContext.getCallId(): String {
     return this.call.getCallId()
 }
 
@@ -28,10 +29,10 @@ fun ApplicationCall.getConsumerClientId(): String? =
         JWT.decode(it).claims[JWT_CLAIM_AZP]?.asString()
     }
 
-fun PipelineContext<out Unit, ApplicationCall>.personIdentHeader(): String? {
+fun RoutingContext.personIdentHeader(): String? {
     return this.call.request.headers[NAV_PERSONIDENT_HEADER]
 }
 
-fun PipelineContext<out Unit, ApplicationCall>.virksomhetsnummerHeader(): String? {
+fun RoutingContext.virksomhetsnummerHeader(): String? {
     return this.call.request.headers[NAV_VIRKSOMHETSNUMMER]
 }
