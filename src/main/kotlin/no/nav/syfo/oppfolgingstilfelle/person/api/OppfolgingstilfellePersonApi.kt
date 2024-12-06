@@ -9,6 +9,7 @@ import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
 import no.nav.syfo.oppfolgingstilfelle.person.domain.toOppfolgingstilfellePersonDTO
 import no.nav.syfo.util.*
+import kotlin.time.measureTimedValue
 
 const val oppfolgingstilfelleApiV1Path = "/api/internad/v1/oppfolgingstilfelle"
 const val oppfolgingstilfelleApiPersonIdentPath = "/personident"
@@ -50,15 +51,20 @@ fun Route.registerOppfolgingstilfelleApi(
                 callId = callId,
             )
 
-            val oppfolgingstilfellerPersonsDTOs = personIdentsWithVeilederAccess.map {
-                val dodsdato = oppfolgingstilfelleService.getDodsdato(it)
-                oppfolgingstilfelleService.getOppfolgingstilfeller(
-                    personIdent = it,
-                ).toOppfolgingstilfellePersonDTO(
-                    personIdent = it,
-                    dodsdato = dodsdato,
-                )
+            val (oppfolgingstilfellerPersonsDTOs, duration) = measureTimedValue {
+                personIdentsWithVeilederAccess.map {
+                    val dodsdato = oppfolgingstilfelleService.getDodsdato(it)
+                    oppfolgingstilfelleService.getOppfolgingstilfeller(
+                        personIdent = it,
+                    ).toOppfolgingstilfellePersonDTO(
+                        personIdent = it,
+                        dodsdato = dodsdato,
+                    )
+                }
             }
+
+            application.log.info("Got oppfolgingstilfeller for ${personIdentsWithVeilederAccess.size} persons in ${duration.inWholeMilliseconds} ms")
+
             call.respond(oppfolgingstilfellerPersonsDTOs)
         }
     }
