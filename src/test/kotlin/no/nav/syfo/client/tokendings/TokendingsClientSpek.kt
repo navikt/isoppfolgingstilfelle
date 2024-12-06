@@ -1,6 +1,5 @@
 package no.nav.syfo.client.tokendings
 
-import io.ktor.server.testing.*
 import kotlinx.coroutines.runBlocking
 import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
@@ -12,30 +11,27 @@ class TokendingsClientSpek : Spek({
     val anyClientId = "anyClientId"
 
     describe(TokendingsClientSpek::class.java.simpleName) {
-        with(TestApplicationEngine()) {
-            start()
+        val externalMockEnvironment = ExternalMockEnvironment.instance
+        val client = TokendingsClient(
+            tokenxClientId = anyClientId,
+            tokenxEndpoint = externalMockEnvironment.environment.tokenx.endpoint,
+            tokenxPrivateJWK = externalMockEnvironment.environment.tokenx.privateJWK,
+            httpClient = externalMockEnvironment.mockHttpClient,
+        )
 
-            val externalMockEnvironment = ExternalMockEnvironment.instance
-            val client = TokendingsClient(
-                tokenxClientId = anyClientId,
-                tokenxEndpoint = externalMockEnvironment.environment.tokenx.endpoint,
-                tokenxPrivateJWK = externalMockEnvironment.environment.tokenx.privateJWK
-            )
+        it("get OBO token should fetch token and cache it") {
+            runBlocking {
+                val res1 = client.getOnBehalfOfToken(
+                    scopeClientId = anyClientId,
+                    token = anyToken,
+                )
 
-            it("get OBO token should fetch token and cache it") {
-                runBlocking {
-                    val res1 = client.getOnBehalfOfToken(
-                        scopeClientId = anyClientId,
-                        token = anyToken,
-                    )
+                val res2 = client.getOnBehalfOfToken(
+                    scopeClientId = anyClientId,
+                    token = anyToken,
+                )
 
-                    val res2 = client.getOnBehalfOfToken(
-                        scopeClientId = anyClientId,
-                        token = anyToken,
-                    )
-
-                    res2 shouldBeEqualTo res1
-                }
+                res2 shouldBeEqualTo res1
             }
         }
     }

@@ -1,7 +1,6 @@
 package no.nav.syfo.identhendelse
 
-import io.ktor.server.testing.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.runBlocking
 import no.nav.syfo.application.cache.RedisStore
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.client.azuread.AzureAdClient
@@ -29,89 +28,86 @@ import testhelper.generator.generateOppfolgingstilfellePerson
 object IdenthendelseServiceSpek : Spek({
 
     describe(IdenthendelseServiceSpek::class.java.simpleName) {
+        val externalMockEnvironment = ExternalMockEnvironment.instance
+        val database = externalMockEnvironment.database
+        val redisConfig = externalMockEnvironment.environment.redisConfig
 
-        with(TestApplicationEngine()) {
-            start()
-
-            val externalMockEnvironment = ExternalMockEnvironment.instance
-            val database = externalMockEnvironment.database
-            val redisConfig = externalMockEnvironment.environment.redisConfig
-
-            val pdlClient = PdlClient(
-                azureAdClient = AzureAdClient(
-                    azureEnviroment = externalMockEnvironment.environment.azure,
-                    redisStore = RedisStore(
-                        JedisPool(
-                            JedisPoolConfig(),
-                            HostAndPort(redisConfig.host, redisConfig.port),
-                            DefaultJedisClientConfig.builder()
-                                .ssl(redisConfig.ssl)
-                                .password(redisConfig.redisPassword)
-                                .build()
-                        )
-                    ),
+        val pdlClient = PdlClient(
+            azureAdClient = AzureAdClient(
+                azureEnviroment = externalMockEnvironment.environment.azure,
+                redisStore = RedisStore(
+                    JedisPool(
+                        JedisPoolConfig(),
+                        HostAndPort(redisConfig.host, redisConfig.port),
+                        DefaultJedisClientConfig.builder()
+                            .ssl(redisConfig.ssl)
+                            .password(redisConfig.redisPassword)
+                            .build()
+                    )
                 ),
-                clientEnvironment = externalMockEnvironment.environment.clients.pdl,
-            )
+                httpClient = externalMockEnvironment.mockHttpClient,
+            ),
+            clientEnvironment = externalMockEnvironment.environment.clients.pdl,
+            httpClient = externalMockEnvironment.mockHttpClient,
+        )
 
-            val identhendelseService = IdenthendelseService(
-                database = database,
-                pdlClient = pdlClient,
-            )
+        val identhendelseService = IdenthendelseService(
+            database = database,
+            pdlClient = pdlClient,
+        )
 
-            beforeEachTest {
-                database.dropData()
+        beforeEachTest {
+            database.dropData()
+        }
+
+        describe("Happy path") {
+            it("Skal oppdatere tilfelle når person har fått ny ident") {
+                val kafkaIdenthendelseDTO = generateKafkaIdenthendelseDTO(hasOldPersonident = true)
+                val newIdent = kafkaIdenthendelseDTO.getActivePersonident()!!
+                val oldIdent = kafkaIdenthendelseDTO.getInactivePersonidenter().first()
+
+                populateDatabase(oldIdent, database)
+
+                val oldIdentOccurrences = database.getIdentCount(listOf(oldIdent)) + database.getIdentCount(listOf(UserConstants.ARBEIDSTAKER_4_FNR))
+                oldIdentOccurrences shouldBeEqualTo 2
+
+                runBlocking {
+                    identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO)
+                }
+
+                val newIdentOccurrences = database.getIdentCount(listOf(newIdent))
+                newIdentOccurrences shouldBeEqualTo 2
             }
+        }
 
-            describe("Happy path") {
-                it("Skal oppdatere tilfelle når person har fått ny ident") {
-                    val kafkaIdenthendelseDTO = generateKafkaIdenthendelseDTO(hasOldPersonident = true)
-                    val newIdent = kafkaIdenthendelseDTO.getActivePersonident()!!
-                    val oldIdent = kafkaIdenthendelseDTO.getInactivePersonidenter().first()
+        describe("Unhappy path") {
+            it("Skal kaste feil hvis PDL ikke har oppdatert identen") {
+                val kafkaIdenthendelseDTO = generateKafkaIdenthendelseDTO(
+                    personident = UserConstants.ARBEIDSTAKER_3_FNR,
+                    hasOldPersonident = true,
+                )
+                val oldIdent = kafkaIdenthendelseDTO.getInactivePersonidenter().first()
 
-                    populateDatabase(oldIdent, database)
+                populateDatabase(oldIdent, database)
 
-                    val oldIdentOccurrences = database.getIdentCount(listOf(oldIdent)) + database.getIdentCount(listOf(UserConstants.ARBEIDSTAKER_4_FNR))
-                    oldIdentOccurrences shouldBeEqualTo 2
-
-                    runBlocking {
+                runBlocking {
+                    assertFailsWith(IllegalStateException::class) {
                         identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO)
                     }
-
-                    val newIdentOccurrences = database.getIdentCount(listOf(newIdent))
-                    newIdentOccurrences shouldBeEqualTo 2
                 }
             }
+            it("Skal kaste RuntimeException hvis PDL gir en not_found ved henting av identer") {
+                val kafkaIdenthendelseDTO = generateKafkaIdenthendelseDTO(
+                    personident = UserConstants.ARBEIDSTAKER_WITH_ERROR,
+                    hasOldPersonident = true,
+                )
+                val oldIdent = kafkaIdenthendelseDTO.getInactivePersonidenter().first()
 
-            describe("Unhappy path") {
-                it("Skal kaste feil hvis PDL ikke har oppdatert identen") {
-                    val kafkaIdenthendelseDTO = generateKafkaIdenthendelseDTO(
-                        personident = UserConstants.ARBEIDSTAKER_3_FNR,
-                        hasOldPersonident = true,
-                    )
-                    val oldIdent = kafkaIdenthendelseDTO.getInactivePersonidenter().first()
+                populateDatabase(oldIdent, database)
 
-                    populateDatabase(oldIdent, database)
-
-                    runBlocking {
-                        assertFailsWith(IllegalStateException::class) {
-                            identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO)
-                        }
-                    }
-                }
-                it("Skal kaste RuntimeException hvis PDL gir en not_found ved henting av identer") {
-                    val kafkaIdenthendelseDTO = generateKafkaIdenthendelseDTO(
-                        personident = UserConstants.ARBEIDSTAKER_WITH_ERROR,
-                        hasOldPersonident = true,
-                    )
-                    val oldIdent = kafkaIdenthendelseDTO.getInactivePersonidenter().first()
-
-                    populateDatabase(oldIdent, database)
-
-                    runBlocking {
-                        assertFailsWith(RuntimeException::class) {
-                            identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO)
-                        }
+                runBlocking {
+                    assertFailsWith(RuntimeException::class) {
+                        identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO)
                     }
                 }
             }
