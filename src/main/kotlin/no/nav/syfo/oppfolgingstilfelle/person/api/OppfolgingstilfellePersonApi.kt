@@ -49,16 +49,16 @@ fun Route.registerOppfolgingstilfelleApi(
                 token = token,
                 callId = callId,
             )
-
-            val oppfolgingstilfellerPersonsDTOs = personIdentsWithVeilederAccess.map {
-                val dodsdato = oppfolgingstilfelleService.getDodsdato(it)
-                oppfolgingstilfelleService.getOppfolgingstilfeller(
-                    personIdent = it,
-                ).toOppfolgingstilfellePersonDTO(
-                    personIdent = it,
+            val oppfolgingstilfellerForPersoner =
+                oppfolgingstilfelleService.getOppfolgingstilfellerForPersoner(personIdents = personIdentsWithVeilederAccess)
+            val oppfolgingstilfellerPersonsDTOs = oppfolgingstilfellerForPersoner.map { (personident, pair) ->
+                val (oppfolgingstilfelleList, dodsdato) = pair
+                oppfolgingstilfelleList.toOppfolgingstilfellePersonDTO(
+                    personIdent = personident,
                     dodsdato = dodsdato,
                 )
             }
+
             call.respond(oppfolgingstilfellerPersonsDTOs)
         }
     }

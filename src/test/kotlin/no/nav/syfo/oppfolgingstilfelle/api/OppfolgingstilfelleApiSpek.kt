@@ -18,10 +18,7 @@ import no.nav.syfo.oppfolgingstilfelle.person.database.createOppfolgingstilfelle
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.OppfolgingstilfellePersonProducer
 import no.nav.syfo.personhendelse.db.createPerson
 import no.nav.syfo.util.*
-import org.amshove.kluent.shouldBe
-import org.amshove.kluent.shouldBeEmpty
-import org.amshove.kluent.shouldBeEqualTo
-import org.amshove.kluent.shouldNotBeEmpty
+import org.amshove.kluent.*
 import org.apache.kafka.clients.consumer.*
 import org.apache.kafka.common.TopicPartition
 import org.spekframework.spek2.Spek
@@ -463,17 +460,30 @@ class OppfolgingstilfelleApiSpek : Spek({
 
                 describe("Happy path") {
                     it("Returns oppfolgingstilfeller for persons") {
+                        val antallSykedagerPerson1 = 100
+                        val antallSykedagerPerson2Tilfelle2 = 80
                         val oppfolgingstilfellePerson1 = generateOppfolgingstilfellePerson(
                             personIdent = UserConstants.ARBEIDSTAKER_FNR,
+                            antallSykedager = antallSykedagerPerson1,
                         )
-                        val oppfolgingstilfellePerson2 = generateOppfolgingstilfellePerson(
+                        val oppfolgingstilfelle1Person2 = generateOppfolgingstilfellePerson(
                             personIdent = UserConstants.ARBEIDSTAKER_2_FNR,
+                        )
+                        val oppfolgingstilfelle2Person2 = generateOppfolgingstilfellePerson(
+                            personIdent = UserConstants.ARBEIDSTAKER_2_FNR,
+                            antallSykedager = antallSykedagerPerson2Tilfelle2,
                         )
 
                         database.connection.use { connection ->
-                            listOf(oppfolgingstilfellePerson1, oppfolgingstilfellePerson2).forEach {
+                            listOf(oppfolgingstilfellePerson1, oppfolgingstilfelle1Person2, oppfolgingstilfelle2Person2).forEach {
                                 connection.createOppfolgingstilfellePerson(commit = false, it)
                             }
+                            connection.createPerson(
+                                uuid = UUID.randomUUID(),
+                                personIdent = UserConstants.ARBEIDSTAKER_2_FNR,
+                                dodsdato = LocalDate.now().minusDays(1),
+                                hendelseId = UUID.randomUUID()
+                            )
                             connection.commit()
                         }
 
@@ -501,8 +511,11 @@ class OppfolgingstilfelleApiSpek : Spek({
                             val last = oppfolgingstilfellePersonDTOs.last()
                             first.personIdent shouldBeEqualTo UserConstants.ARBEIDSTAKER_FNR.value
                             first.oppfolgingstilfelleList.shouldNotBeEmpty()
+                            first.oppfolgingstilfelleList.first().antallSykedager shouldBeEqualTo antallSykedagerPerson1
                             last.personIdent shouldBeEqualTo UserConstants.ARBEIDSTAKER_2_FNR.value
                             last.oppfolgingstilfelleList.shouldNotBeEmpty()
+                            last.oppfolgingstilfelleList.first().antallSykedager shouldBeEqualTo antallSykedagerPerson2Tilfelle2
+                            last.dodsdato.shouldNotBeNull()
                         }
                     }
                 }
