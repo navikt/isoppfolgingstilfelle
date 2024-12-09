@@ -55,7 +55,8 @@ const val queryGetOppfolgingstilfellePerson =
         SELECT * 
         FROM OPPFOLGINGSTILFELLE_PERSON
         WHERE personident = ?
-        ORDER BY referanse_tilfelle_bit_inntruffet DESC, id DESC;
+        ORDER BY referanse_tilfelle_bit_inntruffet DESC, id DESC
+        LIMIT 1
     """
 
 fun Connection.getOppfolgingstilfellePerson(
