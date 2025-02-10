@@ -8,7 +8,7 @@ import io.ktor.server.netty.*
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.Environment
 import no.nav.syfo.application.api.apiModule
-import no.nav.syfo.application.cache.RedisStore
+import no.nav.syfo.application.cache.ValkeyStore
 import no.nav.syfo.application.database.applicationDatabase
 import no.nav.syfo.application.database.databaseModule
 import no.nav.syfo.client.wellknown.getWellKnown
@@ -49,22 +49,22 @@ fun main() {
     val wellKnownSelvbetjening = getWellKnown(
         wellKnownUrl = environment.tokenx.wellKnownUrl
     )
-    val redisConfig = environment.redisConfig
-    val redisStore = RedisStore(
+    val valkeyConfig = environment.valkeyConfig
+    val valkeyStore = ValkeyStore(
         JedisPool(
             JedisPoolConfig(),
-            HostAndPort(redisConfig.host, redisConfig.port),
+            HostAndPort(valkeyConfig.host, valkeyConfig.port),
             DefaultJedisClientConfig.builder()
-                .ssl(redisConfig.ssl)
-                .user(redisConfig.redisUsername)
-                .password(redisConfig.redisPassword)
-                .database(redisConfig.redisDB)
+                .ssl(valkeyConfig.ssl)
+                .user(valkeyConfig.valkeyUsername)
+                .password(valkeyConfig.valkeyPassword)
+                .database(valkeyConfig.valkeyDB)
                 .build()
         )
     )
     val azureAdClient = AzureAdClient(
         azureEnviroment = environment.azure,
-        redisStore = redisStore,
+        valkeyStore = valkeyStore,
     )
     val tokendingsClient = TokendingsClient(
         tokenxClientId = environment.tokenx.clientId,
@@ -120,7 +120,7 @@ fun main() {
                     narmesteLederBaseUrl = environment.clients.narmesteLeder.baseUrl,
                     narmestelederClientId = environment.clients.narmesteLeder.clientId,
                     tokendingsClient = tokendingsClient,
-                    redisStore = redisStore,
+                    valkeyStore = valkeyStore,
                 ),
                 veilederTilgangskontrollClient = VeilederTilgangskontrollClient(
                     azureAdClient = azureAdClient,
@@ -173,7 +173,7 @@ fun main() {
                     environment = environment,
                     database = applicationDatabase,
                     oppfolgingstilfellePersonService = oppfolgingstilfellePersonService,
-                    redisStore = redisStore,
+                    valkeyStore = valkeyStore,
                 )
             }
         }

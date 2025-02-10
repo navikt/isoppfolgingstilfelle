@@ -1,7 +1,7 @@
 package no.nav.syfo.identhendelse
 
 import kotlinx.coroutines.runBlocking
-import no.nav.syfo.application.cache.RedisStore
+import no.nav.syfo.application.cache.ValkeyStore
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.pdl.PdlClient
@@ -30,18 +30,18 @@ object IdenthendelseServiceSpek : Spek({
     describe(IdenthendelseServiceSpek::class.java.simpleName) {
         val externalMockEnvironment = ExternalMockEnvironment.instance
         val database = externalMockEnvironment.database
-        val redisConfig = externalMockEnvironment.environment.redisConfig
+        val redisConfig = externalMockEnvironment.environment.valkeyConfig
 
         val pdlClient = PdlClient(
             azureAdClient = AzureAdClient(
                 azureEnviroment = externalMockEnvironment.environment.azure,
-                redisStore = RedisStore(
+                valkeyStore = ValkeyStore(
                     JedisPool(
                         JedisPoolConfig(),
                         HostAndPort(redisConfig.host, redisConfig.port),
                         DefaultJedisClientConfig.builder()
                             .ssl(redisConfig.ssl)
-                            .password(redisConfig.redisPassword)
+                            .password(redisConfig.valkeyPassword)
                             .build()
                     )
                 ),

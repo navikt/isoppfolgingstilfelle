@@ -7,7 +7,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import net.logstash.logback.argument.StructuredArguments
-import no.nav.syfo.application.cache.RedisStore
+import no.nav.syfo.application.cache.ValkeyStore
 import no.nav.syfo.client.httpClientDefault
 import no.nav.syfo.client.tokendings.TokendingsClient
 import no.nav.syfo.domain.PersonIdentNumber
@@ -18,7 +18,7 @@ class NarmesteLederClient(
     narmesteLederBaseUrl: String,
     private val narmestelederClientId: String,
     private val tokendingsClient: TokendingsClient,
-    private val redisStore: RedisStore,
+    private val valkeyStore: ValkeyStore,
     private val httpClient: HttpClient = httpClientDefault(),
 ) {
     private val ansatteNarmesteLederSelvbetjeningPath = "$narmesteLederBaseUrl$NARMESTELEDERE_SELVBETJENING_PATH"
@@ -29,7 +29,7 @@ class NarmesteLederClient(
         callId: String,
     ): List<NarmesteLederRelasjonDTO> {
         val cacheKey = "$CACHE_NARMESTE_LEDER_AKTIVE_ANSATTE_KEY_PREFIX${narmesteLederIdent.value}"
-        val cachedAktiveAnsatte = redisStore.getListObject<NarmesteLederRelasjonDTO>(cacheKey)
+        val cachedAktiveAnsatte = valkeyStore.getListObject<NarmesteLederRelasjonDTO>(cacheKey)
         return if (cachedAktiveAnsatte != null) {
             cachedAktiveAnsatte
         } else {
@@ -51,7 +51,7 @@ class NarmesteLederClient(
                     it.narmesteLederPersonIdentNumber == narmesteLederIdent.value &&
                         it.status == NarmesteLederRelasjonStatus.INNMELDT_AKTIV.name
                 }
-                redisStore.setObject(
+                valkeyStore.setObject(
                     cacheKey,
                     aktiveAnsatte,
                     CACHE_NARMESTE_LEDER_EXPIRE_SECONDS,

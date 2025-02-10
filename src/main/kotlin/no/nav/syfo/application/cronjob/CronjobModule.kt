@@ -3,7 +3,7 @@ package no.nav.syfo.application.cronjob
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.Environment
 import no.nav.syfo.application.backgroundtask.launchBackgroundTask
-import no.nav.syfo.application.cache.RedisStore
+import no.nav.syfo.application.cache.ValkeyStore
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.client.arbeidsforhold.ArbeidsforholdClient
 import no.nav.syfo.client.azuread.AzureAdClient
@@ -17,7 +17,7 @@ fun launchCronjobModule(
     environment: Environment,
     database: DatabaseInterface,
     oppfolgingstilfellePersonService: OppfolgingstilfellePersonService,
-    redisStore: RedisStore,
+    valkeyStore: ValkeyStore,
 ) {
     val leaderPodClient = LeaderPodClient(
         electorPath = environment.electorPath
@@ -28,7 +28,7 @@ fun launchCronjobModule(
     )
     val azureAdClient = AzureAdClient(
         azureEnviroment = environment.azure,
-        redisStore = redisStore
+        valkeyStore = valkeyStore
     )
     val arbeidsforholdClient = ArbeidsforholdClient(
         azureAdClient = azureAdClient,
