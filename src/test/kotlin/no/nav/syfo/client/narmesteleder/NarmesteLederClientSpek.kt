@@ -2,7 +2,7 @@ package no.nav.syfo.client.narmesteleder
 
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
-import no.nav.syfo.application.cache.RedisStore
+import no.nav.syfo.application.cache.ValkeyStore
 import no.nav.syfo.client.narmesteLeder.NarmesteLederClient
 import no.nav.syfo.client.narmesteLeder.NarmesteLederRelasjonDTO
 import no.nav.syfo.client.narmesteLeder.NarmesteLederRelasjonStatus
@@ -30,12 +30,12 @@ class NarmesteLederClientSpek : Spek({
 
         val externalMockEnvironment = ExternalMockEnvironment.instance
         val tokendingsClientMock = mockk<TokendingsClient>()
-        val cacheMock = mockk<RedisStore>()
+        val cacheMock = mockk<ValkeyStore>()
         val client = NarmesteLederClient(
             narmesteLederBaseUrl = externalMockEnvironment.environment.clients.narmesteLeder.baseUrl,
             narmestelederClientId = externalMockEnvironment.environment.clients.narmesteLeder.clientId,
             tokendingsClient = tokendingsClientMock,
-            redisStore = cacheMock,
+            valkeyStore = cacheMock,
             httpClient = externalMockEnvironment.mockHttpClient,
         )
         val cacheKey =

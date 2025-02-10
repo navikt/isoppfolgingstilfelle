@@ -127,7 +127,7 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
         arbeidsforholdClient = ArbeidsforholdClient(
             azureAdClient = AzureAdClient(
                 azureEnviroment = externalMockEnvironment.environment.azure,
-                redisStore = externalMockEnvironment.redisStore,
+                valkeyStore = externalMockEnvironment.valkeyStore,
                 httpClient = externalMockEnvironment.mockHttpClient,
             ),
             clientEnvironment = externalMockEnvironment.environment.clients.arbeidsforhold,

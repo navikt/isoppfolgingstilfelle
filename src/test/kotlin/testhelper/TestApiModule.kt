@@ -12,7 +12,7 @@ fun Application.testApiModule(
 ) {
     val azureAdClient = AzureAdClient(
         azureEnviroment = externalMockEnvironment.environment.azure,
-        redisStore = externalMockEnvironment.redisStore,
+        valkeyStore = externalMockEnvironment.valkeyStore,
         httpClient = externalMockEnvironment.mockHttpClient,
     )
     val tokendingsClient = TokendingsClient(
@@ -31,7 +31,7 @@ fun Application.testApiModule(
             narmesteLederBaseUrl = externalMockEnvironment.environment.clients.narmesteLeder.baseUrl,
             narmestelederClientId = externalMockEnvironment.environment.clients.narmesteLeder.clientId,
             tokendingsClient = tokendingsClient,
-            redisStore = externalMockEnvironment.redisStore,
+            valkeyStore = externalMockEnvironment.valkeyStore,
             httpClient = externalMockEnvironment.mockHttpClient,
         ),
         veilederTilgangskontrollClient = VeilederTilgangskontrollClient(
