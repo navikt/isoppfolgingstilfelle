@@ -48,10 +48,10 @@ data class Environment(
     ),
 
     val valkeyConfig: ValkeyConfig = ValkeyConfig(
-        valkeyUri = URI(getEnvVar("REDIS_URI_CACHE")),
+        valkeyUri = URI(getEnvVar("VALKEY_URI_CACHE")),
         valkeyDB = 14, // se https://github.com/navikt/istilgangskontroll/blob/master/README.md
-        valkeyUsername = getEnvVar("REDIS_USERNAME_CACHE"),
-        valkeyPassword = getEnvVar("REDIS_PASSWORD_CACHE"),
+        valkeyUsername = getEnvVar("VALKEY_USERNAME_CACHE"),
+        valkeyPassword = getEnvVar("VALKEY_PASSWORD_CACHE"),
     ),
 
     val clients: ClientsEnvironment = ClientsEnvironment(
