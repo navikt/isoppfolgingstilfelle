@@ -33,8 +33,8 @@ class SykmeldingNyCronjob(
                 val orgnr = arbeidsforhold.find {
                     val periode = it.ansettelsesperiode
                     it.arbeidssted.getOrgnummer() != null &&
-                            periode.startdato.isBefore(oppfolgingstilfelleBit.tom) &&
-                            (periode.sluttdato == null || periode.sluttdato.isAfter(oppfolgingstilfelleBit.tom))
+                        periode.startdato.isBefore(oppfolgingstilfelleBit.tom) &&
+                        (periode.sluttdato == null || periode.sluttdato.isAfter(oppfolgingstilfelleBit.tom))
                 }?.arbeidssted?.getOrgnummer()
                 database.connection.use { connection ->
                     orgnr?.let {
