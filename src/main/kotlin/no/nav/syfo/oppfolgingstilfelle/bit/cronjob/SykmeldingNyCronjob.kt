@@ -29,15 +29,14 @@ class SykmeldingNyCronjob(
         val notReady = database.getNotReadyOppfolgingstilfelleBitList().toOppfolgingstilfelleBitList()
         notReady.forEach { oppfolgingstilfelleBit ->
             try {
+                val arbeidsforhold = arbeidsforholdClient.getArbeidsforhold(oppfolgingstilfelleBit.personIdentNumber)
+                val orgnr = arbeidsforhold.find {
+                    val periode = it.ansettelsesperiode
+                    it.arbeidssted.getOrgnummer() != null &&
+                        periode.startdato.isBefore(oppfolgingstilfelleBit.tom) &&
+                        (periode.sluttdato == null || periode.sluttdato.isAfter(oppfolgingstilfelleBit.tom))
+                }?.arbeidssted?.getOrgnummer()
                 database.connection.use { connection ->
-                    val arbeidsforhold = arbeidsforholdClient.getArbeidsforhold(oppfolgingstilfelleBit.personIdentNumber)
-
-                    val orgnr = arbeidsforhold.find {
-                        val periode = it.ansettelsesperiode
-                        it.arbeidssted.getOrgnummer() != null &&
-                            periode.startdato.isBefore(oppfolgingstilfelleBit.tom) &&
-                            (periode.sluttdato == null || periode.sluttdato.isAfter(oppfolgingstilfelleBit.tom))
-                    }?.arbeidssted?.getOrgnummer()
                     orgnr?.let {
                         connection.setVirksomhetsnummerOppfolgingstilfelleBit(
                             uuid = oppfolgingstilfelleBit.uuid,
