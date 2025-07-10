@@ -34,6 +34,9 @@ spec:
     - team: teamsykefravr
       application: isaktivitetskrav
       access: read
+    - team: teamsykefravr
+      application: ismeroppfolging
+      access: read
     - team: disykefravar
       application: dvh-sykefravar-airflow-kafka
       access: read
