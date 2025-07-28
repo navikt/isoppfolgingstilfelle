@@ -4,7 +4,7 @@ import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.Environment
 import no.nav.syfo.application.backgroundtask.launchBackgroundTask
 import no.nav.syfo.application.cache.ValkeyStore
-import no.nav.syfo.application.database.DatabaseInterface
+import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.client.arbeidsforhold.ArbeidsforholdClient
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.oppfolgingstilfelle.person.OppfolgingstilfellePersonService

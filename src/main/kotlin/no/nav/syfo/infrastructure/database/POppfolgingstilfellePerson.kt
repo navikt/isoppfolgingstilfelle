@@ -1,4 +1,4 @@
-package no.nav.syfo.oppfolgingstilfelle.person.database
+package no.nav.syfo.infrastructure.database
 
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingstilfelle.person.domain.Oppfolgingstilfelle

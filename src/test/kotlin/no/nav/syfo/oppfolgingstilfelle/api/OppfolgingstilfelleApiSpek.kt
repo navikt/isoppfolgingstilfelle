@@ -16,7 +16,6 @@ import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfellePers
 import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleApiPersonIdentPath
 import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleApiPersonsPath
 import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleApiV1Path
-import no.nav.syfo.oppfolgingstilfelle.person.database.createOppfolgingstilfellePerson
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.OppfolgingstilfellePersonProducer
 import no.nav.syfo.personhendelse.db.createPerson
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
@@ -43,6 +42,7 @@ class OppfolgingstilfelleApiSpek : Spek({
     val externalMockEnvironment = ExternalMockEnvironment.instance
     val database = externalMockEnvironment.database
 
+    val oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfelleRepository
     val oppfolgingstilfellePersonProducer = mockk<OppfolgingstilfellePersonProducer>()
     val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService()
 
@@ -88,6 +88,7 @@ class OppfolgingstilfelleApiSpek : Spek({
         database = database,
         oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
             database = database,
+            oppfolgingstilfelleRepository = oppfolgingstilfelleRepository,
             oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
         )
     )
@@ -441,7 +442,7 @@ class OppfolgingstilfelleApiSpek : Spek({
 
                     database.connection.use { connection ->
                         listOf(oppfolgingstilfellePerson1, oppfolgingstilfelle1Person2, oppfolgingstilfelle2Person2).forEach {
-                            connection.createOppfolgingstilfellePerson(commit = false, it)
+                            oppfolgingstilfelleRepository.createOppfolgingstilfellePerson(connection = connection, commit = false, it)
                         }
                         connection.createPerson(
                             uuid = UUID.randomUUID(),
@@ -496,7 +497,8 @@ class OppfolgingstilfelleApiSpek : Spek({
                     )
 
                     database.connection.use { connection ->
-                        connection.createOppfolgingstilfellePerson(
+                        oppfolgingstilfelleRepository.createOppfolgingstilfellePerson(
+                            connection = connection,
                             commit = true,
                             oppfolgingstilfellePerson = oppfolgingstilfellePerson1
                         )

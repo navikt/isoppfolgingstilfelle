@@ -7,7 +7,6 @@ import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import no.nav.person.pdl.leesah.Personhendelse
 import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
-import no.nav.syfo.oppfolgingstilfelle.person.database.createOppfolgingstilfellePerson
 import no.nav.syfo.personhendelse.kafka.KafkaPersonhendelseConsumerService
 import no.nav.syfo.personhendelse.kafka.PDL_LEESAH_TOPIC
 import org.amshove.kluent.shouldBe
@@ -33,10 +32,11 @@ object KafkaPersonhendelseConsumerServiceSpek : Spek({
     describe(KafkaPersonhendelseConsumerServiceSpek::class.java.simpleName) {
         val externalMockEnvironment = ExternalMockEnvironment.instance
         val database = externalMockEnvironment.database
+        val oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfelleRepository
         val mockKafkaConsumerPersonhendelse = mockk<KafkaConsumer<String, Personhendelse>>()
-
         val oppfolgingstilfelleService = OppfolgingstilfelleService(
             database = database,
+            oppfolgingstilfelleRepository = oppfolgingstilfelleRepository,
         )
         val personhendelseService = PersonhendelseService(
             database = database,
@@ -88,7 +88,8 @@ object KafkaPersonhendelseConsumerServiceSpek : Spek({
                 )
 
                 database.connection.use { connection ->
-                    connection.createOppfolgingstilfellePerson(
+                    oppfolgingstilfelleRepository.createOppfolgingstilfellePerson(
+                        connection = connection,
                         commit = true,
                         oppfolgingstilfellePerson = oppfolgingstilfellePerson,
                     )
@@ -117,7 +118,8 @@ object KafkaPersonhendelseConsumerServiceSpek : Spek({
                 )
 
                 database.connection.use { connection ->
-                    connection.createOppfolgingstilfellePerson(
+                    oppfolgingstilfelleRepository.createOppfolgingstilfellePerson(
+                        connection = connection,
                         commit = true,
                         oppfolgingstilfellePerson = oppfolgingstilfellePerson,
                     )
@@ -164,7 +166,8 @@ object KafkaPersonhendelseConsumerServiceSpek : Spek({
                 )
 
                 database.connection.use { connection ->
-                    connection.createOppfolgingstilfellePerson(
+                    oppfolgingstilfelleRepository.createOppfolgingstilfellePerson(
+                        connection = connection,
                         commit = true,
                         oppfolgingstilfellePerson = oppfolgingstilfellePerson,
                     )

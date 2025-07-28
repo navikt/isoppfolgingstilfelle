@@ -21,7 +21,6 @@ import testhelper.ExternalMockEnvironment
 import testhelper.UserConstants.PERSONIDENTNUMBER_DEFAULT
 import testhelper.dropData
 import testhelper.generator.generateKafkaStatusendring
-import testhelper.getOppfolgingstilfellePerson
 import testhelper.isTilfelleBitAvbrutt
 import testhelper.mock.toHistoricalPersonIdentNumber
 import java.time.Duration
@@ -31,6 +30,7 @@ import java.util.*
 class KafkaSykmeldingstatusConsumerSpek : Spek({
     val externalMockEnvironment = ExternalMockEnvironment.instance
     val database = externalMockEnvironment.database
+    val oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfelleRepository
     val oppfolgingstilfellePersonProducer = mockk<OppfolgingstilfellePersonProducer>()
     val kafkaSykmeldingstatusService = KafkaSykmeldingstatusService(
         database = database,
@@ -103,6 +103,7 @@ class KafkaSykmeldingstatusConsumerSpek : Spek({
         database = database,
         oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
             database = database,
+            oppfolgingstilfelleRepository = oppfolgingstilfelleRepository,
             oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
         )
     )
@@ -152,7 +153,7 @@ class KafkaSykmeldingstatusConsumerSpek : Spek({
 
                     database.isTilfelleBitAvbrutt(tilfelleBitUuid) shouldBeEqualTo true
 
-                    val oppfolgingstilfellePerson = database.getOppfolgingstilfellePerson(personIdentDefault)
+                    val oppfolgingstilfellePerson = oppfolgingstilfelleRepository.getOppfolgingstilfellePerson(personIdentDefault)
                     oppfolgingstilfellePerson.shouldNotBeNull()
                     oppfolgingstilfellePerson.oppfolgingstilfeller.size shouldBeEqualTo 0
                 }
@@ -187,7 +188,7 @@ class KafkaSykmeldingstatusConsumerSpek : Spek({
 
                     database.isTilfelleBitAvbrutt(tilfelleBitSykmeldingSendtUuid) shouldBeEqualTo false
 
-                    val oppfolgingstilfellePerson = database.getOppfolgingstilfellePerson(personIdentDefault)
+                    val oppfolgingstilfellePerson = oppfolgingstilfelleRepository.getOppfolgingstilfellePerson(personIdentDefault)
                     oppfolgingstilfellePerson.shouldNotBeNull()
                     oppfolgingstilfellePerson.oppfolgingstilfeller.size shouldBeEqualTo 1
                 }

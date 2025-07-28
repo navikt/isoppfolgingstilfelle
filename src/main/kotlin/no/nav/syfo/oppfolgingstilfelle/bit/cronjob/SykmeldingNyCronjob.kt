@@ -3,7 +3,7 @@ package no.nav.syfo.oppfolgingstilfelle.bit.cronjob
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.application.cronjob.Cronjob
 import no.nav.syfo.application.cronjob.CronjobResult
-import no.nav.syfo.application.database.DatabaseInterface
+import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.client.arbeidsforhold.ArbeidsforholdClient
 import no.nav.syfo.oppfolgingstilfelle.bit.database.*
 import no.nav.syfo.oppfolgingstilfelle.bit.database.domain.toOppfolgingstilfelleBitList

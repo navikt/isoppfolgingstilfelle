@@ -3,8 +3,9 @@ package no.nav.syfo.personhendelse.kafka
 import no.nav.person.pdl.leesah.Personhendelse
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.backgroundtask.launchBackgroundTask
-import no.nav.syfo.application.database.DatabaseInterface
+import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.application.kafka.KafkaEnvironment
+import no.nav.syfo.infrastructure.database.OppfolgingstilfelleRepository
 import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
 import no.nav.syfo.personhendelse.PersonhendelseService
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -18,6 +19,7 @@ fun launchKafkaTaskPersonhendelse(
     applicationState: ApplicationState,
     kafkaEnvironment: KafkaEnvironment,
     database: DatabaseInterface,
+    oppfolgingstilfelleRepository: OppfolgingstilfelleRepository,
 ) {
     launchBackgroundTask(
         applicationState = applicationState,
@@ -25,6 +27,7 @@ fun launchKafkaTaskPersonhendelse(
         log.info("Setting up kafka consumer for Personhendelse from PDL")
         val oppfolgingstilfelleService = OppfolgingstilfelleService(
             database = database,
+            oppfolgingstilfelleRepository = oppfolgingstilfelleRepository,
         )
         val personhendelseService = PersonhendelseService(
             database = database,

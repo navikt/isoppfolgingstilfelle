@@ -5,7 +5,6 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfelleDTO
-import no.nav.syfo.oppfolgingstilfelle.person.database.createOppfolgingstilfellePerson
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 import no.nav.syfo.util.NAV_VIRKSOMHETSNUMMER
 import org.amshove.kluent.shouldBeEqualTo
@@ -17,6 +16,7 @@ import testhelper.generator.generateOppfolgingstilfellePerson
 class OppfolgingstilfelleNarmesteLederApiSpek : Spek({
     val externalMockEnvironment = ExternalMockEnvironment.instance
     val database = externalMockEnvironment.database
+    val oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfelleRepository
 
     val personIdentDefault = UserConstants.PERSONIDENTNUMBER_DEFAULT
 
@@ -25,7 +25,7 @@ class OppfolgingstilfelleNarmesteLederApiSpek : Spek({
     beforeEachTest {
         database.dropData()
         database.connection.use {
-            it.createOppfolgingstilfellePerson(true, oppfolgingstilfellePerson)
+            oppfolgingstilfelleRepository.createOppfolgingstilfellePerson(connection = it, true, oppfolgingstilfellePerson)
         }
     }
 
