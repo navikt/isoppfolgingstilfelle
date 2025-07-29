@@ -7,29 +7,40 @@ import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
 import no.nav.syfo.oppfolgingstilfelle.bit.cronjob.OppfolgingstilfelleCronjob
 import no.nav.syfo.oppfolgingstilfelle.bit.cronjob.SykmeldingNyCronjob
-import no.nav.syfo.oppfolgingstilfelle.bit.database.*
+import no.nav.syfo.oppfolgingstilfelle.bit.database.createOppfolgingstilfelleBitAvbrutt
+import no.nav.syfo.oppfolgingstilfelle.bit.database.getOppfolgingstilfelleBitForIdent
+import no.nav.syfo.oppfolgingstilfelle.bit.database.getProcessedOppfolgingstilfelleBitList
+import no.nav.syfo.oppfolgingstilfelle.bit.database.setProcessedOppfolgingstilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.Tag
 import no.nav.syfo.oppfolgingstilfelle.person.OppfolgingstilfellePersonService
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.OppfolgingstilfellePersonProducer
-import no.nav.syfo.util.*
+import no.nav.syfo.util.and
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldBeNull
 import org.amshove.kluent.shouldNotBeNull
-import org.apache.kafka.clients.consumer.*
+import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.apache.kafka.clients.consumer.ConsumerRecords
+import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.TopicPartition
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import testhelper.*
+import testhelper.ExternalMockEnvironment
+import testhelper.UserConstants
 import testhelper.UserConstants.ARBEIDSTAKER_VIRKSOMHET_NO_NARMESTELEDER
 import testhelper.UserConstants.PERSONIDENTNUMBER_DEFAULT
+import testhelper.countDeletedTilfelleBit
+import testhelper.dropData
 import testhelper.generator.*
 import testhelper.mock.toHistoricalPersonIdentNumber
-import java.time.*
+import java.time.Duration
+import java.time.LocalDate
+import java.time.OffsetDateTime
 
 class KafkaSyketilfelleBitConsumerSpek : Spek({
     val externalMockEnvironment = ExternalMockEnvironment.instance
     val database = externalMockEnvironment.database
 
+    val oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfelleRepository
     val oppfolgingstilfellePersonProducer = mockk<OppfolgingstilfellePersonProducer>()
     val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService()
     val kafkaSyketilfellebitService = KafkaSyketilfellebitService(
@@ -138,6 +149,7 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
         database = database,
         oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
             database = database,
+            oppfolgingstilfelleRepository = oppfolgingstilfelleRepository,
             oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
         )
     )
@@ -185,7 +197,7 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                         oppfolgingstilfellePersonProducer.sendOppfolgingstilfellePerson(any())
                     }
 
-                    val oppfolgingstilfellePerson = database.getOppfolgingstilfellePerson(personIdentDefault)
+                    val oppfolgingstilfellePerson = oppfolgingstilfelleRepository.getOppfolgingstilfellePerson(personIdentDefault)
                     oppfolgingstilfellePerson.shouldNotBeNull()
 
                     oppfolgingstilfellePerson.personIdentNumber shouldBeEqualTo personIdentDefault
@@ -238,7 +250,7 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                         oppfolgingstilfelleCronjob.runJob()
                     }
 
-                    val oppfolgingstilfellePerson = database.getOppfolgingstilfellePerson(personIdentDefault)
+                    val oppfolgingstilfellePerson = oppfolgingstilfelleRepository.getOppfolgingstilfellePerson(personIdentDefault)
                     oppfolgingstilfellePerson.shouldNotBeNull()
 
                     oppfolgingstilfellePerson.personIdentNumber shouldBeEqualTo personIdentDefault
@@ -282,7 +294,7 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                         oppfolgingstilfelleCronjob.runJob()
                     }
 
-                    val oppfolgingstilfellePerson = database.getOppfolgingstilfellePerson(personIdentDefault)
+                    val oppfolgingstilfellePerson = oppfolgingstilfelleRepository.getOppfolgingstilfellePerson(personIdentDefault)
                     oppfolgingstilfellePerson.shouldNotBeNull()
                     oppfolgingstilfellePerson.personIdentNumber shouldBeEqualTo personIdentDefault
                     oppfolgingstilfellePerson.oppfolgingstilfeller.size shouldBeEqualTo 0
@@ -332,7 +344,7 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                         result.updated shouldBeEqualTo 1
                     }
 
-                    val oppfolgingstilfellePerson = database.getOppfolgingstilfellePerson(personIdentDefault)
+                    val oppfolgingstilfellePerson = oppfolgingstilfelleRepository.getOppfolgingstilfellePerson(personIdentDefault)
                     oppfolgingstilfellePerson.shouldNotBeNull()
 
                     oppfolgingstilfellePerson.personIdentNumber shouldBeEqualTo personIdentDefault
@@ -376,7 +388,7 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                         oppfolgingstilfellePersonProducer.sendOppfolgingstilfellePerson(any())
                     }
 
-                    val oppfolgingstilfellePerson = database.getOppfolgingstilfellePerson(personIdentDefault)
+                    val oppfolgingstilfellePerson = oppfolgingstilfelleRepository.getOppfolgingstilfellePerson(personIdentDefault)
                     oppfolgingstilfellePerson.shouldNotBeNull()
 
                     oppfolgingstilfellePerson.personIdentNumber.value shouldBeEqualTo kafkaSyketilfellebitInntektsmelding.fnr
@@ -424,7 +436,8 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                         oppfolgingstilfellePersonProducer.sendOppfolgingstilfellePerson(any())
                     }
 
-                    val oppfolgingstilfellePerson = database.getOppfolgingstilfellePerson(ARBEIDSTAKER_VIRKSOMHET_NO_NARMESTELEDER)
+                    val oppfolgingstilfellePerson =
+                        oppfolgingstilfelleRepository.getOppfolgingstilfellePerson(ARBEIDSTAKER_VIRKSOMHET_NO_NARMESTELEDER)
                     oppfolgingstilfellePerson.shouldNotBeNull()
                     oppfolgingstilfellePerson.personIdentNumber shouldBeEqualTo ARBEIDSTAKER_VIRKSOMHET_NO_NARMESTELEDER
                     oppfolgingstilfellePerson.oppfolgingstilfeller.size shouldBeEqualTo 1
@@ -464,7 +477,7 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                         oppfolgingstilfellePersonProducer.sendOppfolgingstilfellePerson(any())
                     }
 
-                    val oppfolgingstilfellePerson = database.getOppfolgingstilfellePerson(personIdentDefault)
+                    val oppfolgingstilfellePerson = oppfolgingstilfelleRepository.getOppfolgingstilfellePerson(personIdentDefault)
                     oppfolgingstilfellePerson.shouldBeNull()
                 }
 

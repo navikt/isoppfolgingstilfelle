@@ -1,15 +1,17 @@
 package no.nav.syfo.oppfolgingstilfelle
 
-import no.nav.syfo.application.database.DatabaseInterface
+import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.domain.PersonIdentNumber
-import no.nav.syfo.oppfolgingstilfelle.person.database.getOppfolgingstilfellePerson
-import no.nav.syfo.oppfolgingstilfelle.person.database.toOppfolgingstilfellePerson
+import no.nav.syfo.infrastructure.database.OppfolgingstilfelleRepository
+import no.nav.syfo.infrastructure.database.toOppfolgingstilfellePerson
 import no.nav.syfo.oppfolgingstilfelle.person.domain.Oppfolgingstilfelle
+import no.nav.syfo.oppfolgingstilfelle.person.domain.OppfolgingstilfellePerson
 import no.nav.syfo.personhendelse.db.getDodsdato
 import no.nav.syfo.util.tomorrow
 
 class OppfolgingstilfelleService(
     val database: DatabaseInterface,
+    val oppfolgingstilfelleRepository: OppfolgingstilfelleRepository,
 ) {
     fun getOppfolgingstilfeller(
         personIdent: PersonIdentNumber,
@@ -29,11 +31,11 @@ class OppfolgingstilfelleService(
 
     private fun oppfolgingstilfellePerson(
         personIdent: PersonIdentNumber,
-    ) = database.connection.use { connection ->
-        val oppfolgingstilfellePerson = connection.getOppfolgingstilfellePerson(
-            personIdent = personIdent,
-        )
-        val dodsdato = connection.getDodsdato(personIdent)
-        oppfolgingstilfellePerson?.toOppfolgingstilfellePerson(dodsdato)
+    ): OppfolgingstilfellePerson? {
+        val oppfolgingstilfellePerson = oppfolgingstilfelleRepository.getOppfolgingstilfellePerson(personIdent = personIdent)
+        val dodsdato = database.connection.use { connection ->
+            connection.getDodsdato(personIdent)
+        }
+        return oppfolgingstilfellePerson?.toOppfolgingstilfellePerson(dodsdato)
     }
 }

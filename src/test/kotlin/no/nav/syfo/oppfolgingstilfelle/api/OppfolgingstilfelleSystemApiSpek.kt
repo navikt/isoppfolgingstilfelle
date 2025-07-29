@@ -68,6 +68,7 @@ class OppfolgingstilfelleSystemApiSpek : Spek({
         database = database,
         oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
             database = database,
+            oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfelleRepository,
             oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
         )
     )

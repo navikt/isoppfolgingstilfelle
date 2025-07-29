@@ -1,14 +1,13 @@
 package testhelper
 
 import io.zonky.test.db.postgres.embedded.EmbeddedPostgres
-import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.domain.PersonIdentNumber
+import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.oppfolgingstilfelle.bit.database.isTilfelleBitAvbrutt
-import no.nav.syfo.oppfolgingstilfelle.person.database.getOppfolgingstilfellePerson
 import no.nav.syfo.personhendelse.db.getDodsdato
 import org.flywaydb.core.Flyway
 import java.sql.Connection
-import java.util.UUID
+import java.util.*
 
 class TestDatabase : DatabaseInterface {
     private val pg: EmbeddedPostgres
@@ -68,7 +67,7 @@ fun DatabaseInterface.dropData() {
 }
 
 fun DatabaseInterface.getDodsdato(
-    personIdent: PersonIdentNumber
+    personIdent: PersonIdentNumber,
 ) = this.connection.use {
     it.getDodsdato(personIdent)
 }
@@ -85,7 +84,3 @@ fun DatabaseInterface.isTilfelleBitAvbrutt(uuid: UUID) =
     this.connection.use { connection ->
         connection.isTilfelleBitAvbrutt(uuid)
     }
-
-fun DatabaseInterface.getOppfolgingstilfellePerson(personIdent: PersonIdentNumber) = this.connection.use { connection ->
-    connection.getOppfolgingstilfellePerson(personIdent = personIdent)
-}

@@ -1,11 +1,10 @@
 package no.nav.syfo.application.api
 
-import io.ktor.server.application.*
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import no.nav.syfo.application.ApplicationState
-import no.nav.syfo.application.database.DatabaseInterface
+import no.nav.syfo.infrastructure.database.DatabaseInterface
 
 const val podLivenessPath = "/internal/is_alive"
 const val podReadinessPath = "/internal/is_ready"

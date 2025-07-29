@@ -9,24 +9,25 @@ import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.Environment
 import no.nav.syfo.application.api.apiModule
 import no.nav.syfo.application.cache.ValkeyStore
-import no.nav.syfo.application.database.applicationDatabase
-import no.nav.syfo.application.database.databaseModule
-import no.nav.syfo.client.wellknown.getWellKnown
-import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
-import no.nav.syfo.oppfolgingstilfelle.bit.kafka.syketilfelle.KafkaSyketilfellebitService
-import no.nav.syfo.oppfolgingstilfelle.bit.kafka.syketilfelle.launchKafkaTaskSyketilfelleBit
-import no.nav.syfo.oppfolgingstilfelle.person.OppfolgingstilfellePersonService
 import no.nav.syfo.application.cronjob.launchCronjobModule
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.narmesteLeder.NarmesteLederClient
 import no.nav.syfo.client.pdl.PdlClient
 import no.nav.syfo.client.tokendings.TokendingsClient
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
+import no.nav.syfo.client.wellknown.getWellKnown
 import no.nav.syfo.identhendelse.IdenthendelseService
 import no.nav.syfo.identhendelse.kafka.IdenthendelseConsumerService
 import no.nav.syfo.identhendelse.kafka.launchKafkaTaskIdenthendelse
+import no.nav.syfo.infrastructure.database.OppfolgingstilfelleRepository
+import no.nav.syfo.infrastructure.database.applicationDatabase
+import no.nav.syfo.infrastructure.database.databaseModule
+import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
+import no.nav.syfo.oppfolgingstilfelle.bit.kafka.syketilfelle.KafkaSyketilfellebitService
+import no.nav.syfo.oppfolgingstilfelle.bit.kafka.syketilfelle.launchKafkaTaskSyketilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.sykmeldingstatus.KafkaSykmeldingstatusService
 import no.nav.syfo.oppfolgingstilfelle.bit.kafka.sykmeldingstatus.launchKafkaTaskStatusendring
+import no.nav.syfo.oppfolgingstilfelle.person.OppfolgingstilfellePersonService
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.OppfolgingstilfellePersonProducer
 import no.nav.syfo.oppfolgingstilfelle.person.kafka.kafkaOppfolgingstilfelleProducerConfig
 import no.nav.syfo.personhendelse.kafka.launchKafkaTaskPersonhendelse
@@ -85,6 +86,7 @@ fun main() {
     )
 
     lateinit var oppfolgingstilfellePersonService: OppfolgingstilfellePersonService
+    lateinit var oppfolgingstilfelleRepository: OppfolgingstilfelleRepository
 
     val applicationEngineEnvironment = applicationEnvironment {
         log = LoggerFactory.getLogger("ktor.application")
@@ -106,13 +108,16 @@ fun main() {
             databaseModule(
                 databaseEnvironment = environment.database,
             )
+            oppfolgingstilfelleRepository = OppfolgingstilfelleRepository(database = applicationDatabase)
             oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
                 database = applicationDatabase,
+                oppfolgingstilfelleRepository = oppfolgingstilfelleRepository,
                 oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
             )
             apiModule(
                 applicationState = applicationState,
                 database = applicationDatabase,
+                oppfolgingstilfelleRepository = oppfolgingstilfelleRepository,
                 environment = environment,
                 wellKnownInternalAzureAD = wellKnownInternalAzureAD,
                 wellKnownSelvbetjening = wellKnownSelvbetjening,
@@ -167,6 +172,7 @@ fun main() {
                     applicationState = applicationState,
                     kafkaEnvironment = environment.kafka,
                     database = applicationDatabase,
+                    oppfolgingstilfelleRepository = oppfolgingstilfelleRepository,
                 )
                 launchCronjobModule(
                     applicationState = applicationState,

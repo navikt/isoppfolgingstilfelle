@@ -6,7 +6,6 @@ import io.ktor.http.*
 import io.ktor.server.testing.*
 import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfelleDTO
 import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleArbeidstakerApiV1Path
-import no.nav.syfo.oppfolgingstilfelle.person.database.createOppfolgingstilfellePerson
 import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -17,6 +16,7 @@ class OppfolgingstilfelleArbeidstakerApiSpek : Spek({
 
     val externalMockEnvironment = ExternalMockEnvironment.instance
     val database = externalMockEnvironment.database
+    val oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfelleRepository
     val personIdent = UserConstants.ARBEIDSTAKER_FNR
 
     val oppfolgingstilfellePerson = generateOppfolgingstilfellePerson(
@@ -38,7 +38,7 @@ class OppfolgingstilfelleArbeidstakerApiSpek : Spek({
     beforeEachTest {
         database.dropData()
         database.connection.use {
-            it.createOppfolgingstilfellePerson(true, oppfolgingstilfellePerson)
+            oppfolgingstilfelleRepository.createOppfolgingstilfellePerson(it, true, oppfolgingstilfellePerson)
         }
     }
 

@@ -1,14 +1,18 @@
 package no.nav.syfo.oppfolgingstilfelle.bit.database
 
-import no.nav.syfo.application.database.DatabaseInterface
-import no.nav.syfo.application.database.toList
-import no.nav.syfo.database.NoElementInsertedException
+import no.nav.syfo.infrastructure.database.DatabaseInterface
+import no.nav.syfo.infrastructure.database.toList
 import no.nav.syfo.domain.PersonIdentNumber
+import no.nav.syfo.infrastructure.database.NoElementInsertedException
 import no.nav.syfo.oppfolgingstilfelle.bit.database.domain.POppfolgingstilfelleBit
-import no.nav.syfo.oppfolgingstilfelle.bit.domain.*
+import no.nav.syfo.oppfolgingstilfelle.bit.domain.OppfolgingstilfelleBit
+import no.nav.syfo.oppfolgingstilfelle.bit.domain.tagsToString
+import no.nav.syfo.oppfolgingstilfelle.bit.domain.toTagList
 import no.nav.syfo.util.toOffsetDateTimeUTC
-import java.sql.*
+import java.sql.Connection
 import java.sql.Date
+import java.sql.ResultSet
+import java.sql.Timestamp
 import java.time.OffsetDateTime
 import java.util.*
 

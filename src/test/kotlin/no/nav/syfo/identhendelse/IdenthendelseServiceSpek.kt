@@ -2,14 +2,13 @@ package no.nav.syfo.identhendelse
 
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.application.cache.ValkeyStore
-import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.pdl.PdlClient
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.identhendelse.database.getIdentCount
+import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.oppfolgingstilfelle.bit.database.createOppfolgingstilfelleBit
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.toOppfolgingstilfelleBit
-import no.nav.syfo.oppfolgingstilfelle.person.database.createOppfolgingstilfellePerson
 import org.amshove.kluent.internal.assertFailsWith
 import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
@@ -25,36 +24,60 @@ import testhelper.generator.generateKafkaIdenthendelseDTO
 import testhelper.generator.generateKafkaSyketilfellebitSykmeldingNy
 import testhelper.generator.generateOppfolgingstilfellePerson
 
-object IdenthendelseServiceSpek : Spek({
+class IdenthendelseServiceSpek : Spek({
+
+    val externalMockEnvironment = ExternalMockEnvironment.instance
+    val database = externalMockEnvironment.database
+    val redisConfig = externalMockEnvironment.environment.valkeyConfig
+
+    val oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfelleRepository
+    val pdlClient = PdlClient(
+        azureAdClient = AzureAdClient(
+            azureEnviroment = externalMockEnvironment.environment.azure,
+            valkeyStore = ValkeyStore(
+                JedisPool(
+                    JedisPoolConfig(),
+                    HostAndPort(redisConfig.host, redisConfig.port),
+                    DefaultJedisClientConfig.builder()
+                        .ssl(redisConfig.ssl)
+                        .password(redisConfig.valkeyPassword)
+                        .build()
+                )
+            ),
+            httpClient = externalMockEnvironment.mockHttpClient,
+        ),
+        clientEnvironment = externalMockEnvironment.environment.clients.pdl,
+        httpClient = externalMockEnvironment.mockHttpClient,
+    )
+
+    val identhendelseService = IdenthendelseService(
+        database = database,
+        pdlClient = pdlClient,
+    )
+
+    fun populateDatabase(oldIdent: PersonIdentNumber, database: DatabaseInterface) {
+        val oppfolgingstilfellePerson = generateOppfolgingstilfellePerson(oldIdent)
+        val newTilfelleBit = generateKafkaSyketilfellebitSykmeldingNy(
+            personIdentNumber = UserConstants.ARBEIDSTAKER_4_FNR,
+        ).toOppfolgingstilfelleBit().copy(
+            processed = true
+        )
+
+        database.connection.use { connection ->
+            connection.createOppfolgingstilfelleBit(
+                commit = true,
+                oppfolgingstilfelleBit = newTilfelleBit,
+            )
+            oppfolgingstilfelleRepository.createOppfolgingstilfellePerson(
+                connection = connection,
+                commit = true,
+                oppfolgingstilfellePerson = oppfolgingstilfellePerson
+            )
+            connection.commit()
+        }
+    }
 
     describe(IdenthendelseServiceSpek::class.java.simpleName) {
-        val externalMockEnvironment = ExternalMockEnvironment.instance
-        val database = externalMockEnvironment.database
-        val redisConfig = externalMockEnvironment.environment.valkeyConfig
-
-        val pdlClient = PdlClient(
-            azureAdClient = AzureAdClient(
-                azureEnviroment = externalMockEnvironment.environment.azure,
-                valkeyStore = ValkeyStore(
-                    JedisPool(
-                        JedisPoolConfig(),
-                        HostAndPort(redisConfig.host, redisConfig.port),
-                        DefaultJedisClientConfig.builder()
-                            .ssl(redisConfig.ssl)
-                            .password(redisConfig.valkeyPassword)
-                            .build()
-                    )
-                ),
-                httpClient = externalMockEnvironment.mockHttpClient,
-            ),
-            clientEnvironment = externalMockEnvironment.environment.clients.pdl,
-            httpClient = externalMockEnvironment.mockHttpClient,
-        )
-
-        val identhendelseService = IdenthendelseService(
-            database = database,
-            pdlClient = pdlClient,
-        )
 
         beforeEachTest {
             database.dropData()
@@ -68,7 +91,8 @@ object IdenthendelseServiceSpek : Spek({
 
                 populateDatabase(oldIdent, database)
 
-                val oldIdentOccurrences = database.getIdentCount(listOf(oldIdent)) + database.getIdentCount(listOf(UserConstants.ARBEIDSTAKER_4_FNR))
+                val oldIdentOccurrences =
+                    database.getIdentCount(listOf(oldIdent)) + database.getIdentCount(listOf(UserConstants.ARBEIDSTAKER_4_FNR))
                 oldIdentOccurrences shouldBeEqualTo 2
 
                 runBlocking {
@@ -114,21 +138,3 @@ object IdenthendelseServiceSpek : Spek({
         }
     }
 })
-
-private fun populateDatabase(oldIdent: PersonIdentNumber, database: DatabaseInterface) {
-    val oppfolgingstilfellePerson = generateOppfolgingstilfellePerson(oldIdent)
-    val newTilfelleBit = generateKafkaSyketilfellebitSykmeldingNy(
-        personIdentNumber = UserConstants.ARBEIDSTAKER_4_FNR,
-    ).toOppfolgingstilfelleBit().copy(
-        processed = true
-    )
-
-    database.connection.use { connection ->
-        connection.createOppfolgingstilfelleBit(
-            commit = true,
-            oppfolgingstilfelleBit = newTilfelleBit,
-        )
-        connection.createOppfolgingstilfellePerson(true, oppfolgingstilfellePerson)
-        connection.commit()
-    }
-}

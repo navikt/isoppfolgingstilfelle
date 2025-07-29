@@ -1,4 +1,4 @@
-package no.nav.syfo.application.database
+package no.nav.syfo.infrastructure.database
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
@@ -15,7 +15,7 @@ data class DatabaseConfig(
 )
 
 class Database(
-    private val config: DatabaseConfig
+    private val config: DatabaseConfig,
 ) : DatabaseInterface {
     override val connection: Connection
         get() = dataSource.connection

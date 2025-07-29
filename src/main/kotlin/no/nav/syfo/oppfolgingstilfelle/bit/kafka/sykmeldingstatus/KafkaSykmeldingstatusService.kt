@@ -1,6 +1,6 @@
 package no.nav.syfo.oppfolgingstilfelle.bit.kafka.sykmeldingstatus
 
-import no.nav.syfo.application.database.DatabaseInterface
+import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.oppfolgingstilfelle.bit.database.*
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.Tag
 import no.nav.syfo.util.and

@@ -1,6 +1,6 @@
 package no.nav.syfo.oppfolgingstilfelle.bit.kafka.syketilfelle
 
-import no.nav.syfo.application.database.DatabaseInterface
+import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
 import no.nav.syfo.oppfolgingstilfelle.bit.domain.toOppfolgingstilfelleBit
 import org.apache.kafka.clients.consumer.*

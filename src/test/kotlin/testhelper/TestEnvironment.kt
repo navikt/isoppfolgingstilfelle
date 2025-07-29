@@ -5,7 +5,7 @@ import no.nav.syfo.application.Environment
 import no.nav.syfo.application.api.access.PreAuthorizedClient
 import no.nav.syfo.application.api.authentication.TokenxEnvironment
 import no.nav.syfo.application.cache.ValkeyConfig
-import no.nav.syfo.application.database.DatabaseEnvironment
+import no.nav.syfo.infrastructure.database.DatabaseEnvironment
 import no.nav.syfo.application.kafka.KafkaEnvironment
 import no.nav.syfo.client.ClientEnvironment
 import no.nav.syfo.client.ClientsEnvironment

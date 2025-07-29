@@ -1,7 +1,7 @@
 package no.nav.syfo.identhendelse.database
 
-import no.nav.syfo.application.database.DatabaseInterface
-import no.nav.syfo.application.database.toList
+import no.nav.syfo.infrastructure.database.DatabaseInterface
+import no.nav.syfo.infrastructure.database.toList
 import no.nav.syfo.domain.PersonIdentNumber
 import java.sql.Connection
 import java.sql.PreparedStatement
