@@ -61,6 +61,7 @@ spec:
         - application: isdialogmotekandidat
         - application: syfomodiaperson
         - application: isbehandlerdialog
+        - application: ismeroppfolging
         - application: meroppfolging-backend
           namespace: team-esyfo
         - application: amt-deltaker
