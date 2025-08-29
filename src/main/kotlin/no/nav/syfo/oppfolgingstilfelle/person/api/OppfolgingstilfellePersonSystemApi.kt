@@ -3,9 +3,9 @@ package no.nav.syfo.oppfolgingstilfelle.person.api
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import no.nav.syfo.application.api.access.APIConsumerAccessService
+import no.nav.syfo.api.access.APIConsumerAccessService
+import no.nav.syfo.application.OppfolgingstilfelleService
 import no.nav.syfo.domain.PersonIdentNumber
-import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
 import no.nav.syfo.oppfolgingstilfelle.person.domain.toOppfolgingstilfellePersonDTO
 import no.nav.syfo.util.*
 

@@ -21,6 +21,7 @@ class OppfolgingstilfelleNarmesteLederApiSpek : Spek({
     val personIdentDefault = UserConstants.PERSONIDENTNUMBER_DEFAULT
 
     val oppfolgingstilfellePerson = generateOppfolgingstilfellePerson()
+    val narmestelederOppfolgingstilfelleApiPath = "/api/v1/narmesteleder/oppfolgingstilfelle"
 
     beforeEachTest {
         database.dropData()
@@ -30,7 +31,7 @@ class OppfolgingstilfelleNarmesteLederApiSpek : Spek({
     }
 
     describe(OppfolgingstilfelleNarmesteLederApiSpek::class.java.simpleName) {
-        describe("$oppfolgingstilfelleApiV1Path") {
+        describe(narmestelederOppfolgingstilfelleApiPath) {
             val validToken = generateJWT(
                 audience = externalMockEnvironment.environment.tokenx.clientId,
                 azp = testIsnarmesteLederClientId,
@@ -41,7 +42,7 @@ class OppfolgingstilfelleNarmesteLederApiSpek : Spek({
                 it("GET base path") {
                     testApplication {
                         val client = setupApiAndClient()
-                        val response = client.get(oppfolgingstilfelleApiV1Path) {
+                        val response = client.get(narmestelederOppfolgingstilfelleApiPath) {
                             bearerAuth(validToken)
                             header(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
                             header(NAV_VIRKSOMHETSNUMMER, UserConstants.VIRKSOMHETSNUMMER_DEFAULT.value)
@@ -60,7 +61,7 @@ class OppfolgingstilfelleNarmesteLederApiSpek : Spek({
                 it("GET base path with invalid narmeste leder relasjon returns status code forbidden") {
                     testApplication {
                         val client = setupApiAndClient()
-                        val response = client.get(oppfolgingstilfelleApiV1Path) {
+                        val response = client.get(narmestelederOppfolgingstilfelleApiPath) {
                             bearerAuth(validToken)
                             header(NAV_PERSONIDENT_HEADER, personIdentDefault.value)
                             header(NAV_VIRKSOMHETSNUMMER, "912000000")

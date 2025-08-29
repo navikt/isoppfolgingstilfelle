@@ -3,8 +3,9 @@ package no.nav.syfo.client.arbeidsforhold
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import no.nav.syfo.client.azuread.AzureAdClient
-import no.nav.syfo.client.azuread.AzureAdToken
+import no.nav.syfo.infrastructure.client.ArbeidsforholdClient
+import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
+import no.nav.syfo.infrastructure.client.azuread.AzureAdToken
 import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe

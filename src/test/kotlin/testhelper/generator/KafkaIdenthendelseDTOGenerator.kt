@@ -1,9 +1,9 @@
 package testhelper.generator
 
 import no.nav.syfo.domain.PersonIdentNumber
-import no.nav.syfo.identhendelse.kafka.IdentType
-import no.nav.syfo.identhendelse.kafka.Identifikator
-import no.nav.syfo.identhendelse.kafka.KafkaIdenthendelseDTO
+import no.nav.syfo.infrastructure.kafka.identhendelse.IdentType
+import no.nav.syfo.infrastructure.kafka.identhendelse.Identifikator
+import no.nav.syfo.infrastructure.kafka.identhendelse.KafkaIdenthendelseDTO
 import testhelper.UserConstants
 
 fun generateKafkaIdenthendelseDTO(

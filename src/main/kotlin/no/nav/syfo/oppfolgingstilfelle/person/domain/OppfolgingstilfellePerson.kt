@@ -2,10 +2,10 @@ package no.nav.syfo.oppfolgingstilfelle.person.domain
 
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.domain.Virksomhetsnummer
+import no.nav.syfo.infrastructure.kafka.KafkaOppfolgingstilfelle
+import no.nav.syfo.infrastructure.kafka.KafkaOppfolgingstilfellePerson
 import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfelleDTO
 import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfellePersonDTO
-import no.nav.syfo.oppfolgingstilfelle.person.kafka.KafkaOppfolgingstilfelle
-import no.nav.syfo.oppfolgingstilfelle.person.kafka.KafkaOppfolgingstilfellePerson
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit

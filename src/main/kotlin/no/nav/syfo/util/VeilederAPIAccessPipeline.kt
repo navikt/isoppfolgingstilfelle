@@ -1,8 +1,8 @@
 package no.nav.syfo.util
 
 import io.ktor.server.routing.*
-import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.domain.PersonIdentNumber
+import no.nav.syfo.infrastructure.client.veiledertilgang.VeilederTilgangskontrollClient
 
 suspend fun RoutingContext.validateVeilederAccess(
     action: String,

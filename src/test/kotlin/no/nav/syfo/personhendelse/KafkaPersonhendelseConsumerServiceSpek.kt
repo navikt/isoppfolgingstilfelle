@@ -6,9 +6,10 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import no.nav.person.pdl.leesah.Personhendelse
-import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
-import no.nav.syfo.personhendelse.kafka.KafkaPersonhendelseConsumerService
-import no.nav.syfo.personhendelse.kafka.PDL_LEESAH_TOPIC
+import no.nav.syfo.application.OppfolgingstilfelleService
+import no.nav.syfo.application.PersonhendelseService
+import no.nav.syfo.infrastructure.kafka.personhendelse.KafkaPersonhendelseConsumerService
+import no.nav.syfo.infrastructure.kafka.personhendelse.PDL_LEESAH_TOPIC
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEqualTo
 import org.apache.kafka.clients.consumer.ConsumerRecord

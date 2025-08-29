@@ -1,17 +1,20 @@
 package no.nav.syfo.oppfolgingstilfelle.bit
 
-import no.nav.syfo.oppfolgingstilfelle.bit.domain.*
-import no.nav.syfo.oppfolgingstilfelle.bit.domain.Tag.*
+import no.nav.syfo.domain.OppfolgingstilfelleBit
+import no.nav.syfo.domain.Tag.*
+import no.nav.syfo.domain.generateOppfolgingstilfelleList
+import no.nav.syfo.domain.pickOppfolgingstilfelleDag
 import no.nav.syfo.oppfolgingstilfelle.person.domain.calculateCurrentVarighetUker
-import no.nav.syfo.util.*
+import no.nav.syfo.util.defaultZoneOffset
+import no.nav.syfo.util.nowUTC
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import testhelper.generator.generateOppfolgingstilfelleBit
-import java.time.*
+import java.time.LocalDate
 import java.time.temporal.ChronoUnit
-import java.util.UUID
+import java.util.*
 
 class OppfolgingstilfelleBitSpek : Spek({
     val mondayLocal = LocalDate.of(2018, 11, 26)

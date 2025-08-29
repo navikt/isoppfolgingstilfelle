@@ -1,7 +1,7 @@
 package testhelper
 
-import no.nav.syfo.application.ApplicationState
-import no.nav.syfo.application.cache.ValkeyStore
+import no.nav.syfo.ApplicationState
+import no.nav.syfo.api.cache.ValkeyStore
 import no.nav.syfo.infrastructure.database.OppfolgingstilfelleRepository
 import redis.clients.jedis.DefaultJedisClientConfig
 import redis.clients.jedis.HostAndPort

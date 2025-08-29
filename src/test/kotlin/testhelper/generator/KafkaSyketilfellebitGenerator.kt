@@ -1,10 +1,13 @@
 package testhelper.generator
 
 import no.nav.syfo.domain.PersonIdentNumber
+import no.nav.syfo.domain.Tag
 import no.nav.syfo.domain.Virksomhetsnummer
-import no.nav.syfo.oppfolgingstilfelle.bit.domain.Tag
-import no.nav.syfo.oppfolgingstilfelle.bit.kafka.sykmeldingstatus.*
-import no.nav.syfo.oppfolgingstilfelle.bit.kafka.syketilfelle.KafkaSyketilfellebit
+import no.nav.syfo.infrastructure.kafka.syketilfelle.KafkaSyketilfellebit
+import no.nav.syfo.infrastructure.kafka.sykmeldingstatus.KafkaMetadataDTO
+import no.nav.syfo.infrastructure.kafka.sykmeldingstatus.StatusEndring
+import no.nav.syfo.infrastructure.kafka.sykmeldingstatus.SykmeldingStatusKafkaEventDTO
+import no.nav.syfo.infrastructure.kafka.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
 import no.nav.syfo.util.nowUTC
 import testhelper.UserConstants
 import java.time.LocalDate

@@ -3,9 +3,9 @@ package testhelper.mock
 import io.ktor.client.engine.mock.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import no.nav.syfo.client.narmesteLeder.NarmesteLederClient
-import no.nav.syfo.client.narmesteLeder.NarmesteLederRelasjonDTO
-import no.nav.syfo.client.narmesteLeder.NarmesteLederRelasjonStatus
+import no.nav.syfo.infrastructure.client.narmesteleder.NarmesteLederClient
+import no.nav.syfo.infrastructure.client.narmesteleder.NarmesteLederRelasjonDTO
+import no.nav.syfo.infrastructure.client.narmesteleder.NarmesteLederRelasjonStatus
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 import testhelper.UserConstants.ARBEIDSTAKER_FNR
 import testhelper.UserConstants.ARBEIDSTAKER_VIRKSOMHET_NO_NARMESTELEDER

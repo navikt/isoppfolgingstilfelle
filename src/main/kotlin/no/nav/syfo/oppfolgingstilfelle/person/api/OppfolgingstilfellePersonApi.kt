@@ -4,14 +4,13 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
+import no.nav.syfo.application.OppfolgingstilfelleService
 import no.nav.syfo.domain.PersonIdentNumber
-import no.nav.syfo.oppfolgingstilfelle.OppfolgingstilfelleService
+import no.nav.syfo.infrastructure.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.oppfolgingstilfelle.person.domain.toOppfolgingstilfellePersonDTO
 import no.nav.syfo.util.*
 import kotlin.time.measureTimedValue
 
-const val oppfolgingstilfelleApiV1Path = "/api/internad/v1/oppfolgingstilfelle"
 const val oppfolgingstilfelleApiPersonIdentPath = "/personident"
 const val oppfolgingstilfelleApiPersonsPath = "/persons"
 
@@ -19,7 +18,7 @@ fun Route.registerOppfolgingstilfelleApi(
     oppfolgingstilfelleService: OppfolgingstilfelleService,
     veilederTilgangskontrollClient: VeilederTilgangskontrollClient,
 ) {
-    route(oppfolgingstilfelleApiV1Path) {
+    route("/api/internad/v1/oppfolgingstilfelle") {
         get(oppfolgingstilfelleApiPersonIdentPath) {
             val personIdent = personIdentHeader()?.let { personIdent ->
                 PersonIdentNumber(personIdent)

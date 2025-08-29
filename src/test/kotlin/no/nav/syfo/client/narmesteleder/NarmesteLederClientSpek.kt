@@ -2,12 +2,12 @@ package no.nav.syfo.client.narmesteleder
 
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
-import no.nav.syfo.application.cache.ValkeyStore
-import no.nav.syfo.client.narmesteLeder.NarmesteLederClient
-import no.nav.syfo.client.narmesteLeder.NarmesteLederRelasjonDTO
-import no.nav.syfo.client.narmesteLeder.NarmesteLederRelasjonStatus
-import no.nav.syfo.client.tokendings.TokendingsClient
-import no.nav.syfo.client.tokendings.TokenendingsToken
+import no.nav.syfo.api.cache.ValkeyStore
+import no.nav.syfo.infrastructure.client.narmesteleder.NarmesteLederClient
+import no.nav.syfo.infrastructure.client.narmesteleder.NarmesteLederRelasjonDTO
+import no.nav.syfo.infrastructure.client.narmesteleder.NarmesteLederRelasjonStatus
+import no.nav.syfo.infrastructure.client.tokendings.TokendingsClient
+import no.nav.syfo.infrastructure.client.tokendings.TokenendingsToken
 import no.nav.syfo.util.configuredJacksonMapper
 import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
