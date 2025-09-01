@@ -5,7 +5,6 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import no.nav.syfo.client.pdl.domain.*
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.infrastructure.client.ClientEnvironment
 import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
