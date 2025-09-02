@@ -2,8 +2,8 @@ package testhelper.mock
 
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
-import no.nav.syfo.application.Environment
-import no.nav.syfo.client.commonConfig
+import no.nav.syfo.Environment
+import no.nav.syfo.infrastructure.client.commonConfig
 
 fun mockHttpClient(environment: Environment) = HttpClient(MockEngine) {
     commonConfig()

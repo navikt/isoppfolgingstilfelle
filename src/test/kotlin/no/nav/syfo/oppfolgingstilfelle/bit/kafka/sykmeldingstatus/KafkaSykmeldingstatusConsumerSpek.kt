@@ -2,12 +2,15 @@ package no.nav.syfo.oppfolgingstilfelle.bit.kafka.sykmeldingstatus
 
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
-import no.nav.syfo.oppfolgingstilfelle.bit.cronjob.OppfolgingstilfelleCronjob
-import no.nav.syfo.oppfolgingstilfelle.bit.database.createOppfolgingstilfelleBit
-import no.nav.syfo.oppfolgingstilfelle.bit.domain.OppfolgingstilfelleBit
-import no.nav.syfo.oppfolgingstilfelle.bit.domain.Tag
-import no.nav.syfo.oppfolgingstilfelle.person.OppfolgingstilfellePersonService
-import no.nav.syfo.oppfolgingstilfelle.person.kafka.OppfolgingstilfellePersonProducer
+import no.nav.syfo.application.OppfolgingstilfellePersonService
+import no.nav.syfo.domain.OppfolgingstilfelleBit
+import no.nav.syfo.domain.Tag
+import no.nav.syfo.infrastructure.cronjob.OppfolgingstilfelleCronjob
+import no.nav.syfo.infrastructure.database.bit.createOppfolgingstilfelleBit
+import no.nav.syfo.infrastructure.kafka.OppfolgingstilfellePersonProducer
+import no.nav.syfo.infrastructure.kafka.sykmeldingstatus.KafkaSykmeldingstatusService
+import no.nav.syfo.infrastructure.kafka.sykmeldingstatus.STATUSENDRING_TOPIC
+import no.nav.syfo.infrastructure.kafka.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
 import no.nav.syfo.util.nowUTC
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldNotBeNull

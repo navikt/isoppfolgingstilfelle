@@ -1,11 +1,11 @@
 package testhelper
 
 import io.ktor.server.application.*
-import no.nav.syfo.application.api.apiModule
-import no.nav.syfo.client.azuread.AzureAdClient
-import no.nav.syfo.client.narmesteLeder.NarmesteLederClient
-import no.nav.syfo.client.tokendings.TokendingsClient
-import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
+import no.nav.syfo.api.apiModule
+import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
+import no.nav.syfo.infrastructure.client.narmesteleder.NarmesteLederClient
+import no.nav.syfo.infrastructure.client.tokendings.TokendingsClient
+import no.nav.syfo.infrastructure.client.veiledertilgang.VeilederTilgangskontrollClient
 
 fun Application.testApiModule(
     externalMockEnvironment: ExternalMockEnvironment,

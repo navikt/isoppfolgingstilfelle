@@ -1,14 +1,15 @@
 package no.nav.syfo.identhendelse
 
 import kotlinx.coroutines.runBlocking
-import no.nav.syfo.application.cache.ValkeyStore
-import no.nav.syfo.client.azuread.AzureAdClient
-import no.nav.syfo.client.pdl.PdlClient
+import no.nav.syfo.api.cache.ValkeyStore
+import no.nav.syfo.application.IdenthendelseService
 import no.nav.syfo.domain.PersonIdentNumber
-import no.nav.syfo.identhendelse.database.getIdentCount
+import no.nav.syfo.domain.toOppfolgingstilfelleBit
+import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
+import no.nav.syfo.infrastructure.client.pdl.PdlClient
 import no.nav.syfo.infrastructure.database.DatabaseInterface
-import no.nav.syfo.oppfolgingstilfelle.bit.database.createOppfolgingstilfelleBit
-import no.nav.syfo.oppfolgingstilfelle.bit.domain.toOppfolgingstilfelleBit
+import no.nav.syfo.infrastructure.database.bit.createOppfolgingstilfelleBit
+import no.nav.syfo.infrastructure.database.getIdentCount
 import org.amshove.kluent.internal.assertFailsWith
 import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek

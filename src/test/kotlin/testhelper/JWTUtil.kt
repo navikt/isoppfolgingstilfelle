@@ -4,7 +4,7 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jose.jwk.RSAKey
-import no.nav.syfo.application.api.authentication.JWT_CLAIM_AZP
+import no.nav.syfo.api.authentication.JWT_CLAIM_AZP
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -23,7 +23,7 @@ fun generateJWT(
     issuer: String,
     subject: String? = null,
     expiry: LocalDateTime? = LocalDateTime.now().plusHours(1),
-    pid: String? = UserConstants.NARMESTELEDER_FNR.value
+    pid: String? = UserConstants.NARMESTELEDER_FNR.value,
 ): String {
     val now = Date()
     val key = getDefaultRSAKey()

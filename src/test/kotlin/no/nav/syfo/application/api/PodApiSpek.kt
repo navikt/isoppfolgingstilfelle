@@ -5,7 +5,8 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import no.nav.syfo.application.ApplicationState
+import no.nav.syfo.ApplicationState
+import no.nav.syfo.api.registerPodApi
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldNotBeEqualTo
 import org.spekframework.spek2.Spek

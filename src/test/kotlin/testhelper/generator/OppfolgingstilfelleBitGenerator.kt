@@ -1,8 +1,8 @@
 package testhelper.generator
 
+import no.nav.syfo.domain.OppfolgingstilfelleBit
 import no.nav.syfo.domain.PersonIdentNumber
-import no.nav.syfo.oppfolgingstilfelle.bit.domain.OppfolgingstilfelleBit
-import no.nav.syfo.oppfolgingstilfelle.bit.domain.Tag
+import no.nav.syfo.domain.Tag
 import no.nav.syfo.util.nowUTC
 import testhelper.UserConstants.PERSONIDENTNUMBER_DEFAULT
 import java.time.LocalDate

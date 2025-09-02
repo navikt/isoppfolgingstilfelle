@@ -1,6 +1,7 @@
 package no.nav.syfo.client.tokendings
 
 import kotlinx.coroutines.runBlocking
+import no.nav.syfo.infrastructure.client.tokendings.TokendingsClient
 import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe

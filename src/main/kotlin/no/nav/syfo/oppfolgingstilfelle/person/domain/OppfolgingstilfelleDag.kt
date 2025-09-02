@@ -1,12 +1,12 @@
 package no.nav.syfo.oppfolgingstilfelle.person.domain
 
-import no.nav.syfo.domain.Virksomhetsnummer
-import no.nav.syfo.oppfolgingstilfelle.bit.domain.*
+import no.nav.syfo.domain.*
 import no.nav.syfo.oppfolgingstilfelle.person.metric.SYKMELDING_NY_COUNTER
 import no.nav.syfo.util.and
 import no.nav.syfo.util.or
 import org.slf4j.LoggerFactory
-import java.time.*
+import java.time.Duration
+import java.time.LocalDate
 
 private val log = LoggerFactory.getLogger(OppfolgingstilfelleDag::class.java)
 

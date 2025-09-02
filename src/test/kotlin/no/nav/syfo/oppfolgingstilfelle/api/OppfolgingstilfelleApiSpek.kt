@@ -5,19 +5,18 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.mockk.*
+import no.nav.syfo.application.OppfolgingstilfelleBitService
+import no.nav.syfo.application.OppfolgingstilfellePersonService
 import no.nav.syfo.domain.PersonIdentNumber
-import no.nav.syfo.oppfolgingstilfelle.bit.OppfolgingstilfelleBitService
-import no.nav.syfo.oppfolgingstilfelle.bit.cronjob.OppfolgingstilfelleCronjob
-import no.nav.syfo.oppfolgingstilfelle.bit.kafka.syketilfelle.KafkaSyketilfellebit
-import no.nav.syfo.oppfolgingstilfelle.bit.kafka.syketilfelle.KafkaSyketilfellebitService
-import no.nav.syfo.oppfolgingstilfelle.bit.kafka.syketilfelle.SYKETILFELLEBIT_TOPIC
-import no.nav.syfo.oppfolgingstilfelle.person.OppfolgingstilfellePersonService
+import no.nav.syfo.infrastructure.cronjob.OppfolgingstilfelleCronjob
+import no.nav.syfo.infrastructure.database.createPerson
+import no.nav.syfo.infrastructure.kafka.OppfolgingstilfellePersonProducer
+import no.nav.syfo.infrastructure.kafka.syketilfelle.KafkaSyketilfellebit
+import no.nav.syfo.infrastructure.kafka.syketilfelle.KafkaSyketilfellebitService
+import no.nav.syfo.infrastructure.kafka.syketilfelle.SYKETILFELLEBIT_TOPIC
 import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfellePersonDTO
 import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleApiPersonIdentPath
 import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleApiPersonsPath
-import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleApiV1Path
-import no.nav.syfo.oppfolgingstilfelle.person.kafka.OppfolgingstilfellePersonProducer
-import no.nav.syfo.personhendelse.db.createPerson
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 import org.amshove.kluent.*
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -92,6 +91,7 @@ class OppfolgingstilfelleApiSpek : Spek({
             oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
         )
     )
+    val oppfolgingstilfelleApiV1Path = "/api/internad/v1/oppfolgingstilfelle"
 
     beforeEachTest {
         database.dropData()
