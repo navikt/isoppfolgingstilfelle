@@ -1332,7 +1332,7 @@ class OppfolgingstilfelleBitSpek : Spek({
             oppfolgingstilfelleLast.calculateCurrentVarighetUker() shouldBeEqualTo 0
         }
 
-        it("should return 1 Oppfolgingstilfelle, if person has 16 Arbeidsdag in one of  2 arbeidsforhold") {
+        it("should return 1 Oppfolgingstilfelle, if person has 16 Arbeidsdag in one of 2 arbeidsforhold") {
             val oppfolgingstilfelleBitList = listOf(
                 defaultBit.copy(
                     createdAt = nowUTC(),
