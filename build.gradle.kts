@@ -3,28 +3,28 @@ import org.jlleitschuh.gradle.ktlint.tasks.KtLintCheckTask
 group = "no.nav.syfo"
 version = "1.0.0"
 
-val confluent = "7.9.0"
-val flyway = "11.3.4"
-val hikari = "6.2.1"
-val jackson = "2.18.3"
+val confluent = "8.0.0"
+val flyway = "11.11.2"
+val hikari = "6.3.0"
+val jackson = "2.19.2"
 val jedis = "5.2.0"
 val kafka = "3.9.0"
-val ktor = "3.1.1"
+val ktor = "3.3.0"
 val kluent = "1.73"
-val logback = "1.5.17"
-val logstashEncoder = "8.0"
-val mockk = "1.13.17"
-val nimbusJoseJwt = "9.47"
-val micrometerRegistry = "1.14.4"
-val postgres = "42.7.5"
-val postgresEmbedded = "2.1.0"
+val logback = "1.5.18"
+val logstashEncoder = "8.1"
+val mockk = "1.14.5"
+val nimbusJoseJwt = "10.4.2"
+val micrometerRegistry = "1.12.13"
+val postgres = "42.7.7"
+val postgresEmbedded = "2.1.1"
 val redisEmbedded = "0.7.3"
 val postgresRuntimeVersion = "17.5.0"
 val spek = "2.0.19"
 
 plugins {
-    kotlin("jvm") version "2.1.0"
-    id("com.gradleup.shadow") version "8.3.6"
+    kotlin("jvm") version "2.2.10"
+    id("com.gradleup.shadow") version "8.3.7"
     id("org.jlleitschuh.gradle.ktlint") version "11.6.1"
     id("com.github.davidmc24.gradle.plugin.avro") version "1.9.1"
 }
@@ -97,10 +97,16 @@ dependencies {
     }
     implementation("org.apache.kafka:kafka_2.13:$kafka", excludeLog4j)
     constraints {
-        implementation("org.apache.zookeeper:zookeeper") {
-            because("org.apache.kafka:kafka_2.13:$kafka -> https://www.cve.org/CVERecord?id=CVE-2023-44981")
+        implementation("org.bitbucket.b_c:jose4j") {
+            because("org.apache.kafka:kafka_2.13:$kafka -> https://github.com/advisories/GHSA-6qvw-249j-h44c")
             version {
-                require("3.9.3")
+                require("0.9.6")
+            }
+        }
+        implementation("commons-beanutils:commons-beanutils") {
+            because("org.apache.kafka:kafka_2.13:$kafka -> https://www.cve.org/CVERecord?id=CVE-2025-48734")
+            version {
+                require("1.11.0")
             }
         }
     }
