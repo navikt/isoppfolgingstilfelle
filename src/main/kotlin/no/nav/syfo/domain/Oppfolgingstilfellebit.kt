@@ -135,12 +135,10 @@ fun List<OppfolgingstilfelleBit>.lastTom(): LocalDate =
 
 private fun List<OppfolgingstilfelleBit>.pickOppfolgingstilfelleBitPerVirksomhet(
     dag: LocalDate,
-): Map<String, OppfolgingstilfelleBit?> {
-    val virksomhetsnummerListe = this.mapNotNull { it.virksomhetsnummer }.distinct()
-    return virksomhetsnummerListe.associateWith {
+): Map<String, OppfolgingstilfelleBit?> =
+    getVirksomhetsnummerPreferred().associateWith {
         this.filter { bit -> bit.virksomhetsnummer == it }.pickOppfolgingstilfelleDagInternal(dag).firstOrNull()
     }
-}
 
 fun List<OppfolgingstilfelleBit>.pickOppfolgingstilfelleDag(
     dag: LocalDate,
