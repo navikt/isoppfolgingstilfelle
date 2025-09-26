@@ -9,6 +9,7 @@ object UserConstants {
         PersonIdentNumber(PERSONIDENTNUMBER_DEFAULT.value.replace("2", "1"))
 
     val VIRKSOMHETSNUMMER_DEFAULT = Virksomhetsnummer("912345678")
+    val VIRKSOMHETSNUMMER_OTHER = Virksomhetsnummer("912345679")
 
     val ARBEIDSTAKER_FNR = PersonIdentNumber("12345678912")
     val ARBEIDSTAKER_2_FNR = PersonIdentNumber("12345678911")

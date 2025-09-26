@@ -11,6 +11,7 @@ import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import testhelper.UserConstants
 import testhelper.generator.generateOppfolgingstilfelleBit
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -1329,6 +1330,56 @@ class OppfolgingstilfelleBitSpek : Spek({
             secondTilfelleDuration shouldBeEqualTo 0
             oppfolgingstilfelleLast.antallSykedager shouldBeEqualTo 1
             oppfolgingstilfelleLast.calculateCurrentVarighetUker() shouldBeEqualTo 0
+        }
+
+        it("should return 1 Oppfolgingstilfelle, if person has 16 Arbeidsdag in one of 2 arbeidsforhold") {
+            val oppfolgingstilfelleBitList = listOf(
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT),
+                    fom = LocalDate.now().minusDays(17),
+                    tom = LocalDate.now().minusDays(17),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT),
+                    virksomhetsnummer = UserConstants.VIRKSOMHETSNUMMER_OTHER.value,
+                    fom = LocalDate.now().minusDays(17),
+                    tom = LocalDate.now().minusDays(17),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT, ARBEID_GJENNOPPTATT),
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now().minusDays(1),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT),
+                    virksomhetsnummer = UserConstants.VIRKSOMHETSNUMMER_OTHER.value,
+                    fom = LocalDate.now().minusDays(16),
+                    tom = LocalDate.now().minusDays(1),
+                ),
+                defaultBit.copy(
+                    createdAt = nowUTC(),
+                    inntruffet = nowUTC(),
+                    tagList = listOf(SYKEPENGESOKNAD, SENDT),
+                    fom = LocalDate.now(),
+                    tom = LocalDate.now(),
+                ),
+            )
+
+            val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+            oppfolgingstilfelleList.size shouldBeEqualTo 1
+            val oppfolgingstilfelle = oppfolgingstilfelleList.first()
+
+            val firstTilfelleDuration = oppfolgingstilfelle.start.until(oppfolgingstilfelle.end, ChronoUnit.DAYS)
+            firstTilfelleDuration shouldBeEqualTo 17
+            oppfolgingstilfelle.antallSykedager shouldBeEqualTo 18
         }
 
         it("should return 2 Oppfolgingstilfelle, if person has at least 16 behandlingsdager between 2 Sykedag") {

@@ -12,6 +12,7 @@ private val log = LoggerFactory.getLogger(OppfolgingstilfelleDag::class.java)
 
 class OppfolgingstilfelleDag(
     val dag: LocalDate,
+    val priorityOppfolgingstilfelleBitPerVirksomhet: Map<String, OppfolgingstilfelleBit?>,
     val priorityOppfolgingstilfelleBit: OppfolgingstilfelleBit?,
     val priorityGraderingBit: OppfolgingstilfelleBit?,
     val virksomhetsnummerPreferred: List<String>,
@@ -131,19 +132,12 @@ fun OppfolgingstilfelleDag.isInntektsmelding() = priorityOppfolgingstilfelleBit?
 
 fun OppfolgingstilfelleDag.isSykmeldingNy() = priorityOppfolgingstilfelleBit?.isSykmeldingNy() ?: false
 
-fun OppfolgingstilfelleDag.isArbeidsdag() =
-    priorityOppfolgingstilfelleBit
-        ?.tagList
-        ?.let { tagList ->
-            tagList in (
-                (Tag.SYKMELDING and Tag.PERIODE and Tag.FULL_AKTIVITET)
-                    or (Tag.SYKEPENGESOKNAD and Tag.ARBEID_GJENNOPPTATT)
-                    or (Tag.SYKEPENGESOKNAD and Tag.BEHANDLINGSDAGER)
-                    or (Tag.SYKMELDING and Tag.BEHANDLINGSDAGER)
-                    or (Tag.SYKMELDING and Tag.REISETILSKUDD)
-                )
-        }
-        ?: true
+fun OppfolgingstilfelleDag.isArbeidsdag(): Boolean =
+    if (priorityOppfolgingstilfelleBitPerVirksomhet.any { entry -> entry.value != null }) {
+        priorityOppfolgingstilfelleBitPerVirksomhet.all { entry -> entry.value?.isArbeidsdag() ?: true }
+    } else {
+        priorityOppfolgingstilfelleBit?.isArbeidsdag() ?: true
+    }
 
 fun OppfolgingstilfelleDag.isFeriedag() =
     priorityOppfolgingstilfelleBit

@@ -4,6 +4,7 @@ import no.nav.syfo.domain.OppfolgingstilfelleBit
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.domain.Tag
 import no.nav.syfo.util.nowUTC
+import testhelper.UserConstants
 import testhelper.UserConstants.PERSONIDENTNUMBER_DEFAULT
 import java.time.LocalDate
 import java.util.*
@@ -13,7 +14,7 @@ fun generateOppfolgingstilfelleBit(
 ) = OppfolgingstilfelleBit(
     uuid = UUID.randomUUID(),
     personIdentNumber = personIdentNumber,
-    virksomhetsnummer = "987654321",
+    virksomhetsnummer = UserConstants.VIRKSOMHETSNUMMER_DEFAULT.value,
     createdAt = nowUTC(),
     inntruffet = nowUTC().minusDays(1),
     fom = LocalDate.now().minusDays(1),

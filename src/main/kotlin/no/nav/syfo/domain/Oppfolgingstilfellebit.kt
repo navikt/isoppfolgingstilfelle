@@ -133,10 +133,31 @@ fun List<OppfolgingstilfelleBit>.firstFom(): LocalDate =
 fun List<OppfolgingstilfelleBit>.lastTom(): LocalDate =
     this.maxByOrNull { it.tom }!!.tom
 
+private fun List<OppfolgingstilfelleBit>.pickOppfolgingstilfelleBitPerVirksomhet(
+    dag: LocalDate,
+): Map<String, OppfolgingstilfelleBit?> =
+    getVirksomhetsnummerPreferred().associateWith {
+        this.filter { bit -> bit.virksomhetsnummer == it }.pickOppfolgingstilfelleDagInternal(dag).firstOrNull()
+    }
+
 fun List<OppfolgingstilfelleBit>.pickOppfolgingstilfelleDag(
     dag: LocalDate,
 ): OppfolgingstilfelleDag {
-    val bitListForDag = this.filter { bit ->
+    val bitListForDag = pickOppfolgingstilfelleDagInternal(dag)
+    return OppfolgingstilfelleDag(
+        dag = dag,
+        priorityOppfolgingstilfelleBitPerVirksomhet = pickOppfolgingstilfelleBitPerVirksomhet(dag),
+        priorityOppfolgingstilfelleBit = bitListForDag.firstOrNull(),
+        priorityGraderingBit = bitListForDag.firstOrNull { it.isGraderingBit() },
+        virksomhetsnummerPreferred = bitListForDag.getVirksomhetsnummerPreferred(),
+        virksomhetsnummerAll = bitListForDag.getVirksomhetsnummerAll(),
+    )
+}
+
+private fun List<OppfolgingstilfelleBit>.pickOppfolgingstilfelleDagInternal(
+    dag: LocalDate,
+): List<OppfolgingstilfelleBit> =
+    this.filter { bit ->
         dag in (bit.fom..(bit.tom))
     }.filter { bit ->
         bit.findTagPriorityElementOrNull() != null
@@ -144,14 +165,6 @@ fun List<OppfolgingstilfelleBit>.pickOppfolgingstilfelleDag(
         sortByDescending { bit -> bit.inntruffet }
         sortByTagPriority()
     }
-    return OppfolgingstilfelleDag(
-        dag = dag,
-        priorityOppfolgingstilfelleBit = bitListForDag.firstOrNull(),
-        priorityGraderingBit = bitListForDag.firstOrNull { it.isGraderingBit() },
-        virksomhetsnummerPreferred = bitListForDag.getVirksomhetsnummerPreferred(),
-        virksomhetsnummerAll = bitListForDag.getVirksomhetsnummerAll(),
-    )
-}
 
 fun List<OppfolgingstilfelleBit>.getVirksomhetsnummerPreferred() =
     this.filter { bit -> !bit.isSykmeldingNy() }
@@ -214,6 +227,15 @@ fun OppfolgingstilfelleBit.isSykmeldingNy(): Boolean = this.tagList in (Tag.SYKM
 
 fun OppfolgingstilfelleBit.isInntektsmelding(): Boolean =
     this.tagList in (Tag.INNTEKTSMELDING and Tag.ARBEIDSGIVERPERIODE)
+
+fun OppfolgingstilfelleBit.isArbeidsdag() =
+    this.tagList in (
+        (Tag.SYKMELDING and Tag.PERIODE and Tag.FULL_AKTIVITET)
+            or (Tag.SYKEPENGESOKNAD and Tag.ARBEID_GJENNOPPTATT)
+            or (Tag.SYKEPENGESOKNAD and Tag.BEHANDLINGSDAGER)
+            or (Tag.SYKMELDING and Tag.BEHANDLINGSDAGER)
+            or (Tag.SYKMELDING and Tag.REISETILSKUDD)
+        )
 
 fun OppfolgingstilfelleBit.toOppfolgingstilfellePerson(
     oppfolgingstilfelleBitList: List<OppfolgingstilfelleBit>,
