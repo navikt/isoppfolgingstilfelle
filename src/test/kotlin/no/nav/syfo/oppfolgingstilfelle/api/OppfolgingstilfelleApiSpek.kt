@@ -9,14 +9,11 @@ import no.nav.syfo.application.OppfolgingstilfelleBitService
 import no.nav.syfo.application.OppfolgingstilfellePersonService
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.infrastructure.cronjob.OppfolgingstilfelleCronjob
-import no.nav.syfo.infrastructure.database.createPerson
 import no.nav.syfo.infrastructure.kafka.OppfolgingstilfellePersonProducer
 import no.nav.syfo.infrastructure.kafka.syketilfelle.KafkaSyketilfellebit
 import no.nav.syfo.infrastructure.kafka.syketilfelle.KafkaSyketilfellebitService
 import no.nav.syfo.infrastructure.kafka.syketilfelle.SYKETILFELLEBIT_TOPIC
 import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfellePersonDTO
-import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleApiPersonIdentPath
-import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleApiPersonsPath
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 import org.amshove.kluent.*
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -41,7 +38,7 @@ class OppfolgingstilfelleApiSpek : Spek({
     val externalMockEnvironment = ExternalMockEnvironment.instance
     val database = externalMockEnvironment.database
 
-    val oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfelleRepository
+    val oppfolgingstilfellePersonRepository = externalMockEnvironment.oppfolgingstilfellePersonRepository
     val oppfolgingstilfellePersonProducer = mockk<OppfolgingstilfellePersonProducer>()
     val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService()
 
@@ -86,8 +83,7 @@ class OppfolgingstilfelleApiSpek : Spek({
     val oppfolgingstilfelleCronjob = OppfolgingstilfelleCronjob(
         database = database,
         oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
-            database = database,
-            oppfolgingstilfelleRepository = oppfolgingstilfelleRepository,
+            oppfolgingstilfellePersonRepository = oppfolgingstilfellePersonRepository,
             oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
         )
     )
@@ -111,7 +107,7 @@ class OppfolgingstilfelleApiSpek : Spek({
         )
 
         describe("Get OppfolgingstilfellePersonDTO for PersonIdent") {
-            val url = "$oppfolgingstilfelleApiV1Path$oppfolgingstilfelleApiPersonIdentPath"
+            val url = "$oppfolgingstilfelleApiV1Path/personident"
 
             describe("Happy path") {
                 it("should create OppfolgingstilfellePerson and return OppfolgingstilfelleDTO for Person that is always Arbeidstaker in Oppfolgingstilfelle") {
@@ -172,15 +168,12 @@ class OppfolgingstilfelleApiSpek : Spek({
                     )
                     oppfolgingstilfelleCronjob.runJob()
                     val dodsdato = LocalDate.now().minusDays(3)
-                    database.connection.use {
-                        it.createPerson(
-                            uuid = UUID.randomUUID(),
-                            personIdent = PersonIdentNumber(kafkaSyketilfellebitRecordRelevantVirksomhet.value().fnr),
-                            dodsdato = dodsdato,
-                            hendelseId = UUID.randomUUID(),
-                        )
-                        it.commit()
-                    }
+                    oppfolgingstilfellePersonRepository.createPerson(
+                        uuid = UUID.randomUUID(),
+                        personIdent = PersonIdentNumber(kafkaSyketilfellebitRecordRelevantVirksomhet.value().fnr),
+                        dodsdato = dodsdato,
+                        hendelseId = UUID.randomUUID(),
+                    )
 
                     testApplication {
                         val client = setupApiAndClient()
@@ -422,7 +415,7 @@ class OppfolgingstilfelleApiSpek : Spek({
         }
 
         describe("Get list of OppfolgingstilfellePersonDTO for persons") {
-            val url = "$oppfolgingstilfelleApiV1Path$oppfolgingstilfelleApiPersonsPath"
+            val url = "$oppfolgingstilfelleApiV1Path/persons"
 
             describe("Happy path") {
                 it("Returns oppfolgingstilfeller for persons") {
@@ -442,16 +435,16 @@ class OppfolgingstilfelleApiSpek : Spek({
 
                     database.connection.use { connection ->
                         listOf(oppfolgingstilfellePerson1, oppfolgingstilfelle1Person2, oppfolgingstilfelle2Person2).forEach {
-                            oppfolgingstilfelleRepository.createOppfolgingstilfellePerson(connection = connection, commit = false, it)
+                            oppfolgingstilfellePersonRepository.createOppfolgingstilfellePerson(connection = connection, commit = false, it)
                         }
-                        connection.createPerson(
-                            uuid = UUID.randomUUID(),
-                            personIdent = UserConstants.ARBEIDSTAKER_2_FNR,
-                            dodsdato = LocalDate.now().minusDays(1),
-                            hendelseId = UUID.randomUUID()
-                        )
                         connection.commit()
                     }
+                    oppfolgingstilfellePersonRepository.createPerson(
+                        uuid = UUID.randomUUID(),
+                        personIdent = UserConstants.ARBEIDSTAKER_2_FNR,
+                        dodsdato = LocalDate.now().minusDays(1),
+                        hendelseId = UUID.randomUUID()
+                    )
 
                     testApplication {
                         val client = setupApiAndClient()
@@ -497,7 +490,7 @@ class OppfolgingstilfelleApiSpek : Spek({
                     )
 
                     database.connection.use { connection ->
-                        oppfolgingstilfelleRepository.createOppfolgingstilfellePerson(
+                        oppfolgingstilfellePersonRepository.createOppfolgingstilfellePerson(
                             connection = connection,
                             commit = true,
                             oppfolgingstilfellePerson = oppfolgingstilfellePerson1

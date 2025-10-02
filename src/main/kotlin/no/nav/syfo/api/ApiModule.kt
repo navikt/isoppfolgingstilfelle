@@ -17,7 +17,6 @@ import no.nav.syfo.infrastructure.client.narmesteleder.NarmesteLederClient
 import no.nav.syfo.infrastructure.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.infrastructure.client.wellknown.WellKnown
 import no.nav.syfo.infrastructure.database.DatabaseInterface
-import no.nav.syfo.infrastructure.database.OppfolgingstilfelleRepository
 import no.nav.syfo.oppfolgingstilfelle.person.api.registerOppfolgingstilfelleApi
 import no.nav.syfo.oppfolgingstilfelle.person.api.registerOppfolgingstilfelleArbeidstakerApi
 import no.nav.syfo.oppfolgingstilfelle.person.api.registerOppfolgingstilfelleSystemApi
@@ -25,7 +24,7 @@ import no.nav.syfo.oppfolgingstilfelle.person.api.registerOppfolgingstilfelleSys
 fun Application.apiModule(
     applicationState: ApplicationState,
     database: DatabaseInterface,
-    oppfolgingstilfelleRepository: OppfolgingstilfelleRepository,
+    oppfolgingstilfelleService: OppfolgingstilfelleService,
     environment: Environment,
     wellKnownInternalAzureAD: WellKnown,
     wellKnownSelvbetjening: WellKnown,
@@ -52,10 +51,6 @@ fun Application.apiModule(
     installStatusPages()
 
     val narmesteLederAccessService = NarmesteLederAccessService(narmesteLederClient = narmesteLederClient)
-    val oppfolgingstilfelleService = OppfolgingstilfelleService(
-        database = database,
-        oppfolgingstilfelleRepository = oppfolgingstilfelleRepository,
-    )
     val apiConsumerAccessService = APIConsumerAccessService(
         azureAppPreAuthorizedApps = environment.azure.appPreAuthorizedApps,
     )

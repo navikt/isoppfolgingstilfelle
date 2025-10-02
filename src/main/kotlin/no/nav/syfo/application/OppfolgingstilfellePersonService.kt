@@ -2,15 +2,12 @@ package no.nav.syfo.application
 
 import no.nav.syfo.domain.OppfolgingstilfelleBit
 import no.nav.syfo.domain.toOppfolgingstilfellePerson
-import no.nav.syfo.infrastructure.database.DatabaseInterface
-import no.nav.syfo.infrastructure.database.OppfolgingstilfelleRepository
-import no.nav.syfo.infrastructure.database.getDodsdato
+import no.nav.syfo.infrastructure.database.OppfolgingstilfellePersonRepository
 import no.nav.syfo.infrastructure.kafka.OppfolgingstilfellePersonProducer
 import java.sql.Connection
 
 class OppfolgingstilfellePersonService(
-    val database: DatabaseInterface,
-    val oppfolgingstilfelleRepository: OppfolgingstilfelleRepository,
+    val oppfolgingstilfellePersonRepository: OppfolgingstilfellePersonRepository,
     val oppfolgingstilfellePersonProducer: OppfolgingstilfellePersonProducer,
 ) {
     fun createOppfolgingstilfellePerson(
@@ -20,9 +17,9 @@ class OppfolgingstilfellePersonService(
     ) {
         val oppfolgingstilfellePerson = oppfolgingstilfelleBit.toOppfolgingstilfellePerson(
             oppfolgingstilfelleBitList = oppfolgingstilfelleBitForPersonList,
-            dodsdato = connection.getDodsdato(oppfolgingstilfelleBit.personIdentNumber),
+            dodsdato = oppfolgingstilfellePersonRepository.getDodsdato(oppfolgingstilfelleBit.personIdentNumber),
         )
-        oppfolgingstilfelleRepository.createOppfolgingstilfellePerson(
+        oppfolgingstilfellePersonRepository.createOppfolgingstilfellePerson(
             connection = connection,
             commit = false,
             oppfolgingstilfellePerson = oppfolgingstilfellePerson,
