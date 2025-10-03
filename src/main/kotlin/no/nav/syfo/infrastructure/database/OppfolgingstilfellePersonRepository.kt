@@ -1,21 +1,25 @@
 package no.nav.syfo.infrastructure.database
 
 import com.fasterxml.jackson.core.type.TypeReference
+import no.nav.syfo.application.IOppfolgingstilfelleRepository
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.oppfolgingstilfelle.person.domain.Oppfolgingstilfelle
 import no.nav.syfo.oppfolgingstilfelle.person.domain.OppfolgingstilfellePerson
 import no.nav.syfo.util.configuredJacksonMapper
 import no.nav.syfo.util.toOffsetDateTimeUTC
 import java.sql.Connection
+import java.sql.Date
 import java.sql.ResultSet
 import java.sql.Timestamp
+import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.util.*
 
 private val mapper = configuredJacksonMapper()
 
-class OppfolgingstilfelleRepository(private val database: DatabaseInterface) {
+class OppfolgingstilfellePersonRepository(private val database: DatabaseInterface) : IOppfolgingstilfelleRepository {
 
-    fun createOppfolgingstilfellePerson(
+    override fun createOppfolgingstilfellePerson(
         connection: Connection,
         commit: Boolean,
         oppfolgingstilfellePerson: OppfolgingstilfellePerson,
@@ -35,7 +39,7 @@ class OppfolgingstilfelleRepository(private val database: DatabaseInterface) {
         if (commit) connection.commit()
     }
 
-    fun getOppfolgingstilfellePerson(
+    override fun getOppfolgingstilfellePerson(
         personIdent: PersonIdentNumber,
     ): POppfolgingstilfellePerson? =
         database.connection.use { connection ->
@@ -43,6 +47,53 @@ class OppfolgingstilfelleRepository(private val database: DatabaseInterface) {
                 it.setString(1, personIdent.value)
                 it.executeQuery().toList { toPOppfolgingstilfellePerson() }
             }.firstOrNull()
+        }
+
+    override fun getDodsdato(
+        personident: PersonIdentNumber,
+    ): LocalDate? {
+        val datoList = database.connection.use { connection ->
+            connection.prepareStatement(QUERY_GET_PERSON_DODSDATO).use {
+                it.setString(1, personident.value)
+                it.executeQuery().toList { getDate("dodsdato")?.toLocalDate() }
+            }
+        }
+        return datoList.firstOrNull()
+    }
+
+    override fun createPerson(
+        uuid: UUID,
+        personIdent: PersonIdentNumber,
+        dodsdato: LocalDate,
+        hendelseId: UUID,
+    ) {
+        database.connection.use { connection ->
+            val idList = connection.prepareStatement(QUERY_INSERT_PERSON_DODSDATO).use {
+                it.setString(1, uuid.toString())
+                it.setObject(2, OffsetDateTime.now())
+                it.setString(3, personIdent.value)
+                it.setDate(4, Date.valueOf(dodsdato))
+                it.setString(5, hendelseId.toString())
+                it.executeQuery().toList { getInt("id") }
+            }
+
+            if (idList.size != 1) {
+                throw NoElementInsertedException("Creating PERSON failed, no rows affected.")
+            }
+            connection.commit()
+        }
+    }
+
+    override fun deletePersonWithHendelseId(
+        hendelseId: UUID,
+    ): Int =
+        database.connection.use { connection ->
+            connection.prepareStatement(QUERY_DELETE_PERSON_WITH_HENDELSE_ID).use {
+                it.setString(1, hendelseId.toString())
+                it.executeUpdate()
+            }.also {
+                connection.commit()
+            }
         }
 
     companion object {
@@ -67,6 +118,29 @@ class OppfolgingstilfelleRepository(private val database: DatabaseInterface) {
                 WHERE personident = ?
                 ORDER BY referanse_tilfelle_bit_inntruffet DESC, id DESC
                 LIMIT 1
+            """
+
+        private const val QUERY_GET_PERSON_DODSDATO =
+            """
+                SELECT DODSDATO FROM PERSON WHERE personident=?
+            """
+
+        private const val QUERY_INSERT_PERSON_DODSDATO =
+            """
+                INSERT INTO PERSON (
+                id,
+                uuid,
+                created_at,
+                personident,
+                dodsdato,
+                hendelse_id
+                ) values (DEFAULT, ?, ?, ?, ?, ?)
+                RETURNING id    
+            """
+
+        const val QUERY_DELETE_PERSON_WITH_HENDELSE_ID =
+            """
+                DELETE FROM PERSON WHERE hendelse_id=?    
             """
     }
 }

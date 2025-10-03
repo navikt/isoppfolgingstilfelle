@@ -7,7 +7,10 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import no.nav.syfo.api.apiModule
 import no.nav.syfo.api.cache.ValkeyStore
-import no.nav.syfo.application.*
+import no.nav.syfo.application.IdenthendelseService
+import no.nav.syfo.application.OppfolgingstilfelleBitService
+import no.nav.syfo.application.OppfolgingstilfellePersonService
+import no.nav.syfo.application.OppfolgingstilfelleService
 import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
 import no.nav.syfo.infrastructure.client.narmesteleder.NarmesteLederClient
 import no.nav.syfo.infrastructure.client.pdl.PdlClient
@@ -15,7 +18,7 @@ import no.nav.syfo.infrastructure.client.tokendings.TokendingsClient
 import no.nav.syfo.infrastructure.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.infrastructure.client.wellknown.getWellKnown
 import no.nav.syfo.infrastructure.cronjob.launchCronjobModule
-import no.nav.syfo.infrastructure.database.OppfolgingstilfelleRepository
+import no.nav.syfo.infrastructure.database.OppfolgingstilfellePersonRepository
 import no.nav.syfo.infrastructure.database.applicationDatabase
 import no.nav.syfo.infrastructure.database.databaseModule
 import no.nav.syfo.infrastructure.kafka.OppfolgingstilfellePersonProducer
@@ -81,8 +84,9 @@ fun main() {
         )
     )
 
+    lateinit var oppfolgingstilfelleService: OppfolgingstilfelleService
     lateinit var oppfolgingstilfellePersonService: OppfolgingstilfellePersonService
-    lateinit var oppfolgingstilfelleRepository: OppfolgingstilfelleRepository
+    lateinit var oppfolgingstilfellePersonRepository: OppfolgingstilfellePersonRepository
 
     val applicationEngineEnvironment = applicationEnvironment {
         log = LoggerFactory.getLogger("ktor.application")
@@ -104,16 +108,18 @@ fun main() {
             databaseModule(
                 databaseEnvironment = environment.database,
             )
-            oppfolgingstilfelleRepository = OppfolgingstilfelleRepository(database = applicationDatabase)
+            oppfolgingstilfellePersonRepository = OppfolgingstilfellePersonRepository(database = applicationDatabase)
             oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
-                database = applicationDatabase,
-                oppfolgingstilfelleRepository = oppfolgingstilfelleRepository,
+                oppfolgingstilfellePersonRepository = oppfolgingstilfellePersonRepository,
                 oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
+            )
+            oppfolgingstilfelleService = OppfolgingstilfelleService(
+                oppfolgingstilfellePersonRepository = oppfolgingstilfellePersonRepository,
             )
             apiModule(
                 applicationState = applicationState,
                 database = applicationDatabase,
-                oppfolgingstilfelleRepository = oppfolgingstilfelleRepository,
+                oppfolgingstilfelleService = oppfolgingstilfelleService,
                 environment = environment,
                 wellKnownInternalAzureAD = wellKnownInternalAzureAD,
                 wellKnownSelvbetjening = wellKnownSelvbetjening,
@@ -168,7 +174,7 @@ fun main() {
                     applicationState = applicationState,
                     kafkaEnvironment = environment.kafka,
                     database = applicationDatabase,
-                    oppfolgingstilfelleRepository = oppfolgingstilfelleRepository,
+                    oppfolgingstilfellePersonRepository = oppfolgingstilfellePersonRepository,
                 )
                 launchCronjobModule(
                     applicationState = applicationState,

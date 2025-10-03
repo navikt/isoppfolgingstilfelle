@@ -16,7 +16,7 @@ class OppfolgingstilfelleArbeidstakerApiSpek : Spek({
 
     val externalMockEnvironment = ExternalMockEnvironment.instance
     val database = externalMockEnvironment.database
-    val oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfelleRepository
+    val oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfellePersonRepository
     val personIdent = UserConstants.ARBEIDSTAKER_FNR
 
     val oppfolgingstilfellePerson = generateOppfolgingstilfellePerson(

@@ -4,15 +4,14 @@ import no.nav.person.pdl.leesah.Endringstype
 import no.nav.person.pdl.leesah.Personhendelse
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.infrastructure.database.DatabaseInterface
-import no.nav.syfo.infrastructure.database.createPerson
-import no.nav.syfo.infrastructure.database.deletePersonWithHendelseId
-import no.nav.syfo.infrastructure.database.getDodsdato
+import no.nav.syfo.infrastructure.database.OppfolgingstilfellePersonRepository
 import org.slf4j.LoggerFactory
 import java.util.*
 
 class PersonhendelseService(
     private val database: DatabaseInterface,
     private val oppfolgingstilfelleService: OppfolgingstilfelleService,
+    private val oppfolgingstilfellePersonRepository: OppfolgingstilfellePersonRepository,
 ) {
     suspend fun handlePersonhendelse(personhendelse: Personhendelse) {
         if (
@@ -50,16 +49,13 @@ class PersonhendelseService(
             }
         }.forEach { personIdent ->
             if (isKnownPersonIdent(personIdent)) {
-                database.connection.use { connection ->
-                    if (connection.getDodsdato(personIdent) == null) {
-                        connection.createPerson(
-                            uuid = UUID.randomUUID(),
-                            personIdent = personIdent,
-                            dodsdato = personhendelse.doedsfall.doedsdato,
-                            hendelseId = UUID.fromString(personhendelse.hendelseId)
-                        )
-                    }
-                    connection.commit()
+                if (oppfolgingstilfelleService.getDodsdato(personIdent) == null) {
+                    oppfolgingstilfellePersonRepository.createPerson(
+                        uuid = UUID.randomUUID(),
+                        personIdent = personIdent,
+                        dodsdato = personhendelse.doedsfall.doedsdato,
+                        hendelseId = UUID.fromString(personhendelse.hendelseId)
+                    )
                 }
             }
         }
@@ -73,13 +69,13 @@ class PersonhendelseService(
                 "Tidligere hendelseId: ${personhendelse.tidligereHendelseId}"
         )
         val annullertHendelseId = UUID.fromString(personhendelse.tidligereHendelseId)
-        val rowCount = database.deletePersonWithHendelseId(annullertHendelseId)
+        val rowCount = oppfolgingstilfellePersonRepository.deletePersonWithHendelseId(annullertHendelseId)
         if (rowCount > 0) {
             log.info("Slettet $rowCount rader fra person-tabellen pga ANNULLERING")
         }
     }
 
-    private suspend fun isKnownPersonIdent(personIdent: PersonIdentNumber) =
+    private suspend fun isKnownPersonIdent(personIdent: PersonIdentNumber): Boolean =
         oppfolgingstilfelleService.getOppfolgingstilfeller(personIdent).isNotEmpty()
 
     companion object {

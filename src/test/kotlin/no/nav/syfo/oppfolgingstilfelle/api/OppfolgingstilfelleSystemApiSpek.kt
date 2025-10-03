@@ -67,8 +67,7 @@ class OppfolgingstilfelleSystemApiSpek : Spek({
     val oppfolgingstilfelleCronjob = OppfolgingstilfelleCronjob(
         database = database,
         oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
-            database = database,
-            oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfelleRepository,
+            oppfolgingstilfellePersonRepository = externalMockEnvironment.oppfolgingstilfellePersonRepository,
             oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
         )
     )

@@ -2,7 +2,8 @@ package testhelper
 
 import no.nav.syfo.ApplicationState
 import no.nav.syfo.api.cache.ValkeyStore
-import no.nav.syfo.infrastructure.database.OppfolgingstilfelleRepository
+import no.nav.syfo.application.OppfolgingstilfelleService
+import no.nav.syfo.infrastructure.database.OppfolgingstilfellePersonRepository
 import redis.clients.jedis.DefaultJedisClientConfig
 import redis.clients.jedis.HostAndPort
 import redis.clients.jedis.JedisPool
@@ -38,7 +39,8 @@ class ExternalMockEnvironment private constructor() {
     val wellKnownInternalAzureAD = wellKnownInternalAzureAD()
     val wellKnownSelvbetjening = wellKnownSelvbetjeningMock()
 
-    val oppfolgingstilfelleRepository = OppfolgingstilfelleRepository(database = database)
+    val oppfolgingstilfellePersonRepository = OppfolgingstilfellePersonRepository(database = database)
+    val oppfolgingstilfelleService = OppfolgingstilfelleService(oppfolgingstilfellePersonRepository)
 
     companion object {
         val instance: ExternalMockEnvironment by lazy {

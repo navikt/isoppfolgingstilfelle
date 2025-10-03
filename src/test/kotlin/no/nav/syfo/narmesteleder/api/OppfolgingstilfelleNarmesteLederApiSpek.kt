@@ -16,7 +16,7 @@ import testhelper.generator.generateOppfolgingstilfellePerson
 class OppfolgingstilfelleNarmesteLederApiSpek : Spek({
     val externalMockEnvironment = ExternalMockEnvironment.instance
     val database = externalMockEnvironment.database
-    val oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfelleRepository
+    val oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfellePersonRepository
 
     val personIdentDefault = UserConstants.PERSONIDENTNUMBER_DEFAULT
 

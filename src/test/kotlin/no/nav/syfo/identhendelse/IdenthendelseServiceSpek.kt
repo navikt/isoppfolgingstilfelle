@@ -31,7 +31,7 @@ class IdenthendelseServiceSpek : Spek({
     val database = externalMockEnvironment.database
     val redisConfig = externalMockEnvironment.environment.valkeyConfig
 
-    val oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfelleRepository
+    val oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfellePersonRepository
     val pdlClient = PdlClient(
         azureAdClient = AzureAdClient(
             azureEnviroment = externalMockEnvironment.environment.azure,

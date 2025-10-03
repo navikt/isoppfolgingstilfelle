@@ -33,7 +33,7 @@ import java.util.*
 class KafkaSykmeldingstatusConsumerSpek : Spek({
     val externalMockEnvironment = ExternalMockEnvironment.instance
     val database = externalMockEnvironment.database
-    val oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfelleRepository
+    val oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfellePersonRepository
     val oppfolgingstilfellePersonProducer = mockk<OppfolgingstilfellePersonProducer>()
     val kafkaSykmeldingstatusService = KafkaSykmeldingstatusService(
         database = database,
@@ -105,8 +105,7 @@ class KafkaSykmeldingstatusConsumerSpek : Spek({
     val oppfolgingstilfelleCronjob = OppfolgingstilfelleCronjob(
         database = database,
         oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
-            database = database,
-            oppfolgingstilfelleRepository = oppfolgingstilfelleRepository,
+            oppfolgingstilfellePersonRepository = oppfolgingstilfelleRepository,
             oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
         )
     )

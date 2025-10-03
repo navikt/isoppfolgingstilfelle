@@ -24,7 +24,6 @@ import testhelper.dropData
 import testhelper.generator.generateKafkaPersonhendelseAnnulleringDTO
 import testhelper.generator.generateKafkaPersonhendelseDTO
 import testhelper.generator.generateOppfolgingstilfellePerson
-import testhelper.getDodsdato
 import java.time.Duration
 import java.time.LocalDate
 
@@ -33,15 +32,15 @@ object KafkaPersonhendelseConsumerServiceSpek : Spek({
     describe(KafkaPersonhendelseConsumerServiceSpek::class.java.simpleName) {
         val externalMockEnvironment = ExternalMockEnvironment.instance
         val database = externalMockEnvironment.database
-        val oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfelleRepository
+        val oppfolgingstilfellePersonRepository = externalMockEnvironment.oppfolgingstilfellePersonRepository
         val mockKafkaConsumerPersonhendelse = mockk<KafkaConsumer<String, Personhendelse>>()
         val oppfolgingstilfelleService = OppfolgingstilfelleService(
-            database = database,
-            oppfolgingstilfelleRepository = oppfolgingstilfelleRepository,
+            oppfolgingstilfellePersonRepository = oppfolgingstilfellePersonRepository,
         )
         val personhendelseService = PersonhendelseService(
             database = database,
             oppfolgingstilfelleService = oppfolgingstilfelleService,
+            oppfolgingstilfellePersonRepository = externalMockEnvironment.oppfolgingstilfellePersonRepository,
         )
         val kafkaPersonhendelseConsumerService = KafkaPersonhendelseConsumerService(
             personhendelseService = personhendelseService
@@ -89,7 +88,7 @@ object KafkaPersonhendelseConsumerServiceSpek : Spek({
                 )
 
                 database.connection.use { connection ->
-                    oppfolgingstilfelleRepository.createOppfolgingstilfellePerson(
+                    oppfolgingstilfellePersonRepository.createOppfolgingstilfellePerson(
                         connection = connection,
                         commit = true,
                         oppfolgingstilfellePerson = oppfolgingstilfellePerson,
@@ -102,7 +101,7 @@ object KafkaPersonhendelseConsumerServiceSpek : Spek({
                         )
                     )
                 )
-                database.getDodsdato(personIdent) shouldBe null
+                oppfolgingstilfellePersonRepository.getDodsdato(personIdent) shouldBe null
                 runBlocking {
                     kafkaPersonhendelseConsumerService.pollAndProcessRecords(mockKafkaConsumerPersonhendelse)
                 }
@@ -110,7 +109,7 @@ object KafkaPersonhendelseConsumerServiceSpek : Spek({
                     mockKafkaConsumerPersonhendelse.commitSync()
                 }
 
-                database.getDodsdato(personIdent) shouldBeEqualTo LocalDate.now()
+                oppfolgingstilfellePersonRepository.getDodsdato(personIdent) shouldBeEqualTo LocalDate.now()
             }
             it("Skal takle duplikat record") {
 
@@ -119,7 +118,7 @@ object KafkaPersonhendelseConsumerServiceSpek : Spek({
                 )
 
                 database.connection.use { connection ->
-                    oppfolgingstilfelleRepository.createOppfolgingstilfellePerson(
+                    oppfolgingstilfellePersonRepository.createOppfolgingstilfellePerson(
                         connection = connection,
                         commit = true,
                         oppfolgingstilfellePerson = oppfolgingstilfellePerson,
@@ -140,7 +139,7 @@ object KafkaPersonhendelseConsumerServiceSpek : Spek({
                     mockKafkaConsumerPersonhendelse.commitSync()
                 }
 
-                database.getDodsdato(personIdent) shouldBeEqualTo LocalDate.now()
+                oppfolgingstilfellePersonRepository.getDodsdato(personIdent) shouldBeEqualTo LocalDate.now()
             }
             it("Skal ikke lagre dato for ukjent personident ") {
                 every { mockKafkaConsumerPersonhendelse.poll(any<Duration>()) } returns ConsumerRecords(
@@ -158,7 +157,7 @@ object KafkaPersonhendelseConsumerServiceSpek : Spek({
                     mockKafkaConsumerPersonhendelse.commitSync()
                 }
 
-                database.getDodsdato(personIdent) shouldBe null
+                oppfolgingstilfellePersonRepository.getDodsdato(personIdent) shouldBe null
             }
             it("Skal slette personforekomst ved annullering") {
 
@@ -167,7 +166,7 @@ object KafkaPersonhendelseConsumerServiceSpek : Spek({
                 )
 
                 database.connection.use { connection ->
-                    oppfolgingstilfelleRepository.createOppfolgingstilfellePerson(
+                    oppfolgingstilfellePersonRepository.createOppfolgingstilfellePerson(
                         connection = connection,
                         commit = true,
                         oppfolgingstilfellePerson = oppfolgingstilfellePerson,
@@ -187,7 +186,7 @@ object KafkaPersonhendelseConsumerServiceSpek : Spek({
                     mockKafkaConsumerPersonhendelse.commitSync()
                 }
 
-                database.getDodsdato(personIdent) shouldBeEqualTo LocalDate.now()
+                oppfolgingstilfellePersonRepository.getDodsdato(personIdent) shouldBeEqualTo LocalDate.now()
 
                 every { mockKafkaConsumerPersonhendelse.poll(any<Duration>()) } returns ConsumerRecords(
                     mapOf(
@@ -202,7 +201,7 @@ object KafkaPersonhendelseConsumerServiceSpek : Spek({
                 verify(exactly = 2) {
                     mockKafkaConsumerPersonhendelse.commitSync()
                 }
-                database.getDodsdato(personIdent) shouldBe null
+                oppfolgingstilfellePersonRepository.getDodsdato(personIdent) shouldBe null
             }
         }
     }

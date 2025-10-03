@@ -11,15 +11,12 @@ import no.nav.syfo.oppfolgingstilfelle.person.domain.toOppfolgingstilfellePerson
 import no.nav.syfo.util.*
 import kotlin.time.measureTimedValue
 
-const val oppfolgingstilfelleApiPersonIdentPath = "/personident"
-const val oppfolgingstilfelleApiPersonsPath = "/persons"
-
 fun Route.registerOppfolgingstilfelleApi(
     oppfolgingstilfelleService: OppfolgingstilfelleService,
     veilederTilgangskontrollClient: VeilederTilgangskontrollClient,
 ) {
     route("/api/internad/v1/oppfolgingstilfelle") {
-        get(oppfolgingstilfelleApiPersonIdentPath) {
+        get("/personident") {
             val personIdent = personIdentHeader()?.let { personIdent ->
                 PersonIdentNumber(personIdent)
             }
@@ -40,7 +37,7 @@ fun Route.registerOppfolgingstilfelleApi(
                 call.respond(oppfolgingstilfellePersonDTO)
             }
         }
-        post(oppfolgingstilfelleApiPersonsPath) {
+        post("/persons") {
             val token = getBearerHeader()!!
             val callId = getCallId()
             val personIdents = call.receive<List<String>>().map { PersonIdentNumber(it) }

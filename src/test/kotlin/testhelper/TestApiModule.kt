@@ -24,7 +24,7 @@ fun Application.testApiModule(
     this.apiModule(
         applicationState = externalMockEnvironment.applicationState,
         database = externalMockEnvironment.database,
-        oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfelleRepository,
+        oppfolgingstilfelleService = externalMockEnvironment.oppfolgingstilfelleService,
         environment = externalMockEnvironment.environment,
         wellKnownInternalAzureAD = externalMockEnvironment.wellKnownInternalAzureAD,
         wellKnownSelvbetjening = externalMockEnvironment.wellKnownSelvbetjening,
