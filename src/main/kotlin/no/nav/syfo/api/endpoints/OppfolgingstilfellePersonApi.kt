@@ -1,4 +1,4 @@
-package no.nav.syfo.oppfolgingstilfelle.person.api
+package no.nav.syfo.api.endpoints
 
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -6,8 +6,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import no.nav.syfo.application.OppfolgingstilfelleService
 import no.nav.syfo.domain.PersonIdentNumber
+import no.nav.syfo.domain.toOppfolgingstilfellePersonDTO
 import no.nav.syfo.infrastructure.client.veiledertilgang.VeilederTilgangskontrollClient
-import no.nav.syfo.oppfolgingstilfelle.person.domain.toOppfolgingstilfellePersonDTO
 import no.nav.syfo.util.*
 import kotlin.time.measureTimedValue
 

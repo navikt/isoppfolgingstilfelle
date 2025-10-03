@@ -2,9 +2,9 @@ package no.nav.syfo.infrastructure.database
 
 import com.fasterxml.jackson.core.type.TypeReference
 import no.nav.syfo.application.IOppfolgingstilfelleRepository
+import no.nav.syfo.domain.Oppfolgingstilfelle
+import no.nav.syfo.domain.OppfolgingstilfellePerson
 import no.nav.syfo.domain.PersonIdentNumber
-import no.nav.syfo.oppfolgingstilfelle.person.domain.Oppfolgingstilfelle
-import no.nav.syfo.oppfolgingstilfelle.person.domain.OppfolgingstilfellePerson
 import no.nav.syfo.util.configuredJacksonMapper
 import no.nav.syfo.util.toOffsetDateTimeUTC
 import java.sql.Connection
@@ -138,7 +138,7 @@ class OppfolgingstilfellePersonRepository(private val database: DatabaseInterfac
                 RETURNING id    
             """
 
-        const val QUERY_DELETE_PERSON_WITH_HENDELSE_ID =
+        private const val QUERY_DELETE_PERSON_WITH_HENDELSE_ID =
             """
                 DELETE FROM PERSON WHERE hendelse_id=?    
             """

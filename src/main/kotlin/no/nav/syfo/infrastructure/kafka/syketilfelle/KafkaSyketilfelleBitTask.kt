@@ -14,7 +14,7 @@ const val SYKETILFELLEBIT_TOPIC = "flex.syketilfellebiter"
 fun launchKafkaTaskSyketilfelleBit(
     applicationState: ApplicationState,
     kafkaEnvironment: KafkaEnvironment,
-    kafkaSyketilfellebitService: KafkaSyketilfellebitService,
+    syketilfellebitConsumer: SyketilfellebitConsumer,
 ) {
     launchBackgroundTask(
         applicationState = applicationState,
@@ -22,7 +22,7 @@ fun launchKafkaTaskSyketilfelleBit(
         blockingApplicationLogicSyketilfelleBit(
             applicationState = applicationState,
             kafkaEnvironment = kafkaEnvironment,
-            kafkaSyketilfellebitService = kafkaSyketilfellebitService,
+            syketilfellebitConsumer = syketilfellebitConsumer,
         )
     }
 }
@@ -30,7 +30,7 @@ fun launchKafkaTaskSyketilfelleBit(
 fun blockingApplicationLogicSyketilfelleBit(
     applicationState: ApplicationState,
     kafkaEnvironment: KafkaEnvironment,
-    kafkaSyketilfellebitService: KafkaSyketilfellebitService,
+    syketilfellebitConsumer: SyketilfellebitConsumer,
 ) {
     log.info("Setting up kafka consumer for KafkaSyketilfelleBit")
 
@@ -41,8 +41,8 @@ fun blockingApplicationLogicSyketilfelleBit(
         listOf(SYKETILFELLEBIT_TOPIC)
     )
     while (applicationState.ready) {
-        kafkaSyketilfellebitService.pollAndProcessRecords(
-            kafkaConsumerSyketilfelleBit = kafkaConsumerSyketilfelleBit,
+        syketilfellebitConsumer.pollAndProcessRecords(
+            consumer = kafkaConsumerSyketilfelleBit,
         )
     }
 }

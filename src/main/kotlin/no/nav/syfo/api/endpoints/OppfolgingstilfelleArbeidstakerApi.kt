@@ -1,12 +1,11 @@
-package no.nav.syfo.oppfolgingstilfelle.person.api
+package no.nav.syfo.api.endpoints
 
-import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import no.nav.syfo.api.personIdent
 import no.nav.syfo.application.OppfolgingstilfelleService
-import no.nav.syfo.oppfolgingstilfelle.person.domain.toOppfolgingstilfelleDTOList
-import no.nav.syfo.util.*
+import no.nav.syfo.domain.toOppfolgingstilfelleDTOList
+import no.nav.syfo.util.getBearerHeader
 
 const val oppfolgingstilfelleArbeidstakerApiV1Path = "/api/v1/arbeidstaker/oppfolgingstilfelle"
 

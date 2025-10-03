@@ -8,9 +8,9 @@ import no.nav.syfo.domain.Tag
 import no.nav.syfo.infrastructure.cronjob.OppfolgingstilfelleCronjob
 import no.nav.syfo.infrastructure.database.bit.createOppfolgingstilfelleBit
 import no.nav.syfo.infrastructure.kafka.OppfolgingstilfellePersonProducer
-import no.nav.syfo.infrastructure.kafka.sykmeldingstatus.KafkaSykmeldingstatusService
 import no.nav.syfo.infrastructure.kafka.sykmeldingstatus.STATUSENDRING_TOPIC
 import no.nav.syfo.infrastructure.kafka.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
+import no.nav.syfo.infrastructure.kafka.sykmeldingstatus.SykmeldingstatusConsumer
 import no.nav.syfo.util.nowUTC
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldNotBeNull
@@ -35,8 +35,9 @@ class KafkaSykmeldingstatusConsumerSpek : Spek({
     val database = externalMockEnvironment.database
     val oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfellePersonRepository
     val oppfolgingstilfellePersonProducer = mockk<OppfolgingstilfellePersonProducer>()
-    val kafkaSykmeldingstatusService = KafkaSykmeldingstatusService(
+    val sykmeldingstatusConsumer = SykmeldingstatusConsumer(
         database = database,
+        tilfellebitRepository = externalMockEnvironment.tilfellebitRepository,
     )
     val personIdentDefault = PERSONIDENTNUMBER_DEFAULT.toHistoricalPersonIdentNumber()
     val sykmeldingId = UUID.randomUUID()
@@ -107,7 +108,8 @@ class KafkaSykmeldingstatusConsumerSpek : Spek({
         oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
             oppfolgingstilfellePersonRepository = oppfolgingstilfelleRepository,
             oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
-        )
+        ),
+        tilfellebitRepository = externalMockEnvironment.tilfellebitRepository,
     )
 
     beforeEachTest {
@@ -142,7 +144,7 @@ class KafkaSykmeldingstatusConsumerSpek : Spek({
                         )
                     )
 
-                    kafkaSykmeldingstatusService.pollAndProcessRecords(
+                    sykmeldingstatusConsumer.pollAndProcessRecords(
                         kafkaConsumerStatusendring = mockKafkaConsumerStatusendring,
                     )
 
@@ -177,7 +179,7 @@ class KafkaSykmeldingstatusConsumerSpek : Spek({
                         )
                     )
 
-                    kafkaSykmeldingstatusService.pollAndProcessRecords(
+                    sykmeldingstatusConsumer.pollAndProcessRecords(
                         kafkaConsumerStatusendring = mockKafkaConsumerStatusendring,
                     )
                     runBlocking {
@@ -203,7 +205,7 @@ class KafkaSykmeldingstatusConsumerSpek : Spek({
                         )
                     )
 
-                    kafkaSykmeldingstatusService.pollAndProcessRecords(
+                    sykmeldingstatusConsumer.pollAndProcessRecords(
                         kafkaConsumerStatusendring = mockKafkaConsumerStatusendring,
                     )
 

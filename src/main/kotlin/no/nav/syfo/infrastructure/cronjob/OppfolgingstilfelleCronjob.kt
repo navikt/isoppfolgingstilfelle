@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory
 class OppfolgingstilfelleCronjob(
     private val database: DatabaseInterface,
     private val oppfolgingstilfellePersonService: OppfolgingstilfellePersonService,
+    private val tilfellebitRepository: TilfellebitRepository,
 ) : Cronjob {
     override val initialDelayMinutes: Long = 2
     override val intervalDelayMinutes: Long = 10
@@ -23,7 +24,7 @@ class OppfolgingstilfelleCronjob(
     }
 
     fun runJob() = CronjobResult().also { result ->
-        val unprocessed = database.getUnprocessedOppfolgingstilfelleBitList().toOppfolgingstilfelleBitList()
+        val unprocessed = tilfellebitRepository.getUnprocessedOppfolgingstilfelleBitList().toOppfolgingstilfelleBitList()
         unprocessed.forEach { oppfolgingstilfelleBit ->
             try {
                 database.connection.use { connection ->

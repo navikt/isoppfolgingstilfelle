@@ -1,7 +1,8 @@
 package testhelper.generator
 
+import no.nav.syfo.domain.Oppfolgingstilfelle
+import no.nav.syfo.domain.OppfolgingstilfellePerson
 import no.nav.syfo.domain.PersonIdentNumber
-import no.nav.syfo.oppfolgingstilfelle.person.domain.*
 import no.nav.syfo.util.nowUTC
 import testhelper.UserConstants
 import java.time.LocalDate

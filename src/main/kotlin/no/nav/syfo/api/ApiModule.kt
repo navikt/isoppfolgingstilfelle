@@ -9,7 +9,10 @@ import no.nav.syfo.api.access.APIConsumerAccessService
 import no.nav.syfo.api.authentication.JwtIssuer
 import no.nav.syfo.api.authentication.JwtIssuerType
 import no.nav.syfo.api.authentication.installJwtAuthentication
+import no.nav.syfo.api.endpoints.registerOppfolgingstilfelleApi
+import no.nav.syfo.api.endpoints.registerOppfolgingstilfelleArbeidstakerApi
 import no.nav.syfo.api.endpoints.registerOppfolgingstilfelleNarmesteLederApi
+import no.nav.syfo.api.endpoints.registerOppfolgingstilfelleSystemApi
 import no.nav.syfo.api.metric.registerMetricApi
 import no.nav.syfo.application.NarmesteLederAccessService
 import no.nav.syfo.application.OppfolgingstilfelleService
@@ -17,9 +20,6 @@ import no.nav.syfo.infrastructure.client.narmesteleder.NarmesteLederClient
 import no.nav.syfo.infrastructure.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.infrastructure.client.wellknown.WellKnown
 import no.nav.syfo.infrastructure.database.DatabaseInterface
-import no.nav.syfo.oppfolgingstilfelle.person.api.registerOppfolgingstilfelleApi
-import no.nav.syfo.oppfolgingstilfelle.person.api.registerOppfolgingstilfelleArbeidstakerApi
-import no.nav.syfo.oppfolgingstilfelle.person.api.registerOppfolgingstilfelleSystemApi
 
 fun Application.apiModule(
     applicationState: ApplicationState,
