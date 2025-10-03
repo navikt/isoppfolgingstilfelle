@@ -4,7 +4,7 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
-import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfelleDTO
+import no.nav.syfo.api.endpoints.OppfolgingstilfelleDTO
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 import no.nav.syfo.util.NAV_VIRKSOMHETSNUMMER
 import org.amshove.kluent.shouldBeEqualTo

@@ -1,8 +1,8 @@
 package no.nav.syfo.application
 
+import no.nav.syfo.domain.OppfolgingstilfellePerson
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.infrastructure.database.POppfolgingstilfellePerson
-import no.nav.syfo.oppfolgingstilfelle.person.domain.OppfolgingstilfellePerson
 import java.sql.Connection
 import java.time.LocalDate
 import java.util.*

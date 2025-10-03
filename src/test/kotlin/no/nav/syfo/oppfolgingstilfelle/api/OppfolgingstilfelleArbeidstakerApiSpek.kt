@@ -4,8 +4,8 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
-import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfelleDTO
-import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleArbeidstakerApiV1Path
+import no.nav.syfo.api.endpoints.OppfolgingstilfelleDTO
+import no.nav.syfo.api.endpoints.oppfolgingstilfelleArbeidstakerApiV1Path
 import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe

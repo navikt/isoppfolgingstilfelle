@@ -5,15 +5,15 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.mockk.*
+import no.nav.syfo.api.endpoints.OppfolgingstilfellePersonDTO
 import no.nav.syfo.application.OppfolgingstilfelleBitService
 import no.nav.syfo.application.OppfolgingstilfellePersonService
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.infrastructure.cronjob.OppfolgingstilfelleCronjob
 import no.nav.syfo.infrastructure.kafka.OppfolgingstilfellePersonProducer
 import no.nav.syfo.infrastructure.kafka.syketilfelle.KafkaSyketilfellebit
-import no.nav.syfo.infrastructure.kafka.syketilfelle.KafkaSyketilfellebitService
 import no.nav.syfo.infrastructure.kafka.syketilfelle.SYKETILFELLEBIT_TOPIC
-import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfellePersonDTO
+import no.nav.syfo.infrastructure.kafka.syketilfelle.SyketilfellebitConsumer
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 import org.amshove.kluent.*
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -40,9 +40,13 @@ class OppfolgingstilfelleApiSpek : Spek({
 
     val oppfolgingstilfellePersonRepository = externalMockEnvironment.oppfolgingstilfellePersonRepository
     val oppfolgingstilfellePersonProducer = mockk<OppfolgingstilfellePersonProducer>()
-    val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService()
+    val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(externalMockEnvironment.tilfellebitRepository)
+    val oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
+        oppfolgingstilfellePersonRepository = oppfolgingstilfellePersonRepository,
+        oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
+    )
 
-    val kafkaSyketilfellebitService = KafkaSyketilfellebitService(
+    val syketilfellebitConsumer = SyketilfellebitConsumer(
         database = database,
         oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
     )
@@ -82,10 +86,8 @@ class OppfolgingstilfelleApiSpek : Spek({
 
     val oppfolgingstilfelleCronjob = OppfolgingstilfelleCronjob(
         database = database,
-        oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
-            oppfolgingstilfellePersonRepository = oppfolgingstilfellePersonRepository,
-            oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
-        )
+        oppfolgingstilfellePersonService = oppfolgingstilfellePersonService,
+        tilfellebitRepository = externalMockEnvironment.tilfellebitRepository,
     )
     val oppfolgingstilfelleApiV1Path = "/api/internad/v1/oppfolgingstilfelle"
 
@@ -119,8 +121,8 @@ class OppfolgingstilfelleApiSpek : Spek({
                         )
                     )
 
-                    kafkaSyketilfellebitService.pollAndProcessRecords(
-                        kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                    syketilfellebitConsumer.pollAndProcessRecords(
+                        consumer = mockKafkaConsumerSyketilfelleBit,
                     )
                     oppfolgingstilfelleCronjob.runJob()
 
@@ -163,8 +165,8 @@ class OppfolgingstilfelleApiSpek : Spek({
                         )
                     )
 
-                    kafkaSyketilfellebitService.pollAndProcessRecords(
-                        kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                    syketilfellebitConsumer.pollAndProcessRecords(
+                        consumer = mockKafkaConsumerSyketilfelleBit,
                     )
                     oppfolgingstilfelleCronjob.runJob()
                     val dodsdato = LocalDate.now().minusDays(3)
@@ -204,8 +206,8 @@ class OppfolgingstilfelleApiSpek : Spek({
                         )
                     )
 
-                    kafkaSyketilfellebitService.pollAndProcessRecords(
-                        kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                    syketilfellebitConsumer.pollAndProcessRecords(
+                        consumer = mockKafkaConsumerSyketilfelleBit,
                     )
                     oppfolgingstilfelleCronjob.runJob()
 
@@ -244,8 +246,8 @@ class OppfolgingstilfelleApiSpek : Spek({
                         )
                     )
 
-                    kafkaSyketilfellebitService.pollAndProcessRecords(
-                        kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                    syketilfellebitConsumer.pollAndProcessRecords(
+                        consumer = mockKafkaConsumerSyketilfelleBit,
                     )
                     oppfolgingstilfelleCronjob.runJob()
 
@@ -284,8 +286,8 @@ class OppfolgingstilfelleApiSpek : Spek({
                         )
                     )
 
-                    kafkaSyketilfellebitService.pollAndProcessRecords(
-                        kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                    syketilfellebitConsumer.pollAndProcessRecords(
+                        consumer = mockKafkaConsumerSyketilfelleBit,
                     )
                     oppfolgingstilfelleCronjob.runJob()
 
@@ -330,12 +332,12 @@ class OppfolgingstilfelleApiSpek : Spek({
                         )
                     )
 
-                    kafkaSyketilfellebitService.pollAndProcessRecords(
-                        kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                    syketilfellebitConsumer.pollAndProcessRecords(
+                        consumer = mockKafkaConsumerSyketilfelleBit,
                     )
 
-                    kafkaSyketilfellebitService.pollAndProcessRecords(
-                        kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                    syketilfellebitConsumer.pollAndProcessRecords(
+                        consumer = mockKafkaConsumerSyketilfelleBit,
                     )
                     oppfolgingstilfelleCronjob.runJob()
 

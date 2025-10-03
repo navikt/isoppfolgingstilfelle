@@ -11,13 +11,15 @@ import java.sql.Connection
 import java.time.LocalDate
 import java.util.*
 
-class OppfolgingstilfelleBitService() {
+class OppfolgingstilfelleBitService(
+    private val tilfellebitRepository: TilfellebitRepository,
+) {
     fun createOppfolgingstilfelleBitList(
         connection: Connection,
         oppfolgingstilfelleBitList: List<OppfolgingstilfelleBit>,
     ) {
         oppfolgingstilfelleBitList.forEach { oppfolgingstilfelleBit ->
-            val existingWithSameUuid = connection.getOppfolgingstilfelleBit(oppfolgingstilfelleBit.uuid)
+            val existingWithSameUuid = tilfellebitRepository.getOppfolgingstilfelleBit(oppfolgingstilfelleBit.uuid)
             if (existingWithSameUuid != null) {
                 COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_DUPLICATE.increment()
             } else {
@@ -35,8 +37,7 @@ class OppfolgingstilfelleBitService() {
                 }
                 if (isRelevant) {
                     log.info("Received relevant ${OppfolgingstilfelleBit::class.java.simpleName}: inntruffet=${oppfolgingstilfelleBit.inntruffet}, tags=${oppfolgingstilfelleBit.tagList}")
-                    connection.createOppfolgingstilfelleBit(
-                        commit = false,
+                    tilfellebitRepository.createOppfolgingstilfelleBit(
                         oppfolgingstilfelleBit = oppfolgingstilfelleBit,
                     )
                     COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_CREATED.increment()
@@ -52,7 +53,7 @@ class OppfolgingstilfelleBitService() {
         oppfolgingstilfelleBitIdList: List<UUID>,
     ) {
         oppfolgingstilfelleBitIdList.forEach { uuid ->
-            val existing = connection.getOppfolgingstilfelleBit(uuid)
+            val existing = tilfellebitRepository.getOppfolgingstilfelleBit(uuid)
             if (existing != null) {
                 connection.deleteOppfolgingstilfelleBit(existing.toOppfolgingstilfelleBit())
                 connection.getProcessedOppfolgingstilfelleBitList(

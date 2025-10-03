@@ -15,8 +15,8 @@ import no.nav.syfo.infrastructure.database.bit.getProcessedOppfolgingstilfelleBi
 import no.nav.syfo.infrastructure.database.bit.setProcessedOppfolgingstilfelleBit
 import no.nav.syfo.infrastructure.kafka.OppfolgingstilfellePersonProducer
 import no.nav.syfo.infrastructure.kafka.syketilfelle.KafkaSyketilfellebit
-import no.nav.syfo.infrastructure.kafka.syketilfelle.KafkaSyketilfellebitService
 import no.nav.syfo.infrastructure.kafka.syketilfelle.SYKETILFELLEBIT_TOPIC
+import no.nav.syfo.infrastructure.kafka.syketilfelle.SyketilfellebitConsumer
 import no.nav.syfo.util.and
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldBeNull
@@ -45,8 +45,8 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
 
     val oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfellePersonRepository
     val oppfolgingstilfellePersonProducer = mockk<OppfolgingstilfellePersonProducer>()
-    val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService()
-    val kafkaSyketilfellebitService = KafkaSyketilfellebitService(
+    val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(externalMockEnvironment.tilfellebitRepository)
+    val syketilfellebitConsumer = SyketilfellebitConsumer(
         database = database,
         oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
     )
@@ -153,7 +153,8 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
         oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
             oppfolgingstilfellePersonRepository = oppfolgingstilfelleRepository,
             oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
-        )
+        ),
+        tilfellebitRepository = externalMockEnvironment.tilfellebitRepository,
     )
 
     beforeEachTest {
@@ -178,8 +179,8 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                         )
                     )
 
-                    kafkaSyketilfellebitService.pollAndProcessRecords(
-                        kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                    syketilfellebitConsumer.pollAndProcessRecords(
+                        consumer = mockKafkaConsumerSyketilfelleBit,
                     )
                     runBlocking {
                         val result = sykmeldingNyCronJob.runJob()
@@ -221,8 +222,8 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                         )
                     )
 
-                    kafkaSyketilfellebitService.pollAndProcessRecords(
-                        kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                    syketilfellebitConsumer.pollAndProcessRecords(
+                        consumer = mockKafkaConsumerSyketilfelleBit,
                     )
                     runBlocking {
                         sykmeldingNyCronJob.runJob()
@@ -270,8 +271,8 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                         )
                     )
 
-                    kafkaSyketilfellebitService.pollAndProcessRecords(
-                        kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                    syketilfellebitConsumer.pollAndProcessRecords(
+                        consumer = mockKafkaConsumerSyketilfelleBit,
                     )
                     runBlocking {
                         sykmeldingNyCronJob.runJob()
@@ -322,8 +323,8 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                         )
                     )
 
-                    kafkaSyketilfellebitService.pollAndProcessRecords(
-                        kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                    syketilfellebitConsumer.pollAndProcessRecords(
+                        consumer = mockKafkaConsumerSyketilfelleBit,
                     )
                     runBlocking {
                         oppfolgingstilfelleCronjob.runJob()
@@ -337,8 +338,8 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                             )
                         )
                     )
-                    kafkaSyketilfellebitService.pollAndProcessRecords(
-                        kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                    syketilfellebitConsumer.pollAndProcessRecords(
+                        consumer = mockKafkaConsumerSyketilfelleBit,
                     )
                     runBlocking {
                         val result = oppfolgingstilfelleCronjob.runJob()
@@ -369,8 +370,8 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                         )
                     )
 
-                    kafkaSyketilfellebitService.pollAndProcessRecords(
-                        kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                    syketilfellebitConsumer.pollAndProcessRecords(
+                        consumer = mockKafkaConsumerSyketilfelleBit,
                     )
                     runBlocking {
                         val result = sykmeldingNyCronJob.runJob()
@@ -412,8 +413,8 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                         )
                     )
 
-                    kafkaSyketilfellebitService.pollAndProcessRecords(
-                        kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                    syketilfellebitConsumer.pollAndProcessRecords(
+                        consumer = mockKafkaConsumerSyketilfelleBit,
                     )
                     runBlocking {
                         val result = oppfolgingstilfelleCronjob.runJob()
@@ -458,8 +459,8 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                         )
                     )
 
-                    kafkaSyketilfellebitService.pollAndProcessRecords(
-                        kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                    syketilfellebitConsumer.pollAndProcessRecords(
+                        consumer = mockKafkaConsumerSyketilfelleBit,
                     )
                     runBlocking {
                         val result = sykmeldingNyCronJob.runJob()
@@ -493,8 +494,8 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                         )
                     )
 
-                    kafkaSyketilfellebitService.pollAndProcessRecords(
-                        kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                    syketilfellebitConsumer.pollAndProcessRecords(
+                        consumer = mockKafkaConsumerSyketilfelleBit,
                     )
                     runBlocking {
                         val result = sykmeldingNyCronJob.runJob()

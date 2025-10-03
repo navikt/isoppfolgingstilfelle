@@ -20,15 +20,16 @@ import no.nav.syfo.infrastructure.client.wellknown.getWellKnown
 import no.nav.syfo.infrastructure.cronjob.launchCronjobModule
 import no.nav.syfo.infrastructure.database.OppfolgingstilfellePersonRepository
 import no.nav.syfo.infrastructure.database.applicationDatabase
+import no.nav.syfo.infrastructure.database.bit.TilfellebitRepository
 import no.nav.syfo.infrastructure.database.databaseModule
 import no.nav.syfo.infrastructure.kafka.OppfolgingstilfellePersonProducer
 import no.nav.syfo.infrastructure.kafka.identhendelse.IdenthendelseConsumerService
 import no.nav.syfo.infrastructure.kafka.identhendelse.launchKafkaTaskIdenthendelse
 import no.nav.syfo.infrastructure.kafka.kafkaOppfolgingstilfelleProducerConfig
 import no.nav.syfo.infrastructure.kafka.personhendelse.launchKafkaTaskPersonhendelse
-import no.nav.syfo.infrastructure.kafka.syketilfelle.KafkaSyketilfellebitService
+import no.nav.syfo.infrastructure.kafka.syketilfelle.SyketilfellebitConsumer
 import no.nav.syfo.infrastructure.kafka.syketilfelle.launchKafkaTaskSyketilfelleBit
-import no.nav.syfo.infrastructure.kafka.sykmeldingstatus.KafkaSykmeldingstatusService
+import no.nav.syfo.infrastructure.kafka.sykmeldingstatus.SykmeldingstatusConsumer
 import no.nav.syfo.infrastructure.kafka.sykmeldingstatus.launchKafkaTaskStatusendring
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.slf4j.LoggerFactory
@@ -77,7 +78,7 @@ fun main() {
     )
 
     val oppfolgingstilfellePersonProducer = OppfolgingstilfellePersonProducer(
-        kafkaProducerOppfolgingstilfelle = KafkaProducer(
+        producer = KafkaProducer(
             kafkaOppfolgingstilfelleProducerConfig(
                 kafkaEnvironment = environment.kafka
             )
@@ -87,6 +88,7 @@ fun main() {
     lateinit var oppfolgingstilfelleService: OppfolgingstilfelleService
     lateinit var oppfolgingstilfellePersonService: OppfolgingstilfellePersonService
     lateinit var oppfolgingstilfellePersonRepository: OppfolgingstilfellePersonRepository
+    lateinit var tilfellebitRepository: TilfellebitRepository
 
     val applicationEngineEnvironment = applicationEnvironment {
         log = LoggerFactory.getLogger("ktor.application")
@@ -109,6 +111,7 @@ fun main() {
                 databaseEnvironment = environment.database,
             )
             oppfolgingstilfellePersonRepository = OppfolgingstilfellePersonRepository(database = applicationDatabase)
+            tilfellebitRepository = TilfellebitRepository(database = applicationDatabase)
             oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
                 oppfolgingstilfellePersonRepository = oppfolgingstilfellePersonRepository,
                 oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
@@ -137,24 +140,25 @@ fun main() {
             monitor.subscribe(ApplicationStarted) { application ->
                 applicationState.ready = true
                 application.environment.log.info("Application is ready, running Java VM ${Runtime.version()}")
-                val kafkaSyketilfellebitService = KafkaSyketilfellebitService(
+                val syketilfellebitConsumer = SyketilfellebitConsumer(
                     database = applicationDatabase,
-                    oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(),
+                    oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(tilfellebitRepository),
                 )
 
                 launchKafkaTaskSyketilfelleBit(
                     applicationState = applicationState,
                     kafkaEnvironment = environment.kafka,
-                    kafkaSyketilfellebitService = kafkaSyketilfellebitService,
+                    syketilfellebitConsumer = syketilfellebitConsumer,
                 )
 
-                val kafkaSykmeldingstatusService = KafkaSykmeldingstatusService(
+                val sykmeldingstatusConsumer = SykmeldingstatusConsumer(
                     database = applicationDatabase,
+                    tilfellebitRepository = tilfellebitRepository,
                 )
                 launchKafkaTaskStatusendring(
                     applicationState = applicationState,
                     kafkaEnvironment = environment.kafka,
-                    kafkaSykmeldingstatusService = kafkaSykmeldingstatusService,
+                    sykmeldingstatusConsumer = sykmeldingstatusConsumer,
                 )
 
                 val identhendelseService = IdenthendelseService(
@@ -181,6 +185,7 @@ fun main() {
                     environment = environment,
                     database = applicationDatabase,
                     oppfolgingstilfellePersonService = oppfolgingstilfellePersonService,
+                    tilfellebitRepository = tilfellebitRepository,
                     valkeyStore = valkeyStore,
                 )
             }

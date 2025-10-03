@@ -3,14 +3,11 @@ package no.nav.syfo.infrastructure.database.bit
 import no.nav.syfo.domain.OppfolgingstilfelleBit
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.domain.tagsToString
-import no.nav.syfo.domain.toTagList
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.NoElementInsertedException
 import no.nav.syfo.infrastructure.database.toList
-import no.nav.syfo.util.toOffsetDateTimeUTC
 import java.sql.Connection
 import java.sql.Date
-import java.sql.ResultSet
 import java.sql.Timestamp
 import java.time.OffsetDateTime
 import java.util.*
@@ -125,22 +122,6 @@ fun Connection.createOppfolgingstilfelleBitAvbrutt(
         this.commit()
     }
 }
-
-const val queryGetOppfolgingstilfelleBitForUUID =
-    """
-    SELECT *
-    FROM TILFELLE_BIT
-    WHERE uuid = ?;
-    """
-
-fun Connection.getOppfolgingstilfelleBit(
-    uuid: UUID,
-): POppfolgingstilfelleBit? = this.prepareStatement(queryGetOppfolgingstilfelleBitForUUID).use {
-    it.setString(1, uuid.toString())
-    it.executeQuery().toList {
-        toPOppfolgingstilfelleBit()
-    }
-}.firstOrNull()
 
 const val queryGetOppfolgingstilfelleBitForRessursId =
     """
@@ -340,20 +321,3 @@ fun Connection.isTilfelleBitAvbrutt(tilfelleBitId: UUID): Boolean =
         val rs = it.executeQuery()
         if (rs.next()) rs.getBoolean(1) else false
     }
-
-fun ResultSet.toPOppfolgingstilfelleBit(): POppfolgingstilfelleBit =
-    POppfolgingstilfelleBit(
-        id = getInt("id"),
-        uuid = UUID.fromString(getString("uuid")),
-        personIdentNumber = PersonIdentNumber(getString("personident")),
-        virksomhetsnummer = getString("virksomhetsnummer"),
-        createdAt = getTimestamp("created_at").toOffsetDateTimeUTC(),
-        inntruffet = getTimestamp("inntruffet").toOffsetDateTimeUTC(),
-        tagList = getString("tags").toTagList(),
-        ressursId = getString("ressurs_id"),
-        fom = getDate("fom").toLocalDate(),
-        tom = getDate("tom").toLocalDate(),
-        ready = getBoolean("ready"),
-        processed = getBoolean("processed"),
-        korrigerer = getString("korrigerer"),
-    )

@@ -2,8 +2,8 @@ package no.nav.syfo.infrastructure.kafka.sykmeldingstatus
 
 import no.nav.syfo.domain.Tag
 import no.nav.syfo.infrastructure.database.DatabaseInterface
+import no.nav.syfo.infrastructure.database.bit.TilfellebitRepository
 import no.nav.syfo.infrastructure.database.bit.createOppfolgingstilfelleBitAvbrutt
-import no.nav.syfo.infrastructure.database.bit.getOppfolgingstilfelleBitForRessursId
 import no.nav.syfo.infrastructure.database.bit.getProcessedOppfolgingstilfelleBitList
 import no.nav.syfo.infrastructure.database.bit.setProcessedOppfolgingstilfelleBit
 import no.nav.syfo.util.and
@@ -19,8 +19,9 @@ val STATUS_ENDRING_CUTOFF = OffsetDateTime.of(
     ZoneOffset.UTC,
 )
 
-class KafkaSykmeldingstatusService(
-    val database: DatabaseInterface,
+class SykmeldingstatusConsumer(
+    private val database: DatabaseInterface,
+    private val tilfellebitRepository: TilfellebitRepository,
 ) {
     fun pollAndProcessRecords(
         kafkaConsumerStatusendring: KafkaConsumer<String, SykmeldingStatusKafkaMessageDTO>,
@@ -69,7 +70,7 @@ class KafkaSykmeldingstatusService(
             val kafkaSykmeldingStatus = consumerRecord.value()
             val inntruffet = kafkaSykmeldingStatus.event.timestamp
             if (inntruffet.isAfter(STATUS_ENDRING_CUTOFF) && kafkaSykmeldingStatus.event.statusEvent == StatusEndring.STATUS_AVBRUTT.value) {
-                val oppfolgingstilfelleBitList = connection.getOppfolgingstilfelleBitForRessursId(
+                val oppfolgingstilfelleBitList = tilfellebitRepository.getOppfolgingstilfelleBitForRessursId(
                     ressursId = kafkaSykmeldingStatus.event.sykmeldingId,
                 )
                 oppfolgingstilfelleBitList.filter {

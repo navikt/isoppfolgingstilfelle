@@ -14,7 +14,7 @@ const val STATUSENDRING_TOPIC = "teamsykmelding.sykmeldingstatus-leesah"
 fun launchKafkaTaskStatusendring(
     applicationState: ApplicationState,
     kafkaEnvironment: KafkaEnvironment,
-    kafkaSykmeldingstatusService: KafkaSykmeldingstatusService,
+    sykmeldingstatusConsumer: SykmeldingstatusConsumer,
 ) {
     launchBackgroundTask(
         applicationState = applicationState,
@@ -22,7 +22,7 @@ fun launchKafkaTaskStatusendring(
         blockingApplicationLogicStatusendring(
             applicationState = applicationState,
             kafkaEnvironment = kafkaEnvironment,
-            kafkaSykmeldingstatusService = kafkaSykmeldingstatusService,
+            sykmeldingstatusConsumer = sykmeldingstatusConsumer,
         )
     }
 }
@@ -30,7 +30,7 @@ fun launchKafkaTaskStatusendring(
 fun blockingApplicationLogicStatusendring(
     applicationState: ApplicationState,
     kafkaEnvironment: KafkaEnvironment,
-    kafkaSykmeldingstatusService: KafkaSykmeldingstatusService,
+    sykmeldingstatusConsumer: SykmeldingstatusConsumer,
 ) {
     log.info("Setting up kafka consumer for KafkaStatusendring")
 
@@ -41,7 +41,7 @@ fun blockingApplicationLogicStatusendring(
         listOf(STATUSENDRING_TOPIC)
     )
     while (applicationState.ready) {
-        kafkaSykmeldingstatusService.pollAndProcessRecords(
+        sykmeldingstatusConsumer.pollAndProcessRecords(
             kafkaConsumerStatusendring = kafkaConsumerStatusendring,
         )
     }

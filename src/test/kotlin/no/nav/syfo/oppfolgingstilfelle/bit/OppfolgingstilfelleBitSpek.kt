@@ -2,9 +2,9 @@ package no.nav.syfo.oppfolgingstilfelle.bit
 
 import no.nav.syfo.domain.OppfolgingstilfelleBit
 import no.nav.syfo.domain.Tag.*
+import no.nav.syfo.domain.calculateCurrentVarighetUker
 import no.nav.syfo.domain.generateOppfolgingstilfelleList
 import no.nav.syfo.domain.pickOppfolgingstilfelleDag
-import no.nav.syfo.oppfolgingstilfelle.person.domain.calculateCurrentVarighetUker
 import no.nav.syfo.util.defaultZoneOffset
 import no.nav.syfo.util.nowUTC
 import org.amshove.kluent.shouldBe

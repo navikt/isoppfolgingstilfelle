@@ -11,29 +11,29 @@ import java.sql.Connection
 import java.time.Duration
 import java.util.*
 
-class KafkaSyketilfellebitService(
+class SyketilfellebitConsumer(
     val database: DatabaseInterface,
     val oppfolgingstilfelleBitService: OppfolgingstilfelleBitService,
 ) {
     fun pollAndProcessRecords(
-        kafkaConsumerSyketilfelleBit: KafkaConsumer<String, KafkaSyketilfellebit>,
+        consumer: KafkaConsumer<String, KafkaSyketilfellebit>,
     ) {
-        val records = kafkaConsumerSyketilfelleBit.poll(Duration.ofMillis(1000))
+        val records = consumer.poll(Duration.ofMillis(1000))
         if (records.count() > 0) {
             processRecords(
-                consumerRecords = records,
+                records = records,
             )
-            kafkaConsumerSyketilfelleBit.commitSync()
+            consumer.commitSync()
         }
     }
 
     private fun processRecords(
-        consumerRecords: ConsumerRecords<String, KafkaSyketilfellebit>,
+        records: ConsumerRecords<String, KafkaSyketilfellebit>,
     ) {
         database.connection.use { connection ->
-            COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_READ.increment(consumerRecords.count().toDouble())
+            COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_READ.increment(records.count().toDouble())
 
-            val (tombstoneRecordList, recordsValid) = consumerRecords.partition {
+            val (tombstoneRecordList, recordsValid) = records.partition {
                 it.value() == null
             }
             processTombstoneRecordList(
@@ -96,6 +96,6 @@ class KafkaSyketilfellebitService(
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(KafkaSyketilfellebitService::class.java)
+        private val log = LoggerFactory.getLogger(SyketilfellebitConsumer::class.java)
     }
 }
