@@ -39,10 +39,7 @@ class OppfolgingstilfelleSystemApiSpek : Spek({
     val oppfolgingstilfellePersonProducer = mockk<OppfolgingstilfellePersonProducer>()
     val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(externalMockEnvironment.tilfellebitRepository)
 
-    val syketilfellebitConsumer = SyketilfellebitConsumer(
-        database = database,
-        oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
-    )
+    val syketilfellebitConsumer = SyketilfellebitConsumer(oppfolgingstilfelleBitService = oppfolgingstilfelleBitService)
     val personIdentDefault = PERSONIDENTNUMBER_DEFAULT.toHistoricalPersonIdentNumber()
 
     val partition = 0
@@ -65,7 +62,6 @@ class OppfolgingstilfelleSystemApiSpek : Spek({
     val mockKafkaConsumerSyketilfelleBit = mockk<KafkaConsumer<String, KafkaSyketilfellebit>>()
 
     val oppfolgingstilfelleCronjob = OppfolgingstilfelleCronjob(
-        database = database,
         oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
             oppfolgingstilfellePersonRepository = externalMockEnvironment.oppfolgingstilfellePersonRepository,
             oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,

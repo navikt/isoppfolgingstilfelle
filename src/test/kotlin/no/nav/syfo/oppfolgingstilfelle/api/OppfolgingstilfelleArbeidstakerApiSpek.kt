@@ -37,9 +37,7 @@ class OppfolgingstilfelleArbeidstakerApiSpek : Spek({
 
     beforeEachTest {
         database.dropData()
-        database.connection.use {
-            oppfolgingstilfelleRepository.createOppfolgingstilfellePerson(it, true, oppfolgingstilfellePerson)
-        }
+        oppfolgingstilfelleRepository.createOppfolgingstilfellePerson(oppfolgingstilfellePerson)
     }
 
     describe(OppfolgingstilfelleArbeidstakerApiSpek::class.java.simpleName) {

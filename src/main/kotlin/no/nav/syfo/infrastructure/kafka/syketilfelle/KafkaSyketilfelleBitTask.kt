@@ -35,14 +35,14 @@ fun blockingApplicationLogicSyketilfelleBit(
     log.info("Setting up kafka consumer for KafkaSyketilfelleBit")
 
     val consumerProperties = kafkaSyketilfelleBitConsumerConfig(kafkaEnvironment)
-    val kafkaConsumerSyketilfelleBit = KafkaConsumer<String, KafkaSyketilfellebit>(consumerProperties)
+    val consumer = KafkaConsumer<String, KafkaSyketilfellebit>(consumerProperties)
 
-    kafkaConsumerSyketilfelleBit.subscribe(
+    consumer.subscribe(
         listOf(SYKETILFELLEBIT_TOPIC)
     )
     while (applicationState.ready) {
         syketilfellebitConsumer.pollAndProcessRecords(
-            consumer = kafkaConsumerSyketilfelleBit,
+            consumer = consumer,
         )
     }
 }

@@ -46,10 +46,7 @@ class OppfolgingstilfelleApiSpek : Spek({
         oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
     )
 
-    val syketilfellebitConsumer = SyketilfellebitConsumer(
-        database = database,
-        oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
-    )
+    val syketilfellebitConsumer = SyketilfellebitConsumer(oppfolgingstilfelleBitService = oppfolgingstilfelleBitService)
     val personIdentDefault = PERSONIDENTNUMBER_DEFAULT.toHistoricalPersonIdentNumber()
 
     val partition = 0
@@ -85,7 +82,6 @@ class OppfolgingstilfelleApiSpek : Spek({
     val mockKafkaConsumerSyketilfelleBit = mockk<KafkaConsumer<String, KafkaSyketilfellebit>>()
 
     val oppfolgingstilfelleCronjob = OppfolgingstilfelleCronjob(
-        database = database,
         oppfolgingstilfellePersonService = oppfolgingstilfellePersonService,
         tilfellebitRepository = externalMockEnvironment.tilfellebitRepository,
     )
@@ -435,11 +431,8 @@ class OppfolgingstilfelleApiSpek : Spek({
                         antallSykedager = antallSykedagerPerson2Tilfelle2,
                     )
 
-                    database.connection.use { connection ->
-                        listOf(oppfolgingstilfellePerson1, oppfolgingstilfelle1Person2, oppfolgingstilfelle2Person2).forEach {
-                            oppfolgingstilfellePersonRepository.createOppfolgingstilfellePerson(connection = connection, commit = false, it)
-                        }
-                        connection.commit()
+                    listOf(oppfolgingstilfellePerson1, oppfolgingstilfelle1Person2, oppfolgingstilfelle2Person2).forEach {
+                        oppfolgingstilfellePersonRepository.createOppfolgingstilfellePerson(it)
                     }
                     oppfolgingstilfellePersonRepository.createPerson(
                         uuid = UUID.randomUUID(),
@@ -490,15 +483,9 @@ class OppfolgingstilfelleApiSpek : Spek({
                     val oppfolgingstilfellePerson1 = generateOppfolgingstilfellePerson(
                         personIdent = PERSONIDENTNUMBER_VEILEDER_NO_ACCESS,
                     )
-
-                    database.connection.use { connection ->
-                        oppfolgingstilfellePersonRepository.createOppfolgingstilfellePerson(
-                            connection = connection,
-                            commit = true,
-                            oppfolgingstilfellePerson = oppfolgingstilfellePerson1
-                        )
-                        connection.commit()
-                    }
+                    oppfolgingstilfellePersonRepository.createOppfolgingstilfellePerson(
+                        oppfolgingstilfellePerson = oppfolgingstilfellePerson1
+                    )
 
                     testApplication {
                         val client = setupApiAndClient()

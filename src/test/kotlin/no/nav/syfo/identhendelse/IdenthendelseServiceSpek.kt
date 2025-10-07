@@ -8,7 +8,6 @@ import no.nav.syfo.domain.toOppfolgingstilfelleBit
 import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
 import no.nav.syfo.infrastructure.client.pdl.PdlClient
 import no.nav.syfo.infrastructure.database.DatabaseInterface
-import no.nav.syfo.infrastructure.database.bit.createOppfolgingstilfelleBit
 import no.nav.syfo.infrastructure.database.getIdentCount
 import org.amshove.kluent.internal.assertFailsWith
 import org.amshove.kluent.shouldBeEqualTo
@@ -32,6 +31,7 @@ class IdenthendelseServiceSpek : Spek({
     val redisConfig = externalMockEnvironment.environment.valkeyConfig
 
     val oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfellePersonRepository
+    val tilfelleBitRepository = externalMockEnvironment.tilfellebitRepository
     val pdlClient = PdlClient(
         azureAdClient = AzureAdClient(
             azureEnviroment = externalMockEnvironment.environment.azure,
@@ -64,18 +64,12 @@ class IdenthendelseServiceSpek : Spek({
             processed = true
         )
 
-        database.connection.use { connection ->
-            connection.createOppfolgingstilfelleBit(
-                commit = true,
-                oppfolgingstilfelleBit = newTilfelleBit,
-            )
-            oppfolgingstilfelleRepository.createOppfolgingstilfellePerson(
-                connection = connection,
-                commit = true,
-                oppfolgingstilfellePerson = oppfolgingstilfellePerson
-            )
-            connection.commit()
-        }
+        tilfelleBitRepository.createOppfolgingstilfelleBit(
+            oppfolgingstilfelleBit = newTilfelleBit,
+        )
+        oppfolgingstilfelleRepository.createOppfolgingstilfellePerson(
+            oppfolgingstilfellePerson = oppfolgingstilfellePerson
+        )
     }
 
     describe(IdenthendelseServiceSpek::class.java.simpleName) {

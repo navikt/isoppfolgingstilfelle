@@ -6,7 +6,6 @@ import no.nav.syfo.application.OppfolgingstilfellePersonService
 import no.nav.syfo.domain.OppfolgingstilfelleBit
 import no.nav.syfo.domain.Tag
 import no.nav.syfo.infrastructure.cronjob.OppfolgingstilfelleCronjob
-import no.nav.syfo.infrastructure.database.bit.createOppfolgingstilfelleBit
 import no.nav.syfo.infrastructure.kafka.OppfolgingstilfellePersonProducer
 import no.nav.syfo.infrastructure.kafka.sykmeldingstatus.STATUSENDRING_TOPIC
 import no.nav.syfo.infrastructure.kafka.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
@@ -24,7 +23,6 @@ import testhelper.ExternalMockEnvironment
 import testhelper.UserConstants.PERSONIDENTNUMBER_DEFAULT
 import testhelper.dropData
 import testhelper.generator.generateKafkaStatusendring
-import testhelper.isTilfelleBitAvbrutt
 import testhelper.mock.toHistoricalPersonIdentNumber
 import java.time.Duration
 import java.time.LocalDate
@@ -34,11 +32,9 @@ class KafkaSykmeldingstatusConsumerSpek : Spek({
     val externalMockEnvironment = ExternalMockEnvironment.instance
     val database = externalMockEnvironment.database
     val oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfellePersonRepository
+    val tilfelleBitRepository = externalMockEnvironment.tilfellebitRepository
     val oppfolgingstilfellePersonProducer = mockk<OppfolgingstilfellePersonProducer>()
-    val sykmeldingstatusConsumer = SykmeldingstatusConsumer(
-        database = database,
-        tilfellebitRepository = externalMockEnvironment.tilfellebitRepository,
-    )
+    val sykmeldingstatusConsumer = SykmeldingstatusConsumer(tilfellebitRepository = externalMockEnvironment.tilfellebitRepository)
     val personIdentDefault = PERSONIDENTNUMBER_DEFAULT.toHistoricalPersonIdentNumber()
     val sykmeldingId = UUID.randomUUID()
     val tilfelleBitUuid = UUID.randomUUID()
@@ -104,7 +100,6 @@ class KafkaSykmeldingstatusConsumerSpek : Spek({
     val mockKafkaConsumerStatusendring = mockk<KafkaConsumer<String, SykmeldingStatusKafkaMessageDTO>>()
 
     val oppfolgingstilfelleCronjob = OppfolgingstilfelleCronjob(
-        database = database,
         oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
             oppfolgingstilfellePersonRepository = oppfolgingstilfelleRepository,
             oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
@@ -126,12 +121,9 @@ class KafkaSykmeldingstatusConsumerSpek : Spek({
         describe("Consume statusendring from Kafka topic") {
             describe("Happy path") {
                 it("should store statusendring when known sykmeldingId") {
-                    database.connection.use {
-                        it.createOppfolgingstilfelleBit(
-                            commit = true,
-                            oppfolgingstilfelleBit = oppfolgingstilfelleBitSykmeldingNy,
-                        )
-                    }
+                    tilfelleBitRepository.createOppfolgingstilfelleBit(
+                        oppfolgingstilfelleBit = oppfolgingstilfelleBitSykmeldingNy,
+                    )
                     runBlocking {
                         oppfolgingstilfelleCronjob.runJob()
                     }
@@ -155,19 +147,16 @@ class KafkaSykmeldingstatusConsumerSpek : Spek({
                         oppfolgingstilfelleCronjob.runJob()
                     }
 
-                    database.isTilfelleBitAvbrutt(tilfelleBitUuid) shouldBeEqualTo true
+                    tilfelleBitRepository.isTilfelleBitAvbrutt(tilfelleBitUuid) shouldBeEqualTo true
 
                     val oppfolgingstilfellePerson = oppfolgingstilfelleRepository.getOppfolgingstilfellePerson(personIdentDefault)
                     oppfolgingstilfellePerson.shouldNotBeNull()
                     oppfolgingstilfellePerson.oppfolgingstilfeller.size shouldBeEqualTo 0
                 }
                 it("should not store statusendring when known sykmeldingId and sendt") {
-                    database.connection.use {
-                        it.createOppfolgingstilfelleBit(
-                            commit = true,
-                            oppfolgingstilfelleBit = oppfolgingstilfelleBitSykmeldingSendt,
-                        )
-                    }
+                    tilfelleBitRepository.createOppfolgingstilfelleBit(
+                        oppfolgingstilfelleBit = oppfolgingstilfelleBitSykmeldingSendt,
+                    )
                     runBlocking {
                         oppfolgingstilfelleCronjob.runJob()
                     }
@@ -190,7 +179,7 @@ class KafkaSykmeldingstatusConsumerSpek : Spek({
                         mockKafkaConsumerStatusendring.commitSync()
                     }
 
-                    database.isTilfelleBitAvbrutt(tilfelleBitSykmeldingSendtUuid) shouldBeEqualTo false
+                    tilfelleBitRepository.isTilfelleBitAvbrutt(tilfelleBitSykmeldingSendtUuid) shouldBeEqualTo false
 
                     val oppfolgingstilfellePerson = oppfolgingstilfelleRepository.getOppfolgingstilfellePerson(personIdentDefault)
                     oppfolgingstilfellePerson.shouldNotBeNull()

@@ -9,10 +9,6 @@ import no.nav.syfo.infrastructure.client.ArbeidsforholdClient
 import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
 import no.nav.syfo.infrastructure.cronjob.OppfolgingstilfelleCronjob
 import no.nav.syfo.infrastructure.cronjob.SykmeldingNyCronjob
-import no.nav.syfo.infrastructure.database.bit.createOppfolgingstilfelleBitAvbrutt
-import no.nav.syfo.infrastructure.database.bit.getOppfolgingstilfelleBitForIdent
-import no.nav.syfo.infrastructure.database.bit.getProcessedOppfolgingstilfelleBitList
-import no.nav.syfo.infrastructure.database.bit.setProcessedOppfolgingstilfelleBit
 import no.nav.syfo.infrastructure.kafka.OppfolgingstilfellePersonProducer
 import no.nav.syfo.infrastructure.kafka.syketilfelle.KafkaSyketilfellebit
 import no.nav.syfo.infrastructure.kafka.syketilfelle.SYKETILFELLEBIT_TOPIC
@@ -27,12 +23,9 @@ import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.TopicPartition
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import testhelper.ExternalMockEnvironment
-import testhelper.UserConstants
+import testhelper.*
 import testhelper.UserConstants.ARBEIDSTAKER_VIRKSOMHET_NO_NARMESTELEDER
 import testhelper.UserConstants.PERSONIDENTNUMBER_DEFAULT
-import testhelper.countDeletedTilfelleBit
-import testhelper.dropData
 import testhelper.generator.*
 import testhelper.mock.toHistoricalPersonIdentNumber
 import java.time.Duration
@@ -44,12 +37,10 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
     val database = externalMockEnvironment.database
 
     val oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfellePersonRepository
+    val tilfelleBitRepository = externalMockEnvironment.tilfellebitRepository
     val oppfolgingstilfellePersonProducer = mockk<OppfolgingstilfellePersonProducer>()
     val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(externalMockEnvironment.tilfellebitRepository)
-    val syketilfellebitConsumer = SyketilfellebitConsumer(
-        database = database,
-        oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
-    )
+    val syketilfellebitConsumer = SyketilfellebitConsumer(oppfolgingstilfelleBitService = oppfolgingstilfelleBitService)
     val personIdentDefault = PERSONIDENTNUMBER_DEFAULT.toHistoricalPersonIdentNumber()
 
     val partition = 0
@@ -149,7 +140,6 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
         )
     )
     val oppfolgingstilfelleCronjob = OppfolgingstilfelleCronjob(
-        database = database,
         oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
             oppfolgingstilfellePersonRepository = oppfolgingstilfelleRepository,
             oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
@@ -229,26 +219,21 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                         sykmeldingNyCronJob.runJob()
                         oppfolgingstilfelleCronjob.runJob()
                     }
-                    val pTilfellebit = database.getOppfolgingstilfelleBitForIdent(personIdentDefault).filter {
+                    val pTilfellebit = database.getOppfolgingstilfelleBitForIdent(personIdentDefault).first {
                         it.tagList in (Tag.SYKMELDING and Tag.NY)
-                    }.first()
-                    database.connection.use {
-                        it.createOppfolgingstilfelleBitAvbrutt(
-                            commit = true,
-                            pOppfolgingstilfelleBit = pTilfellebit,
-                            inntruffet = OffsetDateTime.now(),
-                            avbrutt = true,
-                        )
-                        val latestTilfelle = it.getProcessedOppfolgingstilfelleBitList(
-                            personIdentNumber = personIdentDefault,
-                            includeAvbrutt = true,
-                        ).first()
-                        it.setProcessedOppfolgingstilfelleBit(
-                            uuid = latestTilfelle.uuid,
-                            processed = false,
-                        )
-                        it.commit()
                     }
+                    tilfelleBitRepository.createOppfolgingstilfelleBitAvbrutt(
+                        pOppfolgingstilfelleBit = pTilfellebit,
+                        inntruffet = OffsetDateTime.now(),
+                    )
+                    val latestTilfelle = tilfelleBitRepository.getProcessedOppfolgingstilfelleBitList(
+                        personIdentNumber = personIdentDefault,
+                        includeAvbrutt = true,
+                    ).first()
+                    tilfelleBitRepository.setProcessedOppfolgingstilfelleBit(
+                        uuid = latestTilfelle.uuid,
+                        processed = false,
+                    )
                     runBlocking {
                         oppfolgingstilfelleCronjob.runJob()
                     }
@@ -281,18 +266,15 @@ class KafkaSyketilfelleBitConsumerSpek : Spek({
                     val pTilfellebit = database.getOppfolgingstilfelleBitForIdent(personIdentDefault).filter {
                         it.tagList in (Tag.SYKMELDING and Tag.NY)
                     }.first()
-                    database.connection.use {
-                        it.createOppfolgingstilfelleBitAvbrutt(
-                            pOppfolgingstilfelleBit = pTilfellebit,
-                            inntruffet = OffsetDateTime.now(),
-                            avbrutt = true,
-                        )
-                        it.setProcessedOppfolgingstilfelleBit(
-                            uuid = pTilfellebit.uuid,
-                            processed = false,
-                        )
-                        it.commit()
-                    }
+                    tilfelleBitRepository.createOppfolgingstilfelleBitAvbrutt(
+                        pOppfolgingstilfelleBit = pTilfellebit,
+                        inntruffet = OffsetDateTime.now(),
+                    )
+                    tilfelleBitRepository.setProcessedOppfolgingstilfelleBit(
+                        uuid = pTilfellebit.uuid,
+                        processed = false,
+                    )
+
                     runBlocking {
                         oppfolgingstilfelleCronjob.runJob()
                     }

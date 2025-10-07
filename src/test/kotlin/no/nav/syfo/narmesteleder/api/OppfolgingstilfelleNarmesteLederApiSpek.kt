@@ -25,9 +25,7 @@ class OppfolgingstilfelleNarmesteLederApiSpek : Spek({
 
     beforeEachTest {
         database.dropData()
-        database.connection.use {
-            oppfolgingstilfelleRepository.createOppfolgingstilfellePerson(connection = it, true, oppfolgingstilfellePerson)
-        }
+        oppfolgingstilfelleRepository.createOppfolgingstilfellePerson(oppfolgingstilfellePerson)
     }
 
     describe(OppfolgingstilfelleNarmesteLederApiSpek::class.java.simpleName) {

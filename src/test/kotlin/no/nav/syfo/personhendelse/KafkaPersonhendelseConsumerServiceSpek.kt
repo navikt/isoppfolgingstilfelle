@@ -87,13 +87,9 @@ object KafkaPersonhendelseConsumerServiceSpek : Spek({
                     personIdent = personIdent,
                 )
 
-                database.connection.use { connection ->
-                    oppfolgingstilfellePersonRepository.createOppfolgingstilfellePerson(
-                        connection = connection,
-                        commit = true,
-                        oppfolgingstilfellePerson = oppfolgingstilfellePerson,
-                    )
-                }
+                oppfolgingstilfellePersonRepository.createOppfolgingstilfellePerson(
+                    oppfolgingstilfellePerson = oppfolgingstilfellePerson,
+                )
                 every { mockKafkaConsumerPersonhendelse.poll(any<Duration>()) } returns ConsumerRecords(
                     mapOf(
                         personhendelseTopicPartition to listOf(
@@ -117,13 +113,9 @@ object KafkaPersonhendelseConsumerServiceSpek : Spek({
                     personIdent = personIdent,
                 )
 
-                database.connection.use { connection ->
-                    oppfolgingstilfellePersonRepository.createOppfolgingstilfellePerson(
-                        connection = connection,
-                        commit = true,
-                        oppfolgingstilfellePerson = oppfolgingstilfellePerson,
-                    )
-                }
+                oppfolgingstilfellePersonRepository.createOppfolgingstilfellePerson(
+                    oppfolgingstilfellePerson = oppfolgingstilfellePerson,
+                )
                 every { mockKafkaConsumerPersonhendelse.poll(any<Duration>()) } returns ConsumerRecords(
                     mapOf(
                         personhendelseTopicPartition to listOf(
@@ -165,13 +157,9 @@ object KafkaPersonhendelseConsumerServiceSpek : Spek({
                     personIdent = personIdent,
                 )
 
-                database.connection.use { connection ->
-                    oppfolgingstilfellePersonRepository.createOppfolgingstilfellePerson(
-                        connection = connection,
-                        commit = true,
-                        oppfolgingstilfellePerson = oppfolgingstilfellePerson,
-                    )
-                }
+                oppfolgingstilfellePersonRepository.createOppfolgingstilfellePerson(
+                    oppfolgingstilfellePerson = oppfolgingstilfellePerson,
+                )
                 every { mockKafkaConsumerPersonhendelse.poll(any<Duration>()) } returns ConsumerRecords(
                     mapOf(
                         personhendelseTopicPartition to listOf(

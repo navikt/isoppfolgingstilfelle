@@ -39,7 +39,6 @@ fun launchCronjobModule(
         arbeidsforholdClient = arbeidsforholdClient,
     )
     val oppfolgingstilfelleCronjob = OppfolgingstilfelleCronjob(
-        database = database,
         oppfolgingstilfellePersonService = oppfolgingstilfellePersonService,
         tilfellebitRepository = tilfellebitRepository,
     )
