@@ -13,9 +13,8 @@ Isoppfolgingstilfelle contains pieces of a Oppfolgingstilfelle and calculates re
 
 ##### Test Libraries:
 
-* Kluent
+* JUnit
 * Mockk
-* Spek
 
 #### Requirements
 
