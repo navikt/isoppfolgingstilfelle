@@ -8,12 +8,20 @@ import java.sql.Connection
 import java.util.*
 
 class TestDatabase : DatabaseInterface {
-    private val pg: EmbeddedPostgres
+    private val pg: EmbeddedPostgres = PostgresDatabase.getDatabase()
 
     override val connection: Connection
         get() = pg.postgresDatabase.connection.apply {
             autoCommit = false
         }
+
+    fun stop() {
+        pg.close()
+    }
+}
+
+object PostgresDatabase {
+    private val pg: EmbeddedPostgres
 
     init {
         pg = try {
@@ -27,9 +35,7 @@ class TestDatabase : DatabaseInterface {
         }
     }
 
-    fun stop() {
-        pg.close()
-    }
+    fun getDatabase() = pg
 }
 
 class TestDatabaseNotResponding : DatabaseInterface {
