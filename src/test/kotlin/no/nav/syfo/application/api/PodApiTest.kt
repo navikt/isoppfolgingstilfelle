@@ -13,11 +13,11 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import testhelper.TestDatabase
+import testhelper.ExternalMockEnvironment
 
 class PodApiTest {
 
-    private val database = TestDatabase()
+    private val database = ExternalMockEnvironment.instance.database
 
     private fun ApplicationTestBuilder.setupPodApi(applicationState: ApplicationState) {
         application {
