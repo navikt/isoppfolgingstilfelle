@@ -588,14 +588,14 @@ class OppfolgingstilfelleBitTest {
             defaultBit.copy(
                 createdAt = nowUTC(),
                 inntruffet = nowUTC(),
-                tagList = listOf(SYKMELDING, SENDT, GRADERT_AKTIVITET),
+                tagList = listOf(SYKMELDING, SENDT, PERIODE, GRADERT_AKTIVITET),
                 fom = LocalDate.now().minusDays(16),
                 tom = LocalDate.now(),
             ),
             defaultBit.copy(
                 createdAt = nowUTC(),
                 inntruffet = nowUTC().minusDays(1),
-                tagList = listOf(SYKMELDING, SENDT, INGEN_AKTIVITET),
+                tagList = listOf(SYKMELDING, SENDT, PERIODE, INGEN_AKTIVITET),
                 fom = LocalDate.now().minusDays(16),
                 tom = LocalDate.now(),
                 virksomhetsnummer = "987654320",
@@ -604,7 +604,7 @@ class OppfolgingstilfelleBitTest {
 
         val lastDayInTilfelle = oppfolgingstilfelleBitList.pickOppfolgingstilfelleDag(LocalDate.now())
 
-        lastDayInTilfelle.priorityOppfolgingstilfelleBit?.tagList?.contains(INGEN_AKTIVITET)
+        assertTrue(lastDayInTilfelle.priorityOppfolgingstilfelleBit!!.tagList.contains(INGEN_AKTIVITET))
     }
 
     @Test
