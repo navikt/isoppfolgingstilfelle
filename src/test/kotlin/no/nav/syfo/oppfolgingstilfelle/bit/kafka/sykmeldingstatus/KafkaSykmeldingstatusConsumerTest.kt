@@ -6,11 +6,10 @@ import no.nav.syfo.application.OppfolgingstilfellePersonService
 import no.nav.syfo.domain.OppfolgingstilfelleBit
 import no.nav.syfo.domain.Tag
 import no.nav.syfo.infrastructure.cronjob.OppfolgingstilfelleCronjob
-import no.nav.syfo.infrastructure.database.bit.createOppfolgingstilfelleBit
 import no.nav.syfo.infrastructure.kafka.OppfolgingstilfellePersonProducer
-import no.nav.syfo.infrastructure.kafka.sykmeldingstatus.KafkaSykmeldingstatusService
 import no.nav.syfo.infrastructure.kafka.sykmeldingstatus.STATUSENDRING_TOPIC
 import no.nav.syfo.infrastructure.kafka.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
+import no.nav.syfo.infrastructure.kafka.sykmeldingstatus.SykmeldingstatusConsumer
 import no.nav.syfo.util.nowUTC
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.ConsumerRecords
@@ -23,7 +22,6 @@ import testhelper.ExternalMockEnvironment
 import testhelper.UserConstants.PERSONIDENTNUMBER_DEFAULT
 import testhelper.dropData
 import testhelper.generator.generateKafkaStatusendring
-import testhelper.isTilfelleBitAvbrutt
 import testhelper.mock.toHistoricalPersonIdentNumber
 import java.time.Duration
 import java.time.LocalDate
@@ -34,9 +32,10 @@ class KafkaSykmeldingstatusConsumerTest {
     private val externalMockEnvironment = ExternalMockEnvironment.instance
     private val database = externalMockEnvironment.database
     private val oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfellePersonRepository
+    private val tilfellebitRepository = externalMockEnvironment.tilfellebitRepository
     private val oppfolgingstilfellePersonProducer = mockk<OppfolgingstilfellePersonProducer>()
-    private val kafkaSykmeldingstatusService = KafkaSykmeldingstatusService(
-        database = database,
+    private val kafkaSykmeldingstatusService = SykmeldingstatusConsumer(
+        tilfellebitRepository = tilfellebitRepository,
     )
     private val personIdentDefault = PERSONIDENTNUMBER_DEFAULT.toHistoricalPersonIdentNumber()
     private val sykmeldingId = UUID.randomUUID()
@@ -103,11 +102,11 @@ class KafkaSykmeldingstatusConsumerTest {
     private val mockKafkaConsumerStatusendring = mockk<KafkaConsumer<String, SykmeldingStatusKafkaMessageDTO>>()
 
     private val oppfolgingstilfelleCronjob = OppfolgingstilfelleCronjob(
-        database = database,
         oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
             oppfolgingstilfellePersonRepository = oppfolgingstilfelleRepository,
             oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
-        )
+        ),
+        tilfellebitRepository = tilfellebitRepository,
     )
 
     @BeforeEach
@@ -123,12 +122,7 @@ class KafkaSykmeldingstatusConsumerTest {
 
     @Test
     fun `should store statusendring when known sykmeldingId`() {
-        database.connection.use {
-            it.createOppfolgingstilfelleBit(
-                commit = true,
-                oppfolgingstilfelleBit = oppfolgingstilfelleBitSykmeldingNy,
-            )
-        }
+        tilfellebitRepository.createOppfolgingstilfelleBit(oppfolgingstilfelleBitSykmeldingNy)
         runBlocking {
             oppfolgingstilfelleCronjob.runJob()
         }
@@ -152,7 +146,7 @@ class KafkaSykmeldingstatusConsumerTest {
             oppfolgingstilfelleCronjob.runJob()
         }
 
-        assertTrue(database.isTilfelleBitAvbrutt(tilfelleBitUuid))
+        assertTrue(tilfellebitRepository.isTilfelleBitAvbrutt(tilfelleBitUuid))
 
         val oppfolgingstilfellePerson = oppfolgingstilfelleRepository.getOppfolgingstilfellePerson(personIdentDefault)
         assertNotNull(oppfolgingstilfellePerson)
@@ -161,12 +155,7 @@ class KafkaSykmeldingstatusConsumerTest {
 
     @Test
     fun `should not store statusendring when known sykmeldingId and sendt`() {
-        database.connection.use {
-            it.createOppfolgingstilfelleBit(
-                commit = true,
-                oppfolgingstilfelleBit = oppfolgingstilfelleBitSykmeldingSendt,
-            )
-        }
+        tilfellebitRepository.createOppfolgingstilfelleBit(oppfolgingstilfelleBitSykmeldingSendt)
         runBlocking {
             oppfolgingstilfelleCronjob.runJob()
         }
@@ -189,7 +178,7 @@ class KafkaSykmeldingstatusConsumerTest {
             mockKafkaConsumerStatusendring.commitSync()
         }
 
-        assertFalse(database.isTilfelleBitAvbrutt(tilfelleBitSykmeldingSendtUuid))
+        assertFalse(tilfellebitRepository.isTilfelleBitAvbrutt(tilfelleBitSykmeldingSendtUuid))
 
         val oppfolgingstilfellePerson = oppfolgingstilfelleRepository.getOppfolgingstilfellePerson(personIdentDefault)
         assertNotNull(oppfolgingstilfellePerson)

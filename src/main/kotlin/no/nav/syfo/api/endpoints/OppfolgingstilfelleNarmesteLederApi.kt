@@ -8,7 +8,7 @@ import no.nav.syfo.application.NarmesteLederAccessService
 import no.nav.syfo.application.OppfolgingstilfelleService
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.domain.Virksomhetsnummer
-import no.nav.syfo.oppfolgingstilfelle.person.domain.toOppfolgingstilfelleDTOList
+import no.nav.syfo.domain.toOppfolgingstilfelleDTOList
 import no.nav.syfo.util.*
 
 fun Route.registerOppfolgingstilfelleNarmesteLederApi(

@@ -2,13 +2,13 @@ package no.nav.syfo.infrastructure.cronjob
 
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.application.OppfolgingstilfellePersonService
-import no.nav.syfo.infrastructure.database.DatabaseInterface
-import no.nav.syfo.infrastructure.database.bit.*
+import no.nav.syfo.infrastructure.database.bit.TilfellebitRepository
+import no.nav.syfo.infrastructure.database.bit.toOppfolgingstilfelleBitList
 import org.slf4j.LoggerFactory
 
 class OppfolgingstilfelleCronjob(
-    private val database: DatabaseInterface,
     private val oppfolgingstilfellePersonService: OppfolgingstilfellePersonService,
+    private val tilfellebitRepository: TilfellebitRepository,
 ) : Cronjob {
     override val initialDelayMinutes: Long = 2
     override val intervalDelayMinutes: Long = 10
@@ -23,29 +23,25 @@ class OppfolgingstilfelleCronjob(
     }
 
     fun runJob() = CronjobResult().also { result ->
-        val unprocessed = database.getUnprocessedOppfolgingstilfelleBitList().toOppfolgingstilfelleBitList()
+        val unprocessed = tilfellebitRepository.getUnprocessedOppfolgingstilfelleBitList().toOppfolgingstilfelleBitList()
         unprocessed.forEach { oppfolgingstilfelleBit ->
             try {
-                database.connection.use { connection ->
-                    val oppfolgingstilfelleBitForPersonList = connection.getProcessedOppfolgingstilfelleBitList(
-                        personIdentNumber = oppfolgingstilfelleBit.personIdentNumber,
-                    ).toOppfolgingstilfelleBitList().toMutableList()
+                val oppfolgingstilfelleBitForPersonList = tilfellebitRepository.getProcessedOppfolgingstilfelleBitList(
+                    personIdentNumber = oppfolgingstilfelleBit.personIdentNumber,
+                ).toOppfolgingstilfelleBitList().toMutableList()
 
-                    if (!connection.isTilfelleBitAvbrutt(oppfolgingstilfelleBit.uuid)) {
-                        oppfolgingstilfelleBitForPersonList.add(
-                            index = 0,
-                            element = oppfolgingstilfelleBit,
-                        )
-                    }
-
-                    oppfolgingstilfellePersonService.createOppfolgingstilfellePerson(
-                        connection = connection,
-                        oppfolgingstilfelleBit = oppfolgingstilfelleBit,
-                        oppfolgingstilfelleBitForPersonList = oppfolgingstilfelleBitForPersonList,
+                if (!tilfellebitRepository.isTilfelleBitAvbrutt(oppfolgingstilfelleBit.uuid)) {
+                    oppfolgingstilfelleBitForPersonList.add(
+                        index = 0,
+                        element = oppfolgingstilfelleBit,
                     )
-                    connection.setProcessedOppfolgingstilfelleBit(oppfolgingstilfelleBit.uuid)
-                    connection.commit()
                 }
+
+                oppfolgingstilfellePersonService.createOppfolgingstilfellePerson(
+                    oppfolgingstilfelleBit = oppfolgingstilfelleBit,
+                    oppfolgingstilfelleBitForPersonList = oppfolgingstilfelleBitForPersonList,
+                )
+                tilfellebitRepository.setProcessedOppfolgingstilfelleBit(oppfolgingstilfelleBit.uuid)
                 result.updated++
             } catch (exc: Exception) {
                 log.error("caught exception when processing oppfolgingstilfelleBit", exc)

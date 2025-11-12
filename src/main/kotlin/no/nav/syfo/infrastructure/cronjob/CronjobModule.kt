@@ -8,6 +8,7 @@ import no.nav.syfo.infrastructure.client.ArbeidsforholdClient
 import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
 import no.nav.syfo.infrastructure.client.leaderelection.LeaderPodClient
 import no.nav.syfo.infrastructure.database.DatabaseInterface
+import no.nav.syfo.infrastructure.database.bit.TilfellebitRepository
 import no.nav.syfo.launchBackgroundTask
 
 fun launchCronjobModule(
@@ -15,6 +16,7 @@ fun launchCronjobModule(
     environment: Environment,
     database: DatabaseInterface,
     oppfolgingstilfellePersonService: OppfolgingstilfellePersonService,
+    tilfellebitRepository: TilfellebitRepository,
     valkeyStore: ValkeyStore,
 ) {
     val leaderPodClient = LeaderPodClient(
@@ -37,8 +39,8 @@ fun launchCronjobModule(
         arbeidsforholdClient = arbeidsforholdClient,
     )
     val oppfolgingstilfelleCronjob = OppfolgingstilfelleCronjob(
-        database = database,
         oppfolgingstilfellePersonService = oppfolgingstilfellePersonService,
+        tilfellebitRepository = tilfellebitRepository,
     )
     launchBackgroundTask(
         applicationState = applicationState,

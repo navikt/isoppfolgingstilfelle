@@ -1,11 +1,13 @@
 package testhelper
 
 import io.zonky.test.db.postgres.embedded.EmbeddedPostgres
+import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.infrastructure.database.DatabaseInterface
-import no.nav.syfo.infrastructure.database.bit.isTilfelleBitAvbrutt
+import no.nav.syfo.infrastructure.database.bit.POppfolgingstilfelleBit
+import no.nav.syfo.infrastructure.database.bit.toPOppfolgingstilfelleBit
+import no.nav.syfo.infrastructure.database.toList
 import org.flywaydb.core.Flyway
 import java.sql.Connection
-import java.util.*
 
 class TestDatabase : DatabaseInterface {
     private val pg: EmbeddedPostgres
@@ -72,7 +74,19 @@ fun DatabaseInterface.countDeletedTilfelleBit() =
         }
     }
 
-fun DatabaseInterface.isTilfelleBitAvbrutt(uuid: UUID) =
+const val queryGetOppfolgingstilfelleBitForIdent =
+    """
+    SELECT *
+    FROM TILFELLE_BIT
+    WHERE personident = ?;
+    """
+
+fun DatabaseInterface.getOppfolgingstilfelleBitForIdent(personIdent: PersonIdentNumber): List<POppfolgingstilfelleBit> =
     this.connection.use { connection ->
-        connection.isTilfelleBitAvbrutt(uuid)
+        connection.prepareStatement(queryGetOppfolgingstilfelleBitForIdent).use {
+            it.setString(1, personIdent.value)
+            it.executeQuery().toList {
+                toPOppfolgingstilfelleBit()
+            }
+        }
     }

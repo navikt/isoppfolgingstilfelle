@@ -8,14 +8,9 @@ import no.nav.syfo.domain.toOppfolgingstilfelleBit
 import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
 import no.nav.syfo.infrastructure.client.pdl.PdlClient
 import no.nav.syfo.infrastructure.database.DatabaseInterface
-import no.nav.syfo.infrastructure.database.bit.createOppfolgingstilfelleBit
 import no.nav.syfo.infrastructure.database.getIdentCount
-import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import redis.clients.jedis.DefaultJedisClientConfig
 import redis.clients.jedis.HostAndPort
 import redis.clients.jedis.JedisPool
@@ -34,6 +29,7 @@ class IdenthendelseServiceTest {
     private val redisConfig = externalMockEnvironment.environment.valkeyConfig
 
     private val oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfellePersonRepository
+    private val tilfelleBitRepository = externalMockEnvironment.tilfellebitRepository
     private val pdlClient = PdlClient(
         azureAdClient = AzureAdClient(
             azureEnviroment = externalMockEnvironment.environment.azure,
@@ -66,18 +62,8 @@ class IdenthendelseServiceTest {
             processed = true
         )
 
-        database.connection.use { connection ->
-            connection.createOppfolgingstilfelleBit(
-                commit = true,
-                oppfolgingstilfelleBit = newTilfelleBit,
-            )
-            oppfolgingstilfelleRepository.createOppfolgingstilfellePerson(
-                connection = connection,
-                commit = true,
-                oppfolgingstilfellePerson = oppfolgingstilfellePerson
-            )
-            connection.commit()
-        }
+        tilfelleBitRepository.createOppfolgingstilfelleBit(oppfolgingstilfelleBit = newTilfelleBit)
+        oppfolgingstilfelleRepository.createOppfolgingstilfellePerson(oppfolgingstilfellePerson = oppfolgingstilfellePerson)
     }
 
     @AfterEach

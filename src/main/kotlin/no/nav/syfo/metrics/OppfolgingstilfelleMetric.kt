@@ -1,4 +1,4 @@
-package no.nav.syfo.oppfolgingstilfelle.person.metric
+package no.nav.syfo.metrics
 
 import io.micrometer.core.instrument.Counter
 import no.nav.syfo.api.metric.METRICS_NS

@@ -2,10 +2,6 @@ package no.nav.syfo.domain
 
 import no.nav.syfo.domain.OppfolgingstilfelleBit.Companion.TAG_PRIORITY
 import no.nav.syfo.infrastructure.kafka.syketilfelle.KafkaSyketilfellebit
-import no.nav.syfo.oppfolgingstilfelle.person.domain.Oppfolgingstilfelle
-import no.nav.syfo.oppfolgingstilfelle.person.domain.OppfolgingstilfelleDag
-import no.nav.syfo.oppfolgingstilfelle.person.domain.OppfolgingstilfellePerson
-import no.nav.syfo.oppfolgingstilfelle.person.domain.toOppfolgingstilfelleList
 import no.nav.syfo.util.ListContainsPredicate
 import no.nav.syfo.util.and
 import no.nav.syfo.util.nowUTC
