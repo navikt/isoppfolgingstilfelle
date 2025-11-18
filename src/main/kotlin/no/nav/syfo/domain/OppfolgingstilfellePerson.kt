@@ -1,11 +1,9 @@
-package no.nav.syfo.oppfolgingstilfelle.person.domain
+package no.nav.syfo.domain
 
-import no.nav.syfo.domain.PersonIdentNumber
-import no.nav.syfo.domain.Virksomhetsnummer
+import no.nav.syfo.api.endpoints.OppfolgingstilfelleDTO
+import no.nav.syfo.api.endpoints.OppfolgingstilfellePersonDTO
 import no.nav.syfo.infrastructure.kafka.KafkaOppfolgingstilfelle
 import no.nav.syfo.infrastructure.kafka.KafkaOppfolgingstilfellePerson
-import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfelleDTO
-import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfellePersonDTO
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit

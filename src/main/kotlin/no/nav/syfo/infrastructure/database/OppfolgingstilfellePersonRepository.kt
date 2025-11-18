@@ -2,12 +2,11 @@ package no.nav.syfo.infrastructure.database
 
 import com.fasterxml.jackson.core.type.TypeReference
 import no.nav.syfo.application.IOppfolgingstilfelleRepository
+import no.nav.syfo.domain.Oppfolgingstilfelle
+import no.nav.syfo.domain.OppfolgingstilfellePerson
 import no.nav.syfo.domain.PersonIdentNumber
-import no.nav.syfo.oppfolgingstilfelle.person.domain.Oppfolgingstilfelle
-import no.nav.syfo.oppfolgingstilfelle.person.domain.OppfolgingstilfellePerson
 import no.nav.syfo.util.configuredJacksonMapper
 import no.nav.syfo.util.toOffsetDateTimeUTC
-import java.sql.Connection
 import java.sql.Date
 import java.sql.ResultSet
 import java.sql.Timestamp
@@ -20,23 +19,23 @@ private val mapper = configuredJacksonMapper()
 class OppfolgingstilfellePersonRepository(private val database: DatabaseInterface) : IOppfolgingstilfelleRepository {
 
     override fun createOppfolgingstilfellePerson(
-        connection: Connection,
-        commit: Boolean,
         oppfolgingstilfellePerson: OppfolgingstilfellePerson,
     ) {
-        val idList = connection.prepareStatement(QUERY_CREATE_OPPFOLGINGSTILFELLE_PERSON).use {
-            it.setString(1, oppfolgingstilfellePerson.uuid.toString())
-            it.setTimestamp(2, Timestamp.from(oppfolgingstilfellePerson.createdAt.toInstant()))
-            it.setString(3, oppfolgingstilfellePerson.personIdentNumber.value)
-            it.setObject(4, mapper.writeValueAsString(oppfolgingstilfellePerson.oppfolgingstilfelleList))
-            it.setString(5, oppfolgingstilfellePerson.referanseTilfelleBitUuid.toString())
-            it.setTimestamp(6, Timestamp.from(oppfolgingstilfellePerson.referanseTilfelleBitInntruffet.toInstant()))
-            it.executeQuery().toList { getInt("id") }
+        database.connection.use { connection ->
+            val idList = connection.prepareStatement(QUERY_CREATE_OPPFOLGINGSTILFELLE_PERSON).use {
+                it.setString(1, oppfolgingstilfellePerson.uuid.toString())
+                it.setTimestamp(2, Timestamp.from(oppfolgingstilfellePerson.createdAt.toInstant()))
+                it.setString(3, oppfolgingstilfellePerson.personIdentNumber.value)
+                it.setObject(4, mapper.writeValueAsString(oppfolgingstilfellePerson.oppfolgingstilfelleList))
+                it.setString(5, oppfolgingstilfellePerson.referanseTilfelleBitUuid.toString())
+                it.setTimestamp(6, Timestamp.from(oppfolgingstilfellePerson.referanseTilfelleBitInntruffet.toInstant()))
+                it.executeQuery().toList { getInt("id") }
+            }
+            if (idList.size != 1) {
+                throw NoElementInsertedException("Creating OPPFOLGINGSTILFELLE_PERSON failed, no rows affected.")
+            }
+            connection.commit()
         }
-        if (idList.size != 1) {
-            throw NoElementInsertedException("Creating OPPFOLGINGSTILFELLE_PERSON failed, no rows affected.")
-        }
-        if (commit) connection.commit()
     }
 
     override fun getOppfolgingstilfellePerson(
@@ -138,7 +137,7 @@ class OppfolgingstilfellePersonRepository(private val database: DatabaseInterfac
                 RETURNING id    
             """
 
-        const val QUERY_DELETE_PERSON_WITH_HENDELSE_ID =
+        private const val QUERY_DELETE_PERSON_WITH_HENDELSE_ID =
             """
                 DELETE FROM PERSON WHERE hendelse_id=?    
             """

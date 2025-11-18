@@ -4,6 +4,7 @@ import no.nav.syfo.ApplicationState
 import no.nav.syfo.api.cache.ValkeyStore
 import no.nav.syfo.application.OppfolgingstilfelleService
 import no.nav.syfo.infrastructure.database.OppfolgingstilfellePersonRepository
+import no.nav.syfo.infrastructure.database.bit.TilfellebitRepository
 import redis.clients.jedis.DefaultJedisClientConfig
 import redis.clients.jedis.HostAndPort
 import redis.clients.jedis.JedisPool
@@ -40,6 +41,7 @@ class ExternalMockEnvironment private constructor() {
     val wellKnownSelvbetjening = wellKnownSelvbetjeningMock()
 
     val oppfolgingstilfellePersonRepository = OppfolgingstilfellePersonRepository(database = database)
+    val tilfellebitRepository = TilfellebitRepository(database = database)
     val oppfolgingstilfelleService = OppfolgingstilfelleService(oppfolgingstilfellePersonRepository)
 
     companion object {

@@ -5,15 +5,15 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.mockk.*
+import no.nav.syfo.api.endpoints.OppfolgingstilfellePersonDTO
 import no.nav.syfo.application.OppfolgingstilfelleBitService
 import no.nav.syfo.application.OppfolgingstilfellePersonService
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.infrastructure.cronjob.OppfolgingstilfelleCronjob
 import no.nav.syfo.infrastructure.kafka.OppfolgingstilfellePersonProducer
 import no.nav.syfo.infrastructure.kafka.syketilfelle.KafkaSyketilfellebit
-import no.nav.syfo.infrastructure.kafka.syketilfelle.KafkaSyketilfellebitService
 import no.nav.syfo.infrastructure.kafka.syketilfelle.SYKETILFELLEBIT_TOPIC
-import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfellePersonDTO
+import no.nav.syfo.infrastructure.kafka.syketilfelle.SyketilfellebitConsumer
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.ConsumerRecords
@@ -42,13 +42,11 @@ class OppfolgingstilfelleApiTest {
     private val database = externalMockEnvironment.database
 
     private val oppfolgingstilfellePersonRepository = externalMockEnvironment.oppfolgingstilfellePersonRepository
+    private val tilfellebitRepository = externalMockEnvironment.tilfellebitRepository
     private val oppfolgingstilfellePersonProducer = mockk<OppfolgingstilfellePersonProducer>()
-    private val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService()
+    private val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(tilfellebitRepository)
 
-    private val kafkaSyketilfellebitService = KafkaSyketilfellebitService(
-        database = database,
-        oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
-    )
+    private val syketilfellebitConsumer = SyketilfellebitConsumer(oppfolgingstilfelleBitService = oppfolgingstilfelleBitService)
     private val personIdentDefault = PERSONIDENTNUMBER_DEFAULT.toHistoricalPersonIdentNumber()
 
     private val partition = 0
@@ -84,11 +82,11 @@ class OppfolgingstilfelleApiTest {
     private val mockKafkaConsumerSyketilfelleBit = mockk<KafkaConsumer<String, KafkaSyketilfellebit>>()
 
     private val oppfolgingstilfelleCronjob = OppfolgingstilfelleCronjob(
-        database = database,
         oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
             oppfolgingstilfellePersonRepository = oppfolgingstilfellePersonRepository,
             oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
-        )
+        ),
+        tilfellebitRepository = tilfellebitRepository,
     )
     private val oppfolgingstilfelleApiV1Path = "/api/internad/v1/oppfolgingstilfelle"
     private val validToken = generateJWT(
@@ -126,8 +124,8 @@ class OppfolgingstilfelleApiTest {
                     )
                 )
 
-                kafkaSyketilfellebitService.pollAndProcessRecords(
-                    kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                syketilfellebitConsumer.pollAndProcessRecords(
+                    consumer = mockKafkaConsumerSyketilfelleBit,
                 )
                 oppfolgingstilfelleCronjob.runJob()
 
@@ -175,8 +173,8 @@ class OppfolgingstilfelleApiTest {
                     )
                 )
 
-                kafkaSyketilfellebitService.pollAndProcessRecords(
-                    kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                syketilfellebitConsumer.pollAndProcessRecords(
+                    consumer = mockKafkaConsumerSyketilfelleBit,
                 )
                 oppfolgingstilfelleCronjob.runJob()
                 val dodsdato = LocalDate.now().minusDays(3)
@@ -218,8 +216,8 @@ class OppfolgingstilfelleApiTest {
                     )
                 )
 
-                kafkaSyketilfellebitService.pollAndProcessRecords(
-                    kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                syketilfellebitConsumer.pollAndProcessRecords(
+                    consumer = mockKafkaConsumerSyketilfelleBit,
                 )
                 oppfolgingstilfelleCronjob.runJob()
 
@@ -259,8 +257,8 @@ class OppfolgingstilfelleApiTest {
                     )
                 )
 
-                kafkaSyketilfellebitService.pollAndProcessRecords(
-                    kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                syketilfellebitConsumer.pollAndProcessRecords(
+                    consumer = mockKafkaConsumerSyketilfelleBit,
                 )
                 oppfolgingstilfelleCronjob.runJob()
 
@@ -301,8 +299,8 @@ class OppfolgingstilfelleApiTest {
                     )
                 )
 
-                kafkaSyketilfellebitService.pollAndProcessRecords(
-                    kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                syketilfellebitConsumer.pollAndProcessRecords(
+                    consumer = mockKafkaConsumerSyketilfelleBit,
                 )
                 oppfolgingstilfelleCronjob.runJob()
 
@@ -349,12 +347,12 @@ class OppfolgingstilfelleApiTest {
                     )
                 )
 
-                kafkaSyketilfellebitService.pollAndProcessRecords(
-                    kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                syketilfellebitConsumer.pollAndProcessRecords(
+                    consumer = mockKafkaConsumerSyketilfelleBit,
                 )
 
-                kafkaSyketilfellebitService.pollAndProcessRecords(
-                    kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+                syketilfellebitConsumer.pollAndProcessRecords(
+                    consumer = mockKafkaConsumerSyketilfelleBit,
                 )
                 oppfolgingstilfelleCronjob.runJob()
 
@@ -463,11 +461,8 @@ class OppfolgingstilfelleApiTest {
                     antallSykedager = antallSykedagerPerson2Tilfelle2,
                 )
 
-                database.connection.use { connection ->
-                    listOf(oppfolgingstilfellePerson1, oppfolgingstilfelle1Person2, oppfolgingstilfelle2Person2).forEach {
-                        oppfolgingstilfellePersonRepository.createOppfolgingstilfellePerson(connection = connection, commit = false, it)
-                    }
-                    connection.commit()
+                listOf(oppfolgingstilfellePerson1, oppfolgingstilfelle1Person2, oppfolgingstilfelle2Person2).forEach {
+                    oppfolgingstilfellePersonRepository.createOppfolgingstilfellePerson(it)
                 }
                 oppfolgingstilfellePersonRepository.createPerson(
                     uuid = UUID.randomUUID(),
@@ -524,14 +519,9 @@ class OppfolgingstilfelleApiTest {
                     personIdent = PERSONIDENTNUMBER_VEILEDER_NO_ACCESS,
                 )
 
-                database.connection.use { connection ->
-                    oppfolgingstilfellePersonRepository.createOppfolgingstilfellePerson(
-                        connection = connection,
-                        commit = true,
-                        oppfolgingstilfellePerson = oppfolgingstilfellePerson1
-                    )
-                    connection.commit()
-                }
+                oppfolgingstilfellePersonRepository.createOppfolgingstilfellePerson(
+                    oppfolgingstilfellePerson = oppfolgingstilfellePerson1
+                )
 
                 testApplication {
                     val client = setupApiAndClient()

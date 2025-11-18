@@ -9,14 +9,10 @@ import no.nav.syfo.infrastructure.client.ArbeidsforholdClient
 import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
 import no.nav.syfo.infrastructure.cronjob.OppfolgingstilfelleCronjob
 import no.nav.syfo.infrastructure.cronjob.SykmeldingNyCronjob
-import no.nav.syfo.infrastructure.database.bit.createOppfolgingstilfelleBitAvbrutt
-import no.nav.syfo.infrastructure.database.bit.getOppfolgingstilfelleBitForIdent
-import no.nav.syfo.infrastructure.database.bit.getProcessedOppfolgingstilfelleBitList
-import no.nav.syfo.infrastructure.database.bit.setProcessedOppfolgingstilfelleBit
 import no.nav.syfo.infrastructure.kafka.OppfolgingstilfellePersonProducer
 import no.nav.syfo.infrastructure.kafka.syketilfelle.KafkaSyketilfellebit
-import no.nav.syfo.infrastructure.kafka.syketilfelle.KafkaSyketilfellebitService
 import no.nav.syfo.infrastructure.kafka.syketilfelle.SYKETILFELLEBIT_TOPIC
+import no.nav.syfo.infrastructure.kafka.syketilfelle.SyketilfellebitConsumer
 import no.nav.syfo.util.and
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.ConsumerRecords
@@ -25,12 +21,9 @@ import org.apache.kafka.common.TopicPartition
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import testhelper.ExternalMockEnvironment
-import testhelper.UserConstants
+import testhelper.*
 import testhelper.UserConstants.ARBEIDSTAKER_VIRKSOMHET_NO_NARMESTELEDER
 import testhelper.UserConstants.PERSONIDENTNUMBER_DEFAULT
-import testhelper.countDeletedTilfelleBit
-import testhelper.dropData
 import testhelper.generator.*
 import testhelper.mock.toHistoricalPersonIdentNumber
 import java.time.Duration
@@ -43,10 +36,10 @@ class KafkaSyketilfelleBitConsumerTest {
     private val database = externalMockEnvironment.database
 
     private val oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfellePersonRepository
+    private val tilfellebitRepository = externalMockEnvironment.tilfellebitRepository
     private val oppfolgingstilfellePersonProducer = mockk<OppfolgingstilfellePersonProducer>()
-    private val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService()
-    private val kafkaSyketilfellebitService = KafkaSyketilfellebitService(
-        database = database,
+    private val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(tilfellebitRepository)
+    private val kafkaSyketilfellebitService = SyketilfellebitConsumer(
         oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
     )
     private val personIdentDefault = PERSONIDENTNUMBER_DEFAULT.toHistoricalPersonIdentNumber()
@@ -148,11 +141,11 @@ class KafkaSyketilfelleBitConsumerTest {
         )
     )
     private val oppfolgingstilfelleCronjob = OppfolgingstilfelleCronjob(
-        database = database,
         oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
             oppfolgingstilfellePersonRepository = oppfolgingstilfelleRepository,
             oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
-        )
+        ),
+        tilfellebitRepository = tilfellebitRepository,
     )
 
     @BeforeEach
@@ -177,7 +170,7 @@ class KafkaSyketilfelleBitConsumerTest {
         )
 
         kafkaSyketilfellebitService.pollAndProcessRecords(
-            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+            consumer = mockKafkaConsumerSyketilfelleBit,
         )
         runBlocking {
             val result = sykmeldingNyCronJob.runJob()
@@ -222,32 +215,20 @@ class KafkaSyketilfelleBitConsumerTest {
         )
 
         kafkaSyketilfellebitService.pollAndProcessRecords(
-            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+            consumer = mockKafkaConsumerSyketilfelleBit,
         )
         runBlocking {
             sykmeldingNyCronJob.runJob()
             oppfolgingstilfelleCronjob.runJob()
         }
-        val pTilfellebit = database.getOppfolgingstilfelleBitForIdent(personIdentDefault).filter {
+        val pTilfellebit = database.getOppfolgingstilfelleBitForIdent(personIdentDefault).first {
             it.tagList in (Tag.SYKMELDING and Tag.NY)
-        }.first()
-        database.connection.use {
-            it.createOppfolgingstilfelleBitAvbrutt(
-                commit = true,
-                pOppfolgingstilfelleBit = pTilfellebit,
-                inntruffet = OffsetDateTime.now(),
-                avbrutt = true,
-            )
-            val latestTilfelle = it.getProcessedOppfolgingstilfelleBitList(
-                personIdentNumber = personIdentDefault,
-                includeAvbrutt = true,
-            ).first()
-            it.setProcessedOppfolgingstilfelleBit(
-                uuid = latestTilfelle.uuid,
-                processed = false,
-            )
-            it.commit()
         }
+        tilfellebitRepository.createOppfolgingstilfelleBitAvbrutt(pTilfellebit, OffsetDateTime.now())
+        val latestTilfelle =
+            tilfellebitRepository.getProcessedOppfolgingstilfelleBitList(personIdentNumber = personIdentDefault, includeAvbrutt = true)
+                .first()
+        tilfellebitRepository.setProcessedOppfolgingstilfelleBit(latestTilfelle.uuid, processed = false)
         runBlocking {
             oppfolgingstilfelleCronjob.runJob()
         }
@@ -273,27 +254,20 @@ class KafkaSyketilfelleBitConsumerTest {
         )
 
         kafkaSyketilfellebitService.pollAndProcessRecords(
-            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+            consumer = mockKafkaConsumerSyketilfelleBit,
         )
         runBlocking {
             sykmeldingNyCronJob.runJob()
             oppfolgingstilfelleCronjob.runJob()
         }
-        val pTilfellebit = database.getOppfolgingstilfelleBitForIdent(personIdentDefault).filter {
+        val pTilfellebit = database.getOppfolgingstilfelleBitForIdent(personIdentDefault).first {
             it.tagList in (Tag.SYKMELDING and Tag.NY)
-        }.first()
-        database.connection.use {
-            it.createOppfolgingstilfelleBitAvbrutt(
-                pOppfolgingstilfelleBit = pTilfellebit,
-                inntruffet = OffsetDateTime.now(),
-                avbrutt = true,
-            )
-            it.setProcessedOppfolgingstilfelleBit(
-                uuid = pTilfellebit.uuid,
-                processed = false,
-            )
-            it.commit()
         }
+        tilfellebitRepository.createOppfolgingstilfelleBitAvbrutt(
+            pOppfolgingstilfelleBit = pTilfellebit,
+            inntruffet = OffsetDateTime.now(),
+        )
+        tilfellebitRepository.setProcessedOppfolgingstilfelleBit(uuid = pTilfellebit.uuid, processed = false)
         runBlocking {
             oppfolgingstilfelleCronjob.runJob()
         }
@@ -326,7 +300,7 @@ class KafkaSyketilfelleBitConsumerTest {
         )
 
         kafkaSyketilfellebitService.pollAndProcessRecords(
-            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+            consumer = mockKafkaConsumerSyketilfelleBit,
         )
         runBlocking {
             oppfolgingstilfelleCronjob.runJob()
@@ -341,7 +315,7 @@ class KafkaSyketilfelleBitConsumerTest {
             )
         )
         kafkaSyketilfellebitService.pollAndProcessRecords(
-            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+            consumer = mockKafkaConsumerSyketilfelleBit,
         )
         runBlocking {
             val result = oppfolgingstilfelleCronjob.runJob()
@@ -374,7 +348,7 @@ class KafkaSyketilfelleBitConsumerTest {
         )
 
         kafkaSyketilfellebitService.pollAndProcessRecords(
-            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+            consumer = mockKafkaConsumerSyketilfelleBit,
         )
         runBlocking {
             val result = sykmeldingNyCronJob.runJob()
@@ -418,7 +392,7 @@ class KafkaSyketilfelleBitConsumerTest {
         )
 
         kafkaSyketilfellebitService.pollAndProcessRecords(
-            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+            consumer = mockKafkaConsumerSyketilfelleBit,
         )
         runBlocking {
             val result = oppfolgingstilfelleCronjob.runJob()
@@ -465,7 +439,7 @@ class KafkaSyketilfelleBitConsumerTest {
         )
 
         kafkaSyketilfellebitService.pollAndProcessRecords(
-            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+            consumer = mockKafkaConsumerSyketilfelleBit,
         )
         runBlocking {
             val result = sykmeldingNyCronJob.runJob()
@@ -501,7 +475,7 @@ class KafkaSyketilfelleBitConsumerTest {
         )
 
         kafkaSyketilfellebitService.pollAndProcessRecords(
-            kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+            consumer = mockKafkaConsumerSyketilfelleBit,
         )
         runBlocking {
             val result = sykmeldingNyCronJob.runJob()

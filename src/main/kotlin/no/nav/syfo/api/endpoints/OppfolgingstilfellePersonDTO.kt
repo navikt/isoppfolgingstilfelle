@@ -1,4 +1,4 @@
-package no.nav.syfo.oppfolgingstilfelle.person.api.domain
+package no.nav.syfo.api.endpoints
 
 import java.time.LocalDate
 

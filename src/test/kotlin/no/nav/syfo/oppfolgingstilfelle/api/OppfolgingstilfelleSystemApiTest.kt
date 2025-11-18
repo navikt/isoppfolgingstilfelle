@@ -4,16 +4,16 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.mockk.*
+import no.nav.syfo.api.endpoints.oppfolgingstilfelleSystemApiPersonIdentPath
+import no.nav.syfo.api.endpoints.oppfolgingstilfelleSystemApiV1Path
 import no.nav.syfo.application.OppfolgingstilfelleBitService
 import no.nav.syfo.application.OppfolgingstilfellePersonService
 import no.nav.syfo.domain.Tag
 import no.nav.syfo.infrastructure.cronjob.OppfolgingstilfelleCronjob
 import no.nav.syfo.infrastructure.kafka.OppfolgingstilfellePersonProducer
 import no.nav.syfo.infrastructure.kafka.syketilfelle.KafkaSyketilfellebit
-import no.nav.syfo.infrastructure.kafka.syketilfelle.KafkaSyketilfellebitService
 import no.nav.syfo.infrastructure.kafka.syketilfelle.SYKETILFELLEBIT_TOPIC
-import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleSystemApiPersonIdentPath
-import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleSystemApiV1Path
+import no.nav.syfo.infrastructure.kafka.syketilfelle.SyketilfellebitConsumer
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 import no.nav.syfo.util.nowUTC
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -39,10 +39,10 @@ class OppfolgingstilfelleSystemApiTest {
     private val database = externalMockEnvironment.database
 
     private val oppfolgingstilfellePersonProducer = mockk<OppfolgingstilfellePersonProducer>()
-    private val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService()
+    private val tilfellebitRepository = externalMockEnvironment.tilfellebitRepository
+    private val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(tilfellebitRepository)
 
-    private val kafkaSyketilfellebitService = KafkaSyketilfellebitService(
-        database = database,
+    private val syketilfellebitConsumer = SyketilfellebitConsumer(
         oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
     )
     private val personIdentDefault = PERSONIDENTNUMBER_DEFAULT.toHistoricalPersonIdentNumber()
@@ -67,11 +67,11 @@ class OppfolgingstilfelleSystemApiTest {
     private val mockKafkaConsumerSyketilfelleBit = mockk<KafkaConsumer<String, KafkaSyketilfellebit>>()
 
     private val oppfolgingstilfelleCronjob = OppfolgingstilfelleCronjob(
-        database = database,
         oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
             oppfolgingstilfellePersonRepository = externalMockEnvironment.oppfolgingstilfellePersonRepository,
             oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
-        )
+        ),
+        tilfellebitRepository = tilfellebitRepository,
     )
 
     private val url = "$oppfolgingstilfelleSystemApiV1Path$oppfolgingstilfelleSystemApiPersonIdentPath"
@@ -105,8 +105,8 @@ class OppfolgingstilfelleSystemApiTest {
                 )
             )
 
-            kafkaSyketilfellebitService.pollAndProcessRecords(
-                kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+            syketilfellebitConsumer.pollAndProcessRecords(
+                consumer = mockKafkaConsumerSyketilfelleBit,
             )
             oppfolgingstilfelleCronjob.runJob()
 
@@ -159,8 +159,8 @@ class OppfolgingstilfelleSystemApiTest {
                 )
             )
 
-            kafkaSyketilfellebitService.pollAndProcessRecords(
-                kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+            syketilfellebitConsumer.pollAndProcessRecords(
+                consumer = mockKafkaConsumerSyketilfelleBit,
             )
             oppfolgingstilfelleCronjob.runJob()
 
@@ -197,8 +197,8 @@ class OppfolgingstilfelleSystemApiTest {
                 )
             )
 
-            kafkaSyketilfellebitService.pollAndProcessRecords(
-                kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+            syketilfellebitConsumer.pollAndProcessRecords(
+                consumer = mockKafkaConsumerSyketilfelleBit,
             )
             oppfolgingstilfelleCronjob.runJob()
 
@@ -235,8 +235,8 @@ class OppfolgingstilfelleSystemApiTest {
                 )
             )
 
-            kafkaSyketilfellebitService.pollAndProcessRecords(
-                kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+            syketilfellebitConsumer.pollAndProcessRecords(
+                consumer = mockKafkaConsumerSyketilfelleBit,
             )
             oppfolgingstilfelleCronjob.runJob()
 
@@ -295,8 +295,8 @@ class OppfolgingstilfelleSystemApiTest {
                 )
             )
 
-            kafkaSyketilfellebitService.pollAndProcessRecords(
-                kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+            syketilfellebitConsumer.pollAndProcessRecords(
+                consumer = mockKafkaConsumerSyketilfelleBit,
             )
             oppfolgingstilfelleCronjob.runJob()
 
@@ -334,8 +334,8 @@ class OppfolgingstilfelleSystemApiTest {
                 )
             )
 
-            kafkaSyketilfellebitService.pollAndProcessRecords(
-                kafkaConsumerSyketilfelleBit = mockKafkaConsumerSyketilfelleBit,
+            syketilfellebitConsumer.pollAndProcessRecords(
+                consumer = mockKafkaConsumerSyketilfelleBit,
             )
             oppfolgingstilfelleCronjob.runJob()
 

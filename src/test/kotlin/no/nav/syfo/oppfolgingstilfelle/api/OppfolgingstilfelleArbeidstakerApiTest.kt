@@ -4,8 +4,8 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
-import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfelleDTO
-import no.nav.syfo.oppfolgingstilfelle.person.api.oppfolgingstilfelleArbeidstakerApiV1Path
+import no.nav.syfo.api.endpoints.OppfolgingstilfelleDTO
+import no.nav.syfo.api.endpoints.oppfolgingstilfelleArbeidstakerApiV1Path
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -38,9 +38,7 @@ class OppfolgingstilfelleArbeidstakerApiTest {
     @BeforeEach
     fun beforeEach() {
         database.dropData()
-        database.connection.use {
-            oppfolgingstilfelleRepository.createOppfolgingstilfellePerson(it, true, oppfolgingstilfellePerson)
-        }
+        oppfolgingstilfelleRepository.createOppfolgingstilfellePerson(oppfolgingstilfellePerson)
     }
 
     @Test
