@@ -4,6 +4,8 @@ import no.nav.syfo.api.endpoints.OppfolgingstilfelleDTO
 import no.nav.syfo.api.endpoints.OppfolgingstilfellePersonDTO
 import no.nav.syfo.infrastructure.kafka.KafkaOppfolgingstilfelle
 import no.nav.syfo.infrastructure.kafka.KafkaOppfolgingstilfellePerson
+import no.nav.syfo.util.dagerMellomDatoer
+import no.nav.syfo.util.isAfterOrEqual
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit
@@ -20,7 +22,46 @@ data class OppfolgingstilfellePerson(
     val referanseTilfelleBitUuid: UUID,
     val referanseTilfelleBitInntruffet: OffsetDateTime,
     val dodsdato: LocalDate?,
-)
+    val hasGjentakendeSykefravar: Boolean?,
+) {
+    companion object {
+        private val THREE_YEARS_IN_MONTHS: Long = 36
+        private val MIN_DAYS_IN_LONG_TILFELLE = 3
+
+        fun hasGjentakendeSykefravar(oppfolgingstilfeller: List<Oppfolgingstilfelle>): Boolean {
+            val relevantTilfeller = oppfolgingstilfeller
+                .filter(::isLongTilfelle)
+                .filter(::isRecentTilfelle)
+
+            val tilfelleCount = relevantTilfeller.size
+            val accumulatedSickDays = relevantTilfeller.sumOf(::daysInTilfelle)
+
+            return hasManySykefravar(tilfelleCount, accumulatedSickDays) ||
+                hasLongSykefravar(tilfelleCount, accumulatedSickDays)
+        }
+
+        private fun daysInTilfelle(tilfelle: Oppfolgingstilfelle): Int {
+            return tilfelle.antallSykedager ?: dagerMellomDatoer(tilfelle.start, tilfelle.end)
+        }
+
+        private fun isLongTilfelle(tilfelle: Oppfolgingstilfelle): Boolean {
+            return daysInTilfelle(tilfelle) >= MIN_DAYS_IN_LONG_TILFELLE
+        }
+
+        private fun isRecentTilfelle(tilfelle: Oppfolgingstilfelle): Boolean {
+            val threeYearsAgo = LocalDate.now().minusMonths(THREE_YEARS_IN_MONTHS)
+            return tilfelle.end.isAfterOrEqual(threeYearsAgo)
+        }
+
+        private fun hasManySykefravar(tilfeller: Int, sickdays: Int): Boolean {
+            return tilfeller >= 5 && sickdays >= 100
+        }
+
+        private fun hasLongSykefravar(tilfeller: Int, sickdays: Int): Boolean {
+            return tilfeller >= 2 && sickdays >= 300
+        }
+    }
+}
 
 data class Oppfolgingstilfelle(
     val arbeidstakerAtTilfelleEnd: Boolean,
@@ -31,13 +72,11 @@ data class Oppfolgingstilfelle(
     val virksomhetsnummerList: List<Virksomhetsnummer>,
 )
 
-fun List<Oppfolgingstilfelle>?.toOppfolgingstilfellePersonDTO(
-    personIdent: PersonIdentNumber,
-    dodsdato: LocalDate?,
-) = OppfolgingstilfellePersonDTO(
-    oppfolgingstilfelleList = this?.toOppfolgingstilfelleDTOList() ?: emptyList(),
-    personIdent = personIdent.value,
-    dodsdato = dodsdato,
+fun OppfolgingstilfellePerson.toOppfolgingstilfellePersonDTO() = OppfolgingstilfellePersonDTO(
+    oppfolgingstilfelleList = this.oppfolgingstilfelleList.toOppfolgingstilfelleDTOList(),
+    personIdent = this.personIdentNumber.value,
+    dodsdato = this.dodsdato,
+    hasGjentakendeSykefravar = this.hasGjentakendeSykefravar,
 )
 
 fun List<Oppfolgingstilfelle>.toOppfolgingstilfelleDTOList() =

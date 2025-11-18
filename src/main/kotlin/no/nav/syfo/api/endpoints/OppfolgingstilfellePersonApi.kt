@@ -28,12 +28,14 @@ fun Route.registerOppfolgingstilfelleApi(
                 veilederTilgangskontrollClient = veilederTilgangskontrollClient,
             ) {
                 val dodsdato = oppfolgingstilfelleService.getDodsdato(personIdent)
-                val oppfolgingstilfellePersonDTO = oppfolgingstilfelleService.getOppfolgingstilfeller(
-                    personIdent = personIdent,
-                ).toOppfolgingstilfellePersonDTO(
-                    personIdent = personIdent,
-                    dodsdato = dodsdato,
-                )
+                val oppfolgingstilfellePersonDTO =
+                    oppfolgingstilfelleService.getOppfolgingstilfellePerson(personIdent = personIdent)
+                        ?.toOppfolgingstilfellePersonDTO() ?: OppfolgingstilfellePersonDTO(
+                        oppfolgingstilfelleList = emptyList(),
+                        personIdent = personIdent.value,
+                        dodsdato = dodsdato,
+                        hasGjentakendeSykefravar = null
+                    )
                 call.respond(oppfolgingstilfellePersonDTO)
             }
         }
@@ -50,11 +52,12 @@ fun Route.registerOppfolgingstilfelleApi(
             val (oppfolgingstilfellerPersonsDTOs, duration) = measureTimedValue {
                 personIdentsWithVeilederAccess.map {
                     val dodsdato = oppfolgingstilfelleService.getDodsdato(it)
-                    oppfolgingstilfelleService.getOppfolgingstilfeller(
-                        personIdent = it,
-                    ).toOppfolgingstilfellePersonDTO(
-                        personIdent = it,
+                    oppfolgingstilfelleService.getOppfolgingstilfellePerson(personIdent = it)
+                        ?.toOppfolgingstilfellePersonDTO() ?: OppfolgingstilfellePersonDTO(
+                        oppfolgingstilfelleList = emptyList(),
+                        personIdent = it.value,
                         dodsdato = dodsdato,
+                        hasGjentakendeSykefravar = null
                     )
                 }
             }

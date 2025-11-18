@@ -10,6 +10,7 @@ import no.nav.syfo.util.toOffsetDateTimeUTC
 import java.sql.Date
 import java.sql.ResultSet
 import java.sql.Timestamp
+import java.sql.Types
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.*
@@ -29,6 +30,11 @@ class OppfolgingstilfellePersonRepository(private val database: DatabaseInterfac
                 it.setObject(4, mapper.writeValueAsString(oppfolgingstilfellePerson.oppfolgingstilfelleList))
                 it.setString(5, oppfolgingstilfellePerson.referanseTilfelleBitUuid.toString())
                 it.setTimestamp(6, Timestamp.from(oppfolgingstilfellePerson.referanseTilfelleBitInntruffet.toInstant()))
+                if (oppfolgingstilfellePerson.hasGjentakendeSykefravar != null) {
+                    it.setBoolean(7, oppfolgingstilfellePerson.hasGjentakendeSykefravar)
+                } else {
+                    it.setNull(7, Types.BOOLEAN)
+                }
                 it.executeQuery().toList { getInt("id") }
             }
             if (idList.size != 1) {
@@ -105,8 +111,9 @@ class OppfolgingstilfellePersonRepository(private val database: DatabaseInterfac
                     personident,
                     oppfolgingstilfeller,
                     referanse_tilfelle_bit_uuid,
-                    referanse_tilfelle_bit_inntruffet
-                ) values (DEFAULT, ?, ?, ?, ?::jsonb, ?, ?)
+                    referanse_tilfelle_bit_inntruffet,
+                    has_gjentakende_sykefravar
+                ) values (DEFAULT, ?, ?, ?, ?::jsonb, ?, ?, ?)
                 RETURNING id
             """
 
@@ -156,4 +163,5 @@ private fun ResultSet.toPOppfolgingstilfellePerson(): POppfolgingstilfellePerson
             getString("oppfolgingstilfeller"),
             object : TypeReference<List<Oppfolgingstilfelle>>() {}
         ),
+        hasGjentakendeSykefravar = getBoolean("has_gjentakende_sykefravar"),
     )
