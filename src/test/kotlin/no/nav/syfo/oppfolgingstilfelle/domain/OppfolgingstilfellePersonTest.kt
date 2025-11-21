@@ -1,9 +1,7 @@
 package no.nav.syfo.oppfolgingstilfelle.domain
 
-import no.nav.syfo.domain.Oppfolgingstilfelle
 import no.nav.syfo.domain.OppfolgingstilfellePerson
 import no.nav.syfo.domain.calculateCurrentVarighetUker
-import no.nav.syfo.util.dagerMellomDatoer
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -18,12 +16,6 @@ class OppfolgingstilfellePersonTest {
     val FIVE_YEARS_IN_MONTHS: Long = 60
 
     fun daysFromToday(days: Int): LocalDate = LocalDate.now().plusDays(days.toLong())
-
-    fun generateOppfolgingstilfelle(start: LocalDate, end: LocalDate): Oppfolgingstilfelle = generateOppfolgingstilfelle(
-        start = start,
-        end = end,
-        antallSykedager = dagerMellomDatoer(start, end),
-    )
 
     @Test
     fun `calculates current varighetUker for tilfelle in past`() {
@@ -50,6 +42,11 @@ class OppfolgingstilfellePersonTest {
         val varighetUker = oppfolgingstilfellePerson.oppfolgingstilfelleList[0].calculateCurrentVarighetUker()
 
         assertEquals(5, varighetUker)
+    }
+
+    @Test
+    fun `has NOT gjentakende sykefravar when no oppfolgingstilfeller`() {
+        assertFalse(OppfolgingstilfellePerson.hasGjentakendeSykefravar(emptyList()))
     }
 
     @Test

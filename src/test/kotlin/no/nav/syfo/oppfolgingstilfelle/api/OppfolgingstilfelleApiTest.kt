@@ -46,7 +46,8 @@ class OppfolgingstilfelleApiTest {
     private val oppfolgingstilfellePersonProducer = mockk<OppfolgingstilfellePersonProducer>()
     private val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(tilfellebitRepository)
 
-    private val syketilfellebitConsumer = SyketilfellebitConsumer(oppfolgingstilfelleBitService = oppfolgingstilfelleBitService)
+    private val syketilfellebitConsumer =
+        SyketilfellebitConsumer(oppfolgingstilfelleBitService = oppfolgingstilfelleBitService)
     private val personIdentDefault = PERSONIDENTNUMBER_DEFAULT.toHistoricalPersonIdentNumber()
 
     private val partition = 0
@@ -138,16 +139,21 @@ class OppfolgingstilfelleApiTest {
 
                 testApplication {
                     val client = setupApiAndClient()
-                    val oppfolgingstilfellePersonDTO = client.getOppfolgingstilfellePerson(url, validToken, personIdentDefault)
+                    val oppfolgingstilfellePersonDTO =
+                        client.getOppfolgingstilfellePerson(url, validToken, personIdentDefault)
 
                     assertEquals(kafkaSyketilfellebitRelevantVirksomhet.fnr, oppfolgingstilfellePersonDTO.personIdent)
                     assertNull(oppfolgingstilfellePersonDTO.dodsdato)
+                    assertFalse(oppfolgingstilfellePersonDTO.hasGjentakendeSykefravar!!)
 
                     val oppfolgingstilfelleDTO =
                         oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.first()
 
                     assertEquals(1, oppfolgingstilfelleDTO.virksomhetsnummerList.size)
-                    assertEquals(kafkaSyketilfellebitRelevantVirksomhet.orgnummer, oppfolgingstilfelleDTO.virksomhetsnummerList.first())
+                    assertEquals(
+                        kafkaSyketilfellebitRelevantVirksomhet.orgnummer,
+                        oppfolgingstilfelleDTO.virksomhetsnummerList.first()
+                    )
 
                     assertTrue(oppfolgingstilfelleDTO.arbeidstakerAtTilfelleEnd)
                     assertEquals(kafkaSyketilfellebitRelevantVirksomhet.fom, oppfolgingstilfelleDTO.start)
@@ -235,11 +241,15 @@ class OppfolgingstilfelleApiTest {
 
                     assertEquals(kafkaSyketilfellebitRelevantVirksomhet.fnr, oppfolgingstilfellePersonDTO.personIdent)
                     assertEquals(1, oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.size)
+                    assertFalse(oppfolgingstilfellePersonDTO.hasGjentakendeSykefravar!!)
 
                     val oppfolgingstilfelleDTO = oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.first()
 
                     assertEquals(1, oppfolgingstilfelleDTO.virksomhetsnummerList.size)
-                    assertEquals(kafkaSyketilfellebitRelevantVirksomhet.orgnummer, oppfolgingstilfelleDTO.virksomhetsnummerList.first())
+                    assertEquals(
+                        kafkaSyketilfellebitRelevantVirksomhet.orgnummer,
+                        oppfolgingstilfelleDTO.virksomhetsnummerList.first()
+                    )
 
                     assertTrue(oppfolgingstilfelleDTO.arbeidstakerAtTilfelleEnd)
                     assertEquals(kafkaSyketilfellebitRelevantVirksomhet.fom, oppfolgingstilfelleDTO.start)
@@ -274,7 +284,11 @@ class OppfolgingstilfelleApiTest {
                     val oppfolgingstilfellePersonDTO =
                         client.getOppfolgingstilfellePerson(url, validToken, personIdentDefault)
 
-                    assertEquals(kafkaSyketilfellebitRelevantSykmeldingBekreftet.fnr, oppfolgingstilfellePersonDTO.personIdent)
+                    assertEquals(
+                        kafkaSyketilfellebitRelevantSykmeldingBekreftet.fnr,
+                        oppfolgingstilfellePersonDTO.personIdent
+                    )
+                    assertFalse(oppfolgingstilfellePersonDTO.hasGjentakendeSykefravar!!)
 
                     val oppfolgingstilfelleDTO =
                         oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.first()
@@ -316,13 +330,20 @@ class OppfolgingstilfelleApiTest {
                     val oppfolgingstilfellePersonDTO =
                         client.getOppfolgingstilfellePerson(url, validToken, personIdentDefault)
 
-                    assertEquals(kafkaSyketilfellebitRelevantSykmeldingBekreftet.fnr, oppfolgingstilfellePersonDTO.personIdent)
+                    assertEquals(
+                        kafkaSyketilfellebitRelevantSykmeldingBekreftet.fnr,
+                        oppfolgingstilfellePersonDTO.personIdent
+                    )
 
                     val oppfolgingstilfelleDTO =
                         oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.first()
 
                     assertEquals(1, oppfolgingstilfelleDTO.virksomhetsnummerList.size)
-                    assertEquals(kafkaSyketilfellebitRelevantVirksomhet.orgnummer, oppfolgingstilfelleDTO.virksomhetsnummerList.first())
+                    assertEquals(
+                        kafkaSyketilfellebitRelevantVirksomhet.orgnummer,
+                        oppfolgingstilfelleDTO.virksomhetsnummerList.first()
+                    )
+                    assertFalse(oppfolgingstilfellePersonDTO.hasGjentakendeSykefravar!!)
 
                     assertFalse(oppfolgingstilfelleDTO.arbeidstakerAtTilfelleEnd)
                     assertEquals(kafkaSyketilfellebitRelevantVirksomhet.fom, oppfolgingstilfelleDTO.start)
@@ -368,18 +389,95 @@ class OppfolgingstilfelleApiTest {
                     val oppfolgingstilfellePersonDTO =
                         client.getOppfolgingstilfellePerson(url, validToken, personIdentDefault)
 
-                    assertEquals(kafkaSyketilfellebitRelevantSykmeldingBekreftet.fnr, oppfolgingstilfellePersonDTO.personIdent)
+                    assertEquals(
+                        kafkaSyketilfellebitRelevantSykmeldingBekreftet.fnr,
+                        oppfolgingstilfellePersonDTO.personIdent
+                    )
 
                     val oppfolgingstilfelleDTO =
                         oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.first()
 
                     assertEquals(1, oppfolgingstilfelleDTO.virksomhetsnummerList.size)
-                    assertEquals(kafkaSyketilfellebitRelevantVirksomhet.orgnummer, oppfolgingstilfelleDTO.virksomhetsnummerList.first())
+                    assertEquals(
+                        kafkaSyketilfellebitRelevantVirksomhet.orgnummer,
+                        oppfolgingstilfelleDTO.virksomhetsnummerList.first()
+                    )
+                    assertFalse(oppfolgingstilfellePersonDTO.hasGjentakendeSykefravar!!)
 
                     assertFalse(oppfolgingstilfelleDTO.arbeidstakerAtTilfelleEnd)
                     assertEquals(kafkaSyketilfellebitRelevantVirksomhet.fom, oppfolgingstilfelleDTO.start)
                     assertEquals(kafkaSyketilfellebitRelevantSykmeldingBekreftet.tom, oppfolgingstilfelleDTO.end)
                     assertEquals(0, oppfolgingstilfelleDTO.varighetUker)
+                }
+            }
+
+            fun kafkaSyketilfellebiterToConsumerRecords(kafkaSyketilfellebiter: List<KafkaSyketilfellebit>): List<ConsumerRecord<String, KafkaSyketilfellebit>> =
+                kafkaSyketilfellebiter.mapIndexed { index, tilfellebit ->
+                    ConsumerRecord(
+                        SYKETILFELLEBIT_TOPIC,
+                        partition,
+                        (index + 1).toLong(),
+                        "key${index + 1}",
+                        tilfellebit,
+                    )
+                }
+
+            fun generateKafkaSyketilfellebit(fom: LocalDate, tom: LocalDate): KafkaSyketilfellebit =
+                generateKafkaSyketilfellebitRelevantVirksomhet().copy(
+                    fom = fom,
+                    tom = tom,
+                )
+
+            @Test
+            fun `5 Syketilfellebiter with sum of sickdays being above 100 returns OppfolgingstilfellePersonDTO with gjentakende sykefravær set to true`() {
+                every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+                    mapOf(
+                        syketilfellebitTopicPartition to kafkaSyketilfellebiterToConsumerRecords(
+                            listOf(
+                                generateKafkaSyketilfellebit(
+                                    LocalDate.now().minusDays(180),
+                                    LocalDate.now().minusDays(130)
+                                ),
+                                generateKafkaSyketilfellebit(
+                                    LocalDate.now().minusDays(110),
+                                    LocalDate.now().minusDays(100)
+                                ),
+                                generateKafkaSyketilfellebit(
+                                    LocalDate.now().minusDays(80),
+                                    LocalDate.now().minusDays(70)
+                                ),
+                                generateKafkaSyketilfellebit(
+                                    LocalDate.now().minusDays(50),
+                                    LocalDate.now().minusDays(40)
+                                ),
+                                generateKafkaSyketilfellebit(
+                                    LocalDate.now().minusDays(20),
+                                    LocalDate.now()
+                                ),
+                            )
+                        )
+                    )
+                )
+
+                syketilfellebitConsumer.pollAndProcessRecords(
+                    consumer = mockKafkaConsumerSyketilfelleBit,
+                )
+                oppfolgingstilfelleCronjob.runJob()
+
+                verify(exactly = 1) {
+                    mockKafkaConsumerSyketilfelleBit.commitSync()
+                }
+                verify(exactly = 5) {
+                    oppfolgingstilfellePersonProducer.sendOppfolgingstilfellePerson(any())
+                }
+                testApplication {
+                    val client = setupApiAndClient()
+                    val oppfolgingstilfellePersonDTO =
+                        client.getOppfolgingstilfellePerson(url, validToken, PERSONIDENTNUMBER_DEFAULT)
+
+                    assertEquals(PERSONIDENTNUMBER_DEFAULT.value, oppfolgingstilfellePersonDTO.personIdent)
+                    assertEquals(5, oppfolgingstilfellePersonDTO.oppfolgingstilfelleList.size)
+                    assertTrue(oppfolgingstilfellePersonDTO.hasGjentakendeSykefravar!!)
                 }
             }
         }
@@ -492,10 +590,79 @@ class OppfolgingstilfelleApiTest {
                     assertEquals(UserConstants.ARBEIDSTAKER_FNR.value, first.personIdent)
                     assertTrue(first.oppfolgingstilfelleList.isNotEmpty())
                     assertEquals(antallSykedagerPerson1, first.oppfolgingstilfelleList.first().antallSykedager)
+                    assertNull(first.hasGjentakendeSykefravar)
                     assertEquals(UserConstants.ARBEIDSTAKER_2_FNR.value, last.personIdent)
                     assertTrue(last.oppfolgingstilfelleList.isNotEmpty())
                     assertEquals(antallSykedagerPerson2Tilfelle2, last.oppfolgingstilfelleList.first().antallSykedager)
                     assertNotNull(last.dodsdato)
+                    assertNull(last.hasGjentakendeSykefravar)
+                }
+            }
+
+            @Test
+            fun `Returns oppfolgingstilfeller for persons with different values for hasGjentakendeSykefravar`() {
+                val antallSykedagerPerson1 = 100
+                val antallSykedagerPerson2 = 150
+                val antallSykedagerPerson3 = 350
+                val pastOppfolgingstilfellePerson1 = generateOppfolgingstilfellePerson(
+                    personIdent = UserConstants.ARBEIDSTAKER_FNR,
+                    antallSykedager = antallSykedagerPerson1,
+                    hasGjentakendeSykefravar = null,
+                )
+                val oppfolgingstilfellePerson2 = generateOppfolgingstilfellePerson(
+                    personIdent = UserConstants.ARBEIDSTAKER_2_FNR,
+                    antallSykedager = antallSykedagerPerson2,
+                    hasGjentakendeSykefravar = false,
+                )
+                val oppfolgingstilfellePerson3 = generateOppfolgingstilfellePerson(
+                    personIdent = UserConstants.ARBEIDSTAKER_3_FNR,
+                    antallSykedager = antallSykedagerPerson3,
+                    hasGjentakendeSykefravar = true,
+                )
+
+                listOf(
+                    pastOppfolgingstilfellePerson1,
+                    oppfolgingstilfellePerson2,
+                    oppfolgingstilfellePerson3
+                ).forEach {
+                    oppfolgingstilfellePersonRepository.createOppfolgingstilfellePerson(it)
+                }
+
+                testApplication {
+                    val client = setupApiAndClient()
+                    val response = client.post(url) {
+                        bearerAuth(validToken)
+                        contentType(ContentType.Application.Json)
+                        setBody(
+                            listOf(
+                                UserConstants.ARBEIDSTAKER_FNR.value,
+                                UserConstants.ARBEIDSTAKER_2_FNR.value,
+                                UserConstants.ARBEIDSTAKER_3_FNR.value,
+                            )
+                        )
+                    }
+
+                    assertEquals(HttpStatusCode.OK, response.status)
+                    val oppfolgingstilfellePersonDTOS = response.body<List<OppfolgingstilfellePersonDTO>>()
+                    assertEquals(3, oppfolgingstilfellePersonDTOS.size)
+
+                    val first = oppfolgingstilfellePersonDTOS.first()
+                    assertEquals(UserConstants.ARBEIDSTAKER_FNR.value, first.personIdent)
+                    assertTrue(first.oppfolgingstilfelleList.isNotEmpty())
+                    assertEquals(antallSykedagerPerson1, first.oppfolgingstilfelleList.first().antallSykedager)
+                    assertNull(first.hasGjentakendeSykefravar)
+
+                    val second = oppfolgingstilfellePersonDTOS[1]
+                    assertEquals(UserConstants.ARBEIDSTAKER_2_FNR.value, second.personIdent)
+                    assertTrue(second.oppfolgingstilfelleList.isNotEmpty())
+                    assertEquals(antallSykedagerPerson2, second.oppfolgingstilfelleList.first().antallSykedager)
+                    assertFalse(second.hasGjentakendeSykefravar!!)
+
+                    val last = oppfolgingstilfellePersonDTOS[2]
+                    assertEquals(UserConstants.ARBEIDSTAKER_3_FNR.value, last.personIdent)
+                    assertTrue(last.oppfolgingstilfelleList.isNotEmpty())
+                    assertEquals(antallSykedagerPerson3, last.oppfolgingstilfelleList.first().antallSykedager)
+                    assertTrue(last.hasGjentakendeSykefravar!!)
                 }
             }
         }

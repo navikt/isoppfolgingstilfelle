@@ -163,5 +163,5 @@ private fun ResultSet.toPOppfolgingstilfellePerson(): POppfolgingstilfellePerson
             getString("oppfolgingstilfeller"),
             object : TypeReference<List<Oppfolgingstilfelle>>() {}
         ),
-        hasGjentakendeSykefravar = getBoolean("has_gjentakende_sykefravar"),
+        hasGjentakendeSykefravar = getObject("has_gjentakende_sykefravar") as? Boolean,
     )

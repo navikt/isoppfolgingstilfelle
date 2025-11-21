@@ -5,6 +5,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import no.nav.syfo.application.OppfolgingstilfelleService
+import no.nav.syfo.domain.OppfolgingstilfellePerson
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.domain.toOppfolgingstilfellePersonDTO
 import no.nav.syfo.infrastructure.client.veiledertilgang.VeilederTilgangskontrollClient
@@ -34,7 +35,7 @@ fun Route.registerOppfolgingstilfelleApi(
                         oppfolgingstilfelleList = emptyList(),
                         personIdent = personIdent.value,
                         dodsdato = dodsdato,
-                        hasGjentakendeSykefravar = null
+                        hasGjentakendeSykefravar = OppfolgingstilfellePerson.hasGjentakendeSykefravar(emptyList())
                     )
                 call.respond(oppfolgingstilfellePersonDTO)
             }
@@ -57,7 +58,7 @@ fun Route.registerOppfolgingstilfelleApi(
                         oppfolgingstilfelleList = emptyList(),
                         personIdent = it.value,
                         dodsdato = dodsdato,
-                        hasGjentakendeSykefravar = null
+                        hasGjentakendeSykefravar = OppfolgingstilfellePerson.hasGjentakendeSykefravar(emptyList())
                     )
                 }
             }

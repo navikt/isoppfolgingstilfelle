@@ -4,6 +4,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import no.nav.syfo.api.access.APIConsumerAccessService
 import no.nav.syfo.application.OppfolgingstilfelleService
+import no.nav.syfo.domain.OppfolgingstilfellePerson
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.domain.toOppfolgingstilfellePersonDTO
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
@@ -38,7 +39,7 @@ fun Route.registerOppfolgingstilfelleSystemApi(
                     oppfolgingstilfelleList = emptyList(),
                     personIdent = personIdent.value,
                     dodsdato = dodsdato,
-                    hasGjentakendeSykefravar = null
+                    hasGjentakendeSykefravar = OppfolgingstilfellePerson.hasGjentakendeSykefravar(emptyList())
                 )
             call.respond(oppfolgingstilfellePersonDTO)
         }
