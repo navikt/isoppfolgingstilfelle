@@ -1,10 +1,9 @@
 package no.nav.syfo.oppfolgingstilfelle.domain
 
-import no.nav.syfo.domain.OppfolgingstilfellePerson
+import no.nav.syfo.domain.Oppfolgingstilfelle
 import no.nav.syfo.domain.calculateCurrentVarighetUker
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
+import no.nav.syfo.domain.hasGjentakendeSykefravar
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import testhelper.generator.generateOppfolgingstilfelle
 import testhelper.generator.generateOppfolgingstilfellePerson
@@ -46,7 +45,7 @@ class OppfolgingstilfellePersonTest {
 
     @Test
     fun `has NOT gjentakende sykefravar when no oppfolgingstilfeller`() {
-        assertFalse(OppfolgingstilfellePerson.hasGjentakendeSykefravar(emptyList()))
+        assertFalse(emptyList<Oppfolgingstilfelle>().hasGjentakendeSykefravar())
     }
 
     @Test
@@ -56,7 +55,7 @@ class OppfolgingstilfellePersonTest {
             generateOppfolgingstilfelle(daysFromToday(-400), daysFromToday(-200)),
         )
 
-        assertTrue(OppfolgingstilfellePerson.hasGjentakendeSykefravar(tilfeller))
+        assertTrue(tilfeller.hasGjentakendeSykefravar())
     }
 
     @Test
@@ -66,7 +65,7 @@ class OppfolgingstilfellePersonTest {
             generateOppfolgingstilfelle(daysFromToday(-400), daysFromToday(-202)),
         )
 
-        assertTrue(OppfolgingstilfellePerson.hasGjentakendeSykefravar(tilfeller))
+        assertTrue(tilfeller.hasGjentakendeSykefravar())
     }
 
     @Test
@@ -76,7 +75,7 @@ class OppfolgingstilfellePersonTest {
             generateOppfolgingstilfelle(daysFromToday(-400), daysFromToday(-203)),
         )
 
-        assertFalse(OppfolgingstilfellePerson.hasGjentakendeSykefravar(tilfeller))
+        assertFalse(tilfeller.hasGjentakendeSykefravar())
     }
 
     @Test
@@ -85,7 +84,7 @@ class OppfolgingstilfellePersonTest {
             generateOppfolgingstilfelle(daysFromToday(-500), daysFromToday(-100)),
         )
 
-        assertFalse(OppfolgingstilfellePerson.hasGjentakendeSykefravar(tilfeller))
+        assertFalse(tilfeller.hasGjentakendeSykefravar())
     }
 
     @Test
@@ -99,7 +98,7 @@ class OppfolgingstilfellePersonTest {
             generateOppfolgingstilfelle(daysFromToday(-100), daysFromToday(-99)),
         )
 
-        assertFalse(OppfolgingstilfellePerson.hasGjentakendeSykefravar(tilfeller))
+        assertFalse(tilfeller.hasGjentakendeSykefravar())
     }
 
     @Test
@@ -113,7 +112,7 @@ class OppfolgingstilfellePersonTest {
             generateOppfolgingstilfelle(daysFromToday(-100), daysFromToday(-98)),
         )
 
-        assertTrue(OppfolgingstilfellePerson.hasGjentakendeSykefravar(tilfeller))
+        assertTrue(tilfeller.hasGjentakendeSykefravar())
     }
 
     @Test
@@ -126,7 +125,7 @@ class OppfolgingstilfellePersonTest {
             generateOppfolgingstilfelle(daysFromToday(-300), daysFromToday(-280)),
         )
 
-        assertTrue(OppfolgingstilfellePerson.hasGjentakendeSykefravar(tilfeller))
+        assertTrue(tilfeller.hasGjentakendeSykefravar())
     }
 
     @Test
@@ -139,7 +138,7 @@ class OppfolgingstilfellePersonTest {
             generateOppfolgingstilfelle(daysFromToday(-300), daysFromToday(-280)),
         )
 
-        assertFalse(OppfolgingstilfellePerson.hasGjentakendeSykefravar(tilfeller))
+        assertFalse(tilfeller.hasGjentakendeSykefravar())
     }
 
     @Test
@@ -151,7 +150,7 @@ class OppfolgingstilfellePersonTest {
             generateOppfolgingstilfelle(daysFromToday(-400), daysFromToday(-200)),
         )
 
-        assertFalse(OppfolgingstilfellePerson.hasGjentakendeSykefravar(tilfeller))
+        assertFalse(tilfeller.hasGjentakendeSykefravar())
     }
 
     @Test
@@ -163,6 +162,6 @@ class OppfolgingstilfellePersonTest {
             generateOppfolgingstilfelle(daysFromToday(-400), daysFromToday(-200)),
         )
 
-        assertTrue(OppfolgingstilfellePerson.hasGjentakendeSykefravar(tilfeller))
+        assertTrue(tilfeller.hasGjentakendeSykefravar())
     }
 }
