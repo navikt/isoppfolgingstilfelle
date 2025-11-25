@@ -34,7 +34,16 @@ data class Oppfolgingstilfelle(
     val end: LocalDate,
     val antallSykedager: Int?, // må tillate null siden tidligere persisterte oppfolgingstilfeller vil mangle dette feltet
     val virksomhetsnummerList: List<Virksomhetsnummer>,
-)
+) {
+    fun daysInTilfelle(): Int = antallSykedager ?: dagerMellomDatoer(start, end)
+
+    fun isLongTilfelle(): Boolean = daysInTilfelle() >= MIN_DAYS_IN_LONG_TILFELLE
+
+    fun isRecentTilfelle(): Boolean {
+        val threeYearsAgo = LocalDate.now().minusMonths(THREE_YEARS_IN_MONTHS)
+        return end.isAfterOrEqual(threeYearsAgo)
+    }
+}
 
 fun OppfolgingstilfellePerson.toOppfolgingstilfellePersonDTO() = OppfolgingstilfellePersonDTO(
     oppfolgingstilfelleList = this.oppfolgingstilfelleList.toOppfolgingstilfelleDTOList(),
@@ -57,37 +66,24 @@ fun List<Oppfolgingstilfelle>.toOppfolgingstilfelleDTOList() =
 
 fun List<Oppfolgingstilfelle>.hasGjentakendeSykefravar(): Boolean {
     val relevantTilfeller = this
-        .filter(::isLongTilfelle)
-        .filter(::isRecentTilfelle)
+        .filter { it.isLongTilfelle() }
+        .filter { it.isRecentTilfelle() }
 
     val tilfelleCount = relevantTilfeller.size
-    val accumulatedSickDays = relevantTilfeller.sumOf(::daysInTilfelle)
+    val antallSykedager = relevantTilfeller.sumOf { it.daysInTilfelle() }
 
-    return hasManySykefravar(tilfelleCount, accumulatedSickDays) || hasLongSykefravar(
+    return hasManySykefravar(tilfelleCount, antallSykedager) || hasLongSykefravar(
         tilfelleCount,
-        accumulatedSickDays
+        antallSykedager
     )
 }
 
-private fun daysInTilfelle(tilfelle: Oppfolgingstilfelle): Int {
-    return tilfelle.antallSykedager ?: dagerMellomDatoer(tilfelle.start, tilfelle.end)
+private fun hasManySykefravar(tilfeller: Int, sykedager: Int): Boolean {
+    return tilfeller >= 5 && sykedager >= 100
 }
 
-private fun isLongTilfelle(tilfelle: Oppfolgingstilfelle): Boolean {
-    return daysInTilfelle(tilfelle) >= MIN_DAYS_IN_LONG_TILFELLE
-}
-
-private fun isRecentTilfelle(tilfelle: Oppfolgingstilfelle): Boolean {
-    val threeYearsAgo = LocalDate.now().minusMonths(THREE_YEARS_IN_MONTHS)
-    return tilfelle.end.isAfterOrEqual(threeYearsAgo)
-}
-
-private fun hasManySykefravar(tilfeller: Int, sickdays: Int): Boolean {
-    return tilfeller >= 5 && sickdays >= 100
-}
-
-private fun hasLongSykefravar(tilfeller: Int, sickdays: Int): Boolean {
-    return tilfeller >= 2 && sickdays >= 300
+private fun hasLongSykefravar(tilfeller: Int, sykedager: Int): Boolean {
+    return tilfeller >= 2 && sykedager >= 300
 }
 
 fun OppfolgingstilfellePerson.toKafkaOppfolgingstilfellePerson() = KafkaOppfolgingstilfellePerson(
