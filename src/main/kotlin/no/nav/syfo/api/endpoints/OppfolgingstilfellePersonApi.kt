@@ -5,7 +5,9 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import no.nav.syfo.application.OppfolgingstilfelleService
+import no.nav.syfo.domain.Oppfolgingstilfelle
 import no.nav.syfo.domain.PersonIdentNumber
+import no.nav.syfo.domain.hasGjentakendeSykefravar
 import no.nav.syfo.domain.toOppfolgingstilfellePersonDTO
 import no.nav.syfo.infrastructure.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.util.*
@@ -28,12 +30,14 @@ fun Route.registerOppfolgingstilfelleApi(
                 veilederTilgangskontrollClient = veilederTilgangskontrollClient,
             ) {
                 val dodsdato = oppfolgingstilfelleService.getDodsdato(personIdent)
-                val oppfolgingstilfellePersonDTO = oppfolgingstilfelleService.getOppfolgingstilfeller(
-                    personIdent = personIdent,
-                ).toOppfolgingstilfellePersonDTO(
-                    personIdent = personIdent,
-                    dodsdato = dodsdato,
-                )
+                val oppfolgingstilfellePersonDTO =
+                    oppfolgingstilfelleService.getOppfolgingstilfellePerson(personIdent = personIdent)
+                        ?.toOppfolgingstilfellePersonDTO() ?: OppfolgingstilfellePersonDTO(
+                        oppfolgingstilfelleList = emptyList(),
+                        personIdent = personIdent.value,
+                        dodsdato = dodsdato,
+                        hasGjentakendeSykefravar = emptyList<Oppfolgingstilfelle>().hasGjentakendeSykefravar()
+                    )
                 call.respond(oppfolgingstilfellePersonDTO)
             }
         }
@@ -50,11 +54,12 @@ fun Route.registerOppfolgingstilfelleApi(
             val (oppfolgingstilfellerPersonsDTOs, duration) = measureTimedValue {
                 personIdentsWithVeilederAccess.map {
                     val dodsdato = oppfolgingstilfelleService.getDodsdato(it)
-                    oppfolgingstilfelleService.getOppfolgingstilfeller(
-                        personIdent = it,
-                    ).toOppfolgingstilfellePersonDTO(
-                        personIdent = it,
+                    oppfolgingstilfelleService.getOppfolgingstilfellePerson(personIdent = it)
+                        ?.toOppfolgingstilfellePersonDTO() ?: OppfolgingstilfellePersonDTO(
+                        oppfolgingstilfelleList = emptyList(),
+                        personIdent = it.value,
                         dodsdato = dodsdato,
+                        hasGjentakendeSykefravar = emptyList<Oppfolgingstilfelle>().hasGjentakendeSykefravar(),
                     )
                 }
             }

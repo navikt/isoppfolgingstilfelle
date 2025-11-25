@@ -1,6 +1,8 @@
 package no.nav.syfo.application
 
 import no.nav.syfo.domain.OppfolgingstilfelleBit
+import no.nav.syfo.domain.generateOppfolgingstilfelleList
+import no.nav.syfo.domain.hasGjentakendeSykefravar
 import no.nav.syfo.domain.toOppfolgingstilfellePerson
 import no.nav.syfo.infrastructure.database.OppfolgingstilfellePersonRepository
 import no.nav.syfo.infrastructure.kafka.OppfolgingstilfellePersonProducer
@@ -16,6 +18,8 @@ class OppfolgingstilfellePersonService(
         val oppfolgingstilfellePerson = oppfolgingstilfelleBit.toOppfolgingstilfellePerson(
             oppfolgingstilfelleBitList = oppfolgingstilfelleBitForPersonList,
             dodsdato = oppfolgingstilfellePersonRepository.getDodsdato(oppfolgingstilfelleBit.personIdentNumber),
+            hasGjentakendeSykefravar = oppfolgingstilfelleBitForPersonList.generateOppfolgingstilfelleList()
+                .hasGjentakendeSykefravar()
         )
         oppfolgingstilfellePersonRepository.createOppfolgingstilfellePerson(
             oppfolgingstilfellePerson = oppfolgingstilfellePerson,

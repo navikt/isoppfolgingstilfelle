@@ -236,6 +236,7 @@ fun OppfolgingstilfelleBit.isArbeidsdag() =
 fun OppfolgingstilfelleBit.toOppfolgingstilfellePerson(
     oppfolgingstilfelleBitList: List<OppfolgingstilfelleBit>,
     dodsdato: LocalDate? = null,
+    hasGjentakendeSykefravar: Boolean? = null
 ) = OppfolgingstilfellePerson(
     uuid = UUID.randomUUID(),
     createdAt = nowUTC(),
@@ -244,4 +245,5 @@ fun OppfolgingstilfelleBit.toOppfolgingstilfellePerson(
     referanseTilfelleBitUuid = this.uuid,
     referanseTilfelleBitInntruffet = this.inntruffet,
     dodsdato = dodsdato,
+    hasGjentakendeSykefravar = hasGjentakendeSykefravar
 )

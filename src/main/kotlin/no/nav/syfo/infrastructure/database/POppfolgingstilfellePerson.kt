@@ -15,6 +15,7 @@ data class POppfolgingstilfellePerson(
     val oppfolgingstilfeller: List<Oppfolgingstilfelle>,
     val referanseTilfelleBitUUID: UUID,
     val referanseTilfelleBitInntruffet: OffsetDateTime,
+    val hasGjentakendeSykefravar: Boolean?,
 )
 
 fun POppfolgingstilfellePerson.toOppfolgingstilfellePerson(
@@ -27,4 +28,5 @@ fun POppfolgingstilfellePerson.toOppfolgingstilfellePerson(
     referanseTilfelleBitUuid = this.referanseTilfelleBitUUID,
     referanseTilfelleBitInntruffet = this.referanseTilfelleBitInntruffet,
     dodsdato = dodsdato,
+    hasGjentakendeSykefravar = this.hasGjentakendeSykefravar,
 )

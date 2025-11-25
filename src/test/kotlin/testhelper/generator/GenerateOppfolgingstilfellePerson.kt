@@ -13,6 +13,7 @@ fun generateOppfolgingstilfellePerson(
     personIdent: PersonIdentNumber = UserConstants.PERSONIDENTNUMBER_DEFAULT,
     antallSykedager: Int = 120,
     oppfolgingstilfelleList: List<Oppfolgingstilfelle>? = null,
+    hasGjentakendeSykefravar: Boolean? = null,
 ) = OppfolgingstilfellePerson(
     uuid = UUID.randomUUID(),
     createdAt = nowUTC(),
@@ -28,6 +29,7 @@ fun generateOppfolgingstilfellePerson(
     referanseTilfelleBitUuid = UUID.randomUUID(),
     referanseTilfelleBitInntruffet = nowUTC(),
     dodsdato = null,
+    hasGjentakendeSykefravar = hasGjentakendeSykefravar,
 )
 
 fun generateOppfolgingstilfelle(

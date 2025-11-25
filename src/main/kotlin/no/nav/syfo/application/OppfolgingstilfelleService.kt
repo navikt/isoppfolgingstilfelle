@@ -22,6 +22,18 @@ class OppfolgingstilfelleService(
         return oppfolgingstilfelleList.sortedByDescending { tilfelle -> tilfelle.start }
     }
 
+    fun getOppfolgingstilfellePerson(personIdent: PersonIdentNumber): OppfolgingstilfellePerson? {
+        val oppfolgingstilfellePerson = oppfolgingstilfellePerson(
+            personIdent = personIdent,
+        )
+
+        return oppfolgingstilfellePerson?.copy(
+            oppfolgingstilfelleList = oppfolgingstilfellePerson.oppfolgingstilfelleList
+                .filter { it.start.isBefore(tomorrow()) }
+                .sortedByDescending { tilfelle -> tilfelle.start },
+        )
+    }
+
     fun getDodsdato(personIdent: PersonIdentNumber) =
         oppfolgingstilfellePersonRepository.getDodsdato(personIdent)
 
