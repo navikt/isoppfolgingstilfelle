@@ -1,8 +1,10 @@
 package no.nav.syfo.oppfolgingstilfelle.domain
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.syfo.domain.Oppfolgingstilfelle
 import no.nav.syfo.domain.calculateCurrentVarighetUker
 import no.nav.syfo.domain.hasGjentakendeSykefravar
+import no.nav.syfo.util.configuredJacksonMapper
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import testhelper.generator.generateOppfolgingstilfelle
@@ -163,5 +165,22 @@ class OppfolgingstilfellePersonTest {
         )
 
         assertTrue(tilfeller.hasGjentakendeSykefravar())
+    }
+
+    @Test
+    fun `serialize oppfolgingstilfelle correctly`() {
+        val tilfelle = generateOppfolgingstilfelle(daysFromToday(-400), daysFromToday(-200))
+        val objectMapper: ObjectMapper = configuredJacksonMapper()
+        val serializedTilfelle = objectMapper.writeValueAsString(tilfelle)
+
+        val deserializedMap = objectMapper.readValue(serializedTilfelle, Map::class.java)
+
+        assertEquals(6, deserializedMap.size)
+        assertTrue(deserializedMap.containsKey("arbeidstakerAtTilfelleEnd"))
+        assertTrue(deserializedMap.containsKey("gradertAtTilfelleEnd"))
+        assertTrue(deserializedMap.containsKey("start"))
+        assertTrue(deserializedMap.containsKey("end"))
+        assertTrue(deserializedMap.containsKey("antallSykedager"))
+        assertTrue(deserializedMap.containsKey("virksomhetsnummerList"))
     }
 }

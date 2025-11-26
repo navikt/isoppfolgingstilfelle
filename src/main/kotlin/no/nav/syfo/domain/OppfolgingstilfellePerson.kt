@@ -1,5 +1,6 @@
 package no.nav.syfo.domain
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.syfo.api.endpoints.OppfolgingstilfelleDTO
 import no.nav.syfo.api.endpoints.OppfolgingstilfellePersonDTO
 import no.nav.syfo.infrastructure.kafka.KafkaOppfolgingstilfelle
@@ -35,10 +36,13 @@ data class Oppfolgingstilfelle(
     val antallSykedager: Int?, // må tillate null siden tidligere persisterte oppfolgingstilfeller vil mangle dette feltet
     val virksomhetsnummerList: List<Virksomhetsnummer>,
 ) {
+    @JsonIgnore
     fun daysInTilfelle(): Int = antallSykedager ?: dagerMellomDatoer(start, end)
 
+    @JsonIgnore
     fun isLongTilfelle(): Boolean = daysInTilfelle() >= MIN_DAYS_IN_LONG_TILFELLE
 
+    @JsonIgnore
     fun isRecentTilfelle(): Boolean {
         val threeYearsAgo = LocalDate.now().minusMonths(THREE_YEARS_IN_MONTHS)
         return end.isAfterOrEqual(threeYearsAgo)
