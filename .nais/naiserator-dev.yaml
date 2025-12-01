@@ -108,3 +108,9 @@ spec:
       value: "https://aareg-services-q1.dev-fss-pub.nais.io"
     - name: ARBEIDSFORHOLD_CLIENT_ID
       value: "dev-fss.arbeidsforhold.aareg-services-nais-q1"
+    - name: OPPFOLGINGSTILFELLE_CRONJOB_INTERVAL_DELAY_MINUTES
+      value: "2"
+    - name: SYKMELDING_NY_CRONJOB_INITIAL_DELAY_MINUTES
+      value: "3"
+    - name: SYKMELDING_NY_CRONJOB_INTERVAL_DELAY_MINUTES
+      value: "2"

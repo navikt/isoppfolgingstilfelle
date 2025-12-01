@@ -81,6 +81,10 @@ data class Environment(
     private val mulighetsrommetApiName: String = "mulighetsrommet-api",
     private val ismeroppfolgingApplicationName: String = "ismeroppfolging",
 
+    val oppfolgingstilfelleCronjobIntervalDelayMinutes: Long = getEnvVar("OPPFOLGINGSTILFELLE_CRONJOB_INTERVAL_DELAY_MINUTES").toLong(),
+    val sykmeldingNyCronjobInitialDelayMinutes: Long = getEnvVar("SYKMELDING_NY_CRONJOB_INITIAL_DELAY_MINUTES").toLong(),
+    val sykmeldingNyCronjobIntervalDelayMinutes: Long = getEnvVar("SYKMELDING_NY_CRONJOB_INTERVAL_DELAY_MINUTES").toLong(),
+
     val systemAPIAuthorizedConsumerApplicationNames: List<String> = listOf(
         isbehandlerdialogApplicationName,
         isdialogmoteApplicationName,
