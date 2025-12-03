@@ -9,9 +9,9 @@ import org.slf4j.LoggerFactory
 class OppfolgingstilfelleCronjob(
     private val oppfolgingstilfellePersonService: OppfolgingstilfellePersonService,
     private val tilfellebitRepository: TilfellebitRepository,
+    override val intervalDelayMinutes: Long = 10,
 ) : Cronjob {
     override val initialDelayMinutes: Long = 2
-    override val intervalDelayMinutes: Long = 10
 
     override suspend fun run() {
         val result = runJob()

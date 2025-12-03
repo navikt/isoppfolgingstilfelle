@@ -12,9 +12,9 @@ import org.slf4j.LoggerFactory
 class SykmeldingNyCronjob(
     private val database: DatabaseInterface,
     private val arbeidsforholdClient: ArbeidsforholdClient,
+    override val initialDelayMinutes: Long = 7,
+    override val intervalDelayMinutes: Long = 10,
 ) : Cronjob {
-    override val initialDelayMinutes: Long = 7
-    override val intervalDelayMinutes: Long = 10
 
     override suspend fun run() {
         val result = runJob()

@@ -37,10 +37,13 @@ fun launchCronjobModule(
     val sykmeldingNyCronjob = SykmeldingNyCronjob(
         database = database,
         arbeidsforholdClient = arbeidsforholdClient,
+        initialDelayMinutes = environment.sykmeldingNyCronjobInitialDelayMinutes,
+        intervalDelayMinutes = environment.sykmeldingNyCronjobIntervalDelayMinutes,
     )
     val oppfolgingstilfelleCronjob = OppfolgingstilfelleCronjob(
         oppfolgingstilfellePersonService = oppfolgingstilfellePersonService,
         tilfellebitRepository = tilfellebitRepository,
+        intervalDelayMinutes = environment.oppfolgingstilfelleCronjobIntervalDelayMinutes,
     )
     launchBackgroundTask(
         applicationState = applicationState,
