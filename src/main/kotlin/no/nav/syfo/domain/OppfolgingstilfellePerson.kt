@@ -1,11 +1,12 @@
-package no.nav.syfo.oppfolgingstilfelle.person.domain
+package no.nav.syfo.domain
 
-import no.nav.syfo.domain.PersonIdentNumber
-import no.nav.syfo.domain.Virksomhetsnummer
+import com.fasterxml.jackson.annotation.JsonIgnore
+import no.nav.syfo.api.endpoints.OppfolgingstilfelleDTO
+import no.nav.syfo.api.endpoints.OppfolgingstilfellePersonDTO
 import no.nav.syfo.infrastructure.kafka.KafkaOppfolgingstilfelle
 import no.nav.syfo.infrastructure.kafka.KafkaOppfolgingstilfellePerson
-import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfelleDTO
-import no.nav.syfo.oppfolgingstilfelle.person.api.domain.OppfolgingstilfellePersonDTO
+import no.nav.syfo.util.dagerMellomDatoer
+import no.nav.syfo.util.isAfterOrEqual
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit
@@ -13,6 +14,8 @@ import java.util.*
 import kotlin.math.max
 
 private const val DAYS_IN_WEEK = 7
+private const val THREE_YEARS_IN_MONTHS: Long = 36
+private const val MIN_DAYS_IN_LONG_TILFELLE = 3
 
 data class OppfolgingstilfellePerson(
     val uuid: UUID,
@@ -22,6 +25,7 @@ data class OppfolgingstilfellePerson(
     val referanseTilfelleBitUuid: UUID,
     val referanseTilfelleBitInntruffet: OffsetDateTime,
     val dodsdato: LocalDate?,
+    val hasGjentakendeSykefravar: Boolean?,
 )
 
 data class Oppfolgingstilfelle(
@@ -31,15 +35,25 @@ data class Oppfolgingstilfelle(
     val end: LocalDate,
     val antallSykedager: Int?, // må tillate null siden tidligere persisterte oppfolgingstilfeller vil mangle dette feltet
     val virksomhetsnummerList: List<Virksomhetsnummer>,
-)
+) {
+    @JsonIgnore
+    fun daysInTilfelle(): Int = antallSykedager ?: dagerMellomDatoer(start, end)
 
-fun List<Oppfolgingstilfelle>?.toOppfolgingstilfellePersonDTO(
-    personIdent: PersonIdentNumber,
-    dodsdato: LocalDate?,
-) = OppfolgingstilfellePersonDTO(
-    oppfolgingstilfelleList = this?.toOppfolgingstilfelleDTOList() ?: emptyList(),
-    personIdent = personIdent.value,
-    dodsdato = dodsdato,
+    @JsonIgnore
+    fun isLongTilfelle(): Boolean = daysInTilfelle() >= MIN_DAYS_IN_LONG_TILFELLE
+
+    @JsonIgnore
+    fun isRecentTilfelle(): Boolean {
+        val threeYearsAgo = LocalDate.now().minusMonths(THREE_YEARS_IN_MONTHS)
+        return end.isAfterOrEqual(threeYearsAgo)
+    }
+}
+
+fun OppfolgingstilfellePerson.toOppfolgingstilfellePersonDTO() = OppfolgingstilfellePersonDTO(
+    oppfolgingstilfelleList = this.oppfolgingstilfelleList.toOppfolgingstilfelleDTOList(),
+    personIdent = this.personIdentNumber.value,
+    dodsdato = this.dodsdato,
+    hasGjentakendeSykefravar = this.hasGjentakendeSykefravar,
 )
 
 fun List<Oppfolgingstilfelle>.toOppfolgingstilfelleDTOList() =
@@ -53,6 +67,28 @@ fun List<Oppfolgingstilfelle>.toOppfolgingstilfelleDTOList() =
             virksomhetsnummerList = oppfolgingstilfelle.virksomhetsnummerList.map { it.value },
         )
     }
+
+fun List<Oppfolgingstilfelle>.hasGjentakendeSykefravar(): Boolean {
+    val relevantTilfeller = this
+        .filter { it.isLongTilfelle() }
+        .filter { it.isRecentTilfelle() }
+
+    val tilfelleCount = relevantTilfeller.size
+    val antallSykedager = relevantTilfeller.sumOf { it.daysInTilfelle() }
+
+    return hasManySykefravar(tilfelleCount, antallSykedager) || hasLongSykefravar(
+        tilfelleCount,
+        antallSykedager
+    )
+}
+
+private fun hasManySykefravar(tilfeller: Int, sykedager: Int): Boolean {
+    return tilfeller >= 5 && sykedager >= 100
+}
+
+private fun hasLongSykefravar(tilfeller: Int, sykedager: Int): Boolean {
+    return tilfeller >= 2 && sykedager >= 300
+}
 
 fun OppfolgingstilfellePerson.toKafkaOppfolgingstilfellePerson() = KafkaOppfolgingstilfellePerson(
     uuid = this.uuid.toString(),

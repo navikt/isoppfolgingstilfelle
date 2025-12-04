@@ -1,4 +1,4 @@
-package no.nav.syfo.oppfolgingstilfelle.person.api.domain
+package no.nav.syfo.api.endpoints
 
 import java.time.LocalDate
 
@@ -6,6 +6,7 @@ data class OppfolgingstilfellePersonDTO(
     val oppfolgingstilfelleList: List<OppfolgingstilfelleDTO>,
     val personIdent: String,
     val dodsdato: LocalDate?,
+    val hasGjentakendeSykefravar: Boolean?
 )
 
 data class OppfolgingstilfelleDTO(

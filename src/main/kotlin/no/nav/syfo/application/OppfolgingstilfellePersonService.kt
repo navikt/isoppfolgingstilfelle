@@ -1,27 +1,27 @@
 package no.nav.syfo.application
 
 import no.nav.syfo.domain.OppfolgingstilfelleBit
+import no.nav.syfo.domain.generateOppfolgingstilfelleList
+import no.nav.syfo.domain.hasGjentakendeSykefravar
 import no.nav.syfo.domain.toOppfolgingstilfellePerson
 import no.nav.syfo.infrastructure.database.OppfolgingstilfellePersonRepository
 import no.nav.syfo.infrastructure.kafka.OppfolgingstilfellePersonProducer
-import java.sql.Connection
 
 class OppfolgingstilfellePersonService(
     val oppfolgingstilfellePersonRepository: OppfolgingstilfellePersonRepository,
     val oppfolgingstilfellePersonProducer: OppfolgingstilfellePersonProducer,
 ) {
     fun createOppfolgingstilfellePerson(
-        connection: Connection,
         oppfolgingstilfelleBit: OppfolgingstilfelleBit,
         oppfolgingstilfelleBitForPersonList: List<OppfolgingstilfelleBit>,
     ) {
         val oppfolgingstilfellePerson = oppfolgingstilfelleBit.toOppfolgingstilfellePerson(
             oppfolgingstilfelleBitList = oppfolgingstilfelleBitForPersonList,
             dodsdato = oppfolgingstilfellePersonRepository.getDodsdato(oppfolgingstilfelleBit.personIdentNumber),
+            hasGjentakendeSykefravar = oppfolgingstilfelleBitForPersonList.generateOppfolgingstilfelleList()
+                .hasGjentakendeSykefravar()
         )
         oppfolgingstilfellePersonRepository.createOppfolgingstilfellePerson(
-            connection = connection,
-            commit = false,
             oppfolgingstilfellePerson = oppfolgingstilfellePerson,
         )
 

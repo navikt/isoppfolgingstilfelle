@@ -1,7 +1,6 @@
-package no.nav.syfo.oppfolgingstilfelle.person.domain
+package no.nav.syfo.domain
 
-import no.nav.syfo.domain.*
-import no.nav.syfo.oppfolgingstilfelle.person.metric.SYKMELDING_NY_COUNTER
+import no.nav.syfo.metrics.SYKMELDING_NY_COUNTER
 import no.nav.syfo.util.and
 import no.nav.syfo.util.or
 import org.slf4j.LoggerFactory

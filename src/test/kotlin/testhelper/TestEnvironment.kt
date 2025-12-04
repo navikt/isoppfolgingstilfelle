@@ -70,6 +70,9 @@ fun testEnvironment() = Environment(
         valkeyPassword = "valkeyPassword",
         ssl = false,
     ),
+    oppfolgingstilfelleCronjobIntervalDelayMinutes = 2,
+    sykmeldingNyCronjobInitialDelayMinutes = 3,
+    sykmeldingNyCronjobIntervalDelayMinutes = 2,
 )
 
 fun testAppState() = ApplicationState(

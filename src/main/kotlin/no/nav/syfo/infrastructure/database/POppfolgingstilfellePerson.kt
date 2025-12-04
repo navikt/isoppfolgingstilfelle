@@ -1,8 +1,8 @@
 package no.nav.syfo.infrastructure.database
 
+import no.nav.syfo.domain.Oppfolgingstilfelle
+import no.nav.syfo.domain.OppfolgingstilfellePerson
 import no.nav.syfo.domain.PersonIdentNumber
-import no.nav.syfo.oppfolgingstilfelle.person.domain.Oppfolgingstilfelle
-import no.nav.syfo.oppfolgingstilfelle.person.domain.OppfolgingstilfellePerson
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.*
@@ -15,6 +15,7 @@ data class POppfolgingstilfellePerson(
     val oppfolgingstilfeller: List<Oppfolgingstilfelle>,
     val referanseTilfelleBitUUID: UUID,
     val referanseTilfelleBitInntruffet: OffsetDateTime,
+    val hasGjentakendeSykefravar: Boolean?,
 )
 
 fun POppfolgingstilfellePerson.toOppfolgingstilfellePerson(
@@ -27,4 +28,5 @@ fun POppfolgingstilfellePerson.toOppfolgingstilfellePerson(
     referanseTilfelleBitUuid = this.referanseTilfelleBitUUID,
     referanseTilfelleBitInntruffet = this.referanseTilfelleBitInntruffet,
     dodsdato = dodsdato,
+    hasGjentakendeSykefravar = this.hasGjentakendeSykefravar,
 )
