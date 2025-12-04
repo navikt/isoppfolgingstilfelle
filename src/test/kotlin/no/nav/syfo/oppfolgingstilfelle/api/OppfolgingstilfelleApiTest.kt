@@ -435,19 +435,19 @@ class OppfolgingstilfelleApiTest {
                         syketilfellebitTopicPartition to kafkaSyketilfellebiterToConsumerRecords(
                             listOf(
                                 generateKafkaSyketilfellebit(
-                                    LocalDate.now().minusDays(180),
-                                    LocalDate.now().minusDays(130)
+                                    LocalDate.now().minusDays(190),
+                                    LocalDate.now().minusDays(160)
                                 ),
                                 generateKafkaSyketilfellebit(
-                                    LocalDate.now().minusDays(110),
-                                    LocalDate.now().minusDays(100)
+                                    LocalDate.now().minusDays(140),
+                                    LocalDate.now().minusDays(120)
                                 ),
                                 generateKafkaSyketilfellebit(
-                                    LocalDate.now().minusDays(80),
-                                    LocalDate.now().minusDays(70)
+                                    LocalDate.now().minusDays(95),
+                                    LocalDate.now().minusDays(80)
                                 ),
                                 generateKafkaSyketilfellebit(
-                                    LocalDate.now().minusDays(50),
+                                    LocalDate.now().minusDays(60),
                                     LocalDate.now().minusDays(40)
                                 ),
                                 generateKafkaSyketilfellebit(

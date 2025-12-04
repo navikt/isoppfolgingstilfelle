@@ -90,28 +90,28 @@ class OppfolgingstilfellePersonTest {
     }
 
     @Test
-    fun `has NOT gjentakende sykefravar if 5 short, less than 3 days, sykefravar and one long adding up to more than 100 days`() {
+    fun `has NOT gjentakende sykefravar if 5 short, less than 16 days, sykefravar and one long adding up to more than 100 days`() {
         val tilfeller = listOf(
             generateOppfolgingstilfelle(daysFromToday(-500), daysFromToday(-400)),
             generateOppfolgingstilfelle(daysFromToday(-300), daysFromToday(-299)),
-            generateOppfolgingstilfelle(daysFromToday(-250), daysFromToday(-249)),
-            generateOppfolgingstilfelle(daysFromToday(-200), daysFromToday(-199)),
-            generateOppfolgingstilfelle(daysFromToday(-150), daysFromToday(-149)),
-            generateOppfolgingstilfelle(daysFromToday(-100), daysFromToday(-99)),
+            generateOppfolgingstilfelle(daysFromToday(-250), daysFromToday(-240)),
+            generateOppfolgingstilfelle(daysFromToday(-200), daysFromToday(-188)),
+            generateOppfolgingstilfelle(daysFromToday(-150), daysFromToday(-140)),
+            generateOppfolgingstilfelle(daysFromToday(-100), daysFromToday(-90)),
         )
 
         assertFalse(tilfeller.hasGjentakendeSykefravar())
     }
 
     @Test
-    fun `has gjentakende sykefravar if 5 almost short, exactly 3 days, sykefravar and one long adding up to more than 100 days`() {
+    fun `has gjentakende sykefravar if 5 almost short, exactly 16 days, sykefravar and one long adding up to more than 100 days`() {
         val tilfeller = listOf(
             generateOppfolgingstilfelle(daysFromToday(-500), daysFromToday(-400)),
-            generateOppfolgingstilfelle(daysFromToday(-300), daysFromToday(-298)),
-            generateOppfolgingstilfelle(daysFromToday(-250), daysFromToday(-248)),
-            generateOppfolgingstilfelle(daysFromToday(-200), daysFromToday(-198)),
-            generateOppfolgingstilfelle(daysFromToday(-150), daysFromToday(-148)),
-            generateOppfolgingstilfelle(daysFromToday(-100), daysFromToday(-98)),
+            generateOppfolgingstilfelle(daysFromToday(-300), daysFromToday(-285)),
+            generateOppfolgingstilfelle(daysFromToday(-250), daysFromToday(-235)),
+            generateOppfolgingstilfelle(daysFromToday(-200), daysFromToday(-185)),
+            generateOppfolgingstilfelle(daysFromToday(-150), daysFromToday(-135)),
+            generateOppfolgingstilfelle(daysFromToday(-100), daysFromToday(-85)),
         )
 
         assertTrue(tilfeller.hasGjentakendeSykefravar())
