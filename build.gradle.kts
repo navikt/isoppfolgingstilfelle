@@ -4,26 +4,26 @@ import org.jlleitschuh.gradle.ktlint.tasks.KtLintCheckTask
 group = "no.nav.syfo"
 version = "1.0.0"
 
-val confluent = "8.0.2"
-val flyway = "11.14.0"
-val hikari = "6.3.0"
-val jackson = "2.20.0"
+val confluent = "8.1.0"
+val flyway = "11.17.1"
+val hikari = "7.0.2"
+val jackson = "2.20.1"
 val jedis = "5.2.0"
-val kafka = "3.9.0"
-val ktor = "3.3.0"
-val logback = "1.5.18"
-val logstashEncoder = "8.1"
+val kafka = "4.1.0"
+val ktor = "3.3.3"
+val logback = "1.5.21"
+val logstashEncoder = "9.0"
 val mockk = "1.14.6"
-val nimbusJoseJwt = "10.5"
-val micrometerRegistry = "1.15.4"
+val nimbusJoseJwt = "10.6"
+val micrometerRegistry = "1.11.13"
 val postgres = "42.7.8"
 val postgresEmbedded = "2.1.1"
 val redisEmbedded = "0.7.3"
 val postgresRuntimeVersion = "17.5.0"
 
 plugins {
-    kotlin("jvm") version "2.2.10"
-    id("com.gradleup.shadow") version "8.3.7"
+    kotlin("jvm") version "2.2.21"
+    id("com.gradleup.shadow") version "8.3.8"
     id("org.jlleitschuh.gradle.ktlint") version "11.6.1"
     id("com.github.davidmc24.gradle.plugin.avro") version "1.9.1"
     id("com.adarshr.test-logger") version "4.0.0"
@@ -91,7 +91,7 @@ dependencies {
         implementation("org.apache.commons:commons-compress") {
             because("org.apache.commons:commons-compress:1.22 -> https://www.cve.org/CVERecord?id=CVE-2012-2098")
             version {
-                require("1.27.1")
+                require("1.28.0")
             }
         }
     }
