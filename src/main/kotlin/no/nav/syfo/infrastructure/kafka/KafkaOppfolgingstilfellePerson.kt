@@ -11,6 +11,7 @@ data class KafkaOppfolgingstilfellePerson(
     val referanseTilfelleBitUuid: String,
     val referanseTilfelleBitInntruffet: OffsetDateTime,
     val dodsdato: LocalDate?,
+    val hasGjentakendeSykefravar: Boolean?,
 )
 
 data class KafkaOppfolgingstilfelle(
