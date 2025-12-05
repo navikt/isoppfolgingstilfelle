@@ -15,7 +15,7 @@ import kotlin.math.max
 
 private const val DAYS_IN_WEEK = 7
 private const val THREE_YEARS_IN_MONTHS: Long = 36
-private const val MIN_DAYS_IN_LONG_TILFELLE = 3
+private const val MIN_DAYS_IN_LONG_TILFELLE = 16
 
 data class OppfolgingstilfellePerson(
     val uuid: UUID,
