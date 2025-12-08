@@ -107,6 +107,7 @@ fun OppfolgingstilfellePerson.toKafkaOppfolgingstilfellePerson() = KafkaOppfolgi
     referanseTilfelleBitUuid = this.referanseTilfelleBitUuid.toString(),
     referanseTilfelleBitInntruffet = this.referanseTilfelleBitInntruffet,
     dodsdato = this.dodsdato,
+    hasGjentakendeSykefravar = this.hasGjentakendeSykefravar,
 )
 
 fun Oppfolgingstilfelle.calculateCurrentVarighetUker(): Int {
