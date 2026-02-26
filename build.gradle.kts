@@ -37,6 +37,12 @@ repositories {
     maven(url = "https://jitpack.io")
 }
 
+configurations.all {
+    exclude(group = "log4j")
+    exclude(group = "org.slf4j", module = "slf4j-log4j12")
+    exclude(group = "ch.qos.reload4j", module = "reload4j")
+}
+
 dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
@@ -77,12 +83,7 @@ dependencies {
     implementation("com.nimbusds:nimbus-jose-jwt:$nimbusJoseJwt")
 
     // Kafka
-    val excludeLog4j = fun ExternalModuleDependency.() {
-        exclude(group = "log4j")
-        exclude(group = "org.slf4j", module = "slf4j-log4j12")
-        exclude(group = "ch.qos.reload4j", module = "reload4j")
-    }
-    implementation("io.confluent:kafka-avro-serializer:$confluent", excludeLog4j)
+    implementation("io.confluent:kafka-avro-serializer:$confluent")
     constraints {
         implementation("org.apache.avro:avro") {
             because("io.confluent:kafka-avro-serializer:$confluent -> https://www.cve.org/CVERecord?id=CVE-2023-39410")
@@ -97,7 +98,7 @@ dependencies {
             }
         }
     }
-    implementation("org.apache.kafka:kafka_2.13:$kafka", excludeLog4j)
+    implementation("org.apache.kafka:kafka_2.13:$kafka")
     constraints {
         implementation("org.bitbucket.b_c:jose4j") {
             because("org.apache.kafka:kafka_2.13:$kafka -> https://github.com/advisories/GHSA-6qvw-249j-h44c")
