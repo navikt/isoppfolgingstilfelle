@@ -39,8 +39,7 @@ repositories {
 
 configurations.all {
     exclude(group = "log4j")
-    exclude(group = "org.slf4j", module = "slf4j-log4j12")
-    exclude(group = "ch.qos.reload4j", module = "reload4j")
+    exclude(group = "org.apache.logging.log4j")
 }
 
 dependencies {
@@ -58,6 +57,7 @@ dependencies {
     implementation("io.ktor:ktor-serialization-jackson:$ktor")
 
     // Logging
+    implementation("org.slf4j:slf4j-api:2.0.16")
     implementation("ch.qos.logback:logback-classic:$logback")
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashEncoder")
 
