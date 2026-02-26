@@ -8,7 +8,7 @@ enum class StatusEndring(val value: String) {
     STATUS_UTGATT("UTGATT"),
     STATUS_SENDT("SENDT"),
     STATUS_BEKREFTET("BEKREFTET"),
-    STATUS_SLETTET("SLETTET");
+    STATUS_SLETTET("SLETTET"),
 }
 
 data class SykmeldingStatusKafkaMessageDTO(
