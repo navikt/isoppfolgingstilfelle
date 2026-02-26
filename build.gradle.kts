@@ -79,6 +79,7 @@ dependencies {
     // Kafka
     val excludeLog4j = fun ExternalModuleDependency.() {
         exclude(group = "log4j")
+        exclude(group = "org.slf4j", module = "slf4j-log4j12")
     }
     implementation("io.confluent:kafka-avro-serializer:$confluent", excludeLog4j)
     constraints {
