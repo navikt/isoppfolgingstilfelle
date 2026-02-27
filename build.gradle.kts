@@ -5,26 +5,26 @@ group = "no.nav.syfo"
 version = "1.0.0"
 
 val confluent = "8.1.1"
-val flyway = "11.19.0"
+val flyway = "11.20.3"
 val hikari = "7.0.2"
-val jackson = "2.20.1"
+val jackson = "2.21.1"
 val jedis = "5.2.0"
-val kafka = "4.1.0"
-val ktor = "3.3.3"
-val logback = "1.5.22"
+val kafka = "4.1.1"
+val ktor = "3.4.0"
+val logback = "1.5.32"
 val logstashEncoder = "9.0"
-val mockk = "1.14.6"
-val nimbusJoseJwt = "10.6"
-val micrometerRegistry = "1.12.13"
-val postgres = "42.7.8"
+val mockk = "1.14.9"
+val nimbusJoseJwt = "10.8"
+val micrometerRegistry = "1.16.3"
+val postgres = "42.7.10"
 val postgresEmbedded = "2.2.0"
 val redisEmbedded = "0.7.3"
-val postgresRuntimeVersion = "17.5.0"
+val postgresRuntimeVersion = "17.7.0"
 
 plugins {
-    kotlin("jvm") version "2.2.21"
+    kotlin("jvm") version "2.3.10"
     id("com.gradleup.shadow") version "8.3.8"
-    id("org.jlleitschuh.gradle.ktlint") version "11.6.1"
+    id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
     id("com.github.davidmc24.gradle.plugin.avro") version "1.9.1"
     id("com.adarshr.test-logger") version "4.0.0"
 }
@@ -35,6 +35,11 @@ repositories {
     mavenCentral()
     maven(url = "https://packages.confluent.io/maven/")
     maven(url = "https://jitpack.io")
+}
+
+configurations.all {
+    exclude(group = "log4j")
+    exclude(group = "org.apache.logging.log4j")
 }
 
 dependencies {
@@ -77,10 +82,7 @@ dependencies {
     implementation("com.nimbusds:nimbus-jose-jwt:$nimbusJoseJwt")
 
     // Kafka
-    val excludeLog4j = fun ExternalModuleDependency.() {
-        exclude(group = "log4j")
-    }
-    implementation("io.confluent:kafka-avro-serializer:$confluent", excludeLog4j)
+    implementation("io.confluent:kafka-avro-serializer:$confluent")
     constraints {
         implementation("org.apache.avro:avro") {
             because("io.confluent:kafka-avro-serializer:$confluent -> https://www.cve.org/CVERecord?id=CVE-2023-39410")
@@ -95,7 +97,7 @@ dependencies {
             }
         }
     }
-    implementation("org.apache.kafka:kafka_2.13:$kafka", excludeLog4j)
+    implementation("org.apache.kafka:kafka_2.13:$kafka")
     constraints {
         implementation("org.bitbucket.b_c:jose4j") {
             because("org.apache.kafka:kafka_2.13:$kafka -> https://github.com/advisories/GHSA-6qvw-249j-h44c")
