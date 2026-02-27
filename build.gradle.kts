@@ -57,7 +57,6 @@ dependencies {
     implementation("io.ktor:ktor-serialization-jackson:$ktor")
 
     // Logging
-    implementation("org.slf4j:slf4j-api:2.0.16")
     implementation("ch.qos.logback:logback-classic:$logback")
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashEncoder")
 
