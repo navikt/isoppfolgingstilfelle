@@ -8,9 +8,10 @@ val confluent = "8.1.1"
 val flyway = "11.20.3"
 val hikari = "7.0.2"
 val jackson = "2.21.1"
+val jacksonDatabindVersion = "3.1.0"
 val jedis = "5.2.0"
 val kafka = "4.1.1"
-val ktor = "3.4.0"
+val ktor = "3.4.1"
 val logback = "1.5.32"
 val logstashEncoder = "9.0"
 val mockk = "1.14.9"
@@ -70,6 +71,7 @@ dependencies {
 
     // (De-)serialization
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
+    implementation("tools.jackson.core:jackson-databind:$jacksonDatabindVersion")
 
     // Database
     implementation("org.flywaydb:flyway-database-postgresql:$flyway")
