@@ -192,7 +192,14 @@ fun main() {
 
     Runtime.getRuntime().addShutdownHook(
         Thread {
-            server.stop(10, 10, TimeUnit.SECONDS)
+            val log = LoggerFactory.getLogger("no.nav.syfo.App")
+            applicationState.ready = false
+            log.info("Shutdown hook triggered: signaled background tasks to stop, waiting for them to finish")
+            try {
+                server.stop(10, 10, TimeUnit.SECONDS)
+            } catch (e: Exception) {
+                log.warn("Exception thrown during engine stop", e)
+            }
         }
     )
 
