@@ -198,7 +198,7 @@ fun main() {
             try {
                 server.stop(10, 10, TimeUnit.SECONDS)
             } catch (e: Exception) {
-                log.warn("Exception thrown during engine stop", e)
+                log.error("Exception thrown during engine stop", e)
             }
         }
     )
