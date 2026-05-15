@@ -37,7 +37,6 @@ import redis.clients.jedis.DefaultJedisClientConfig
 import redis.clients.jedis.HostAndPort
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.JedisPoolConfig
-import java.util.concurrent.TimeUnit
 
 const val applicationPort = 8080
 
