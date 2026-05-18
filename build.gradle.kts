@@ -20,7 +20,7 @@ val micrometerRegistry = "1.16.5"
 val postgres = "42.7.11"
 val postgresEmbedded = "2.2.2"
 val redisEmbedded = "0.7.3"
-val postgresRuntimeVersion = "17.9.0"
+val postgresRuntimeVersion = "18.3.0"
 
 plugins {
     kotlin("jvm") version "2.3.20"
