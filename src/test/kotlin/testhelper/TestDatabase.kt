@@ -57,6 +57,9 @@ fun DatabaseInterface.dropData() {
         """
         DELETE FROM PERSON
         """.trimIndent(),
+        """
+        DELETE FROM KANDIDAT_UTEN_ARBEIDSGIVER
+        """.trimIndent(),
     )
     this.connection.use { connection ->
         queryList.forEach { query ->
@@ -69,6 +72,14 @@ fun DatabaseInterface.dropData() {
 fun DatabaseInterface.countDeletedTilfelleBit() =
     this.connection.use { connection ->
         connection.prepareStatement("SELECT COUNT(*) FROM TILFELLE_BIT_DELETED").use { ps ->
+            val resultSet = ps.executeQuery().also { it.next() }
+            resultSet.getInt(1)
+        }
+    }
+
+fun DatabaseInterface.countKandidater() =
+    this.connection.use { connection ->
+        connection.prepareStatement("SELECT COUNT(*) FROM KANDIDAT_UTEN_ARBEIDSGIVER").use { ps ->
             val resultSet = ps.executeQuery().also { it.next() }
             resultSet.getInt(1)
         }
