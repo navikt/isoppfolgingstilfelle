@@ -36,6 +36,7 @@ class PdlClient(
                 historikk = true,
                 grupper = listOf(
                     IdentType.FOLKEREGISTERIDENT.name,
+                    IdentType.AKTORID.name,
                 ),
             ),
         )

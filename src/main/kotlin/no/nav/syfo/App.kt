@@ -184,6 +184,7 @@ fun main() {
                     oppfolgingstilfellePersonService = oppfolgingstilfellePersonService,
                     tilfellebitRepository = tilfellebitRepository,
                     valkeyStore = valkeyStore,
+                    pdlClient = pdlClient,
                 )
             }
         }

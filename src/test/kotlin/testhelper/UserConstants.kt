@@ -16,6 +16,8 @@ object UserConstants {
     val ARBEIDSTAKER_3_FNR = PersonIdentNumber("12345678913")
     val ARBEIDSTAKER_4_FNR = PersonIdentNumber("12345678919")
     val ARBEIDSTAKER_WITH_ERROR = PersonIdentNumber("12345678666")
+
+    const val ARBEIDSTAKER_AKTOR_ID = "1000012345678"
     val ARBEIDSTAKER_VIRKSOMHET_NO_NARMESTELEDER = PersonIdentNumber(ARBEIDSTAKER_FNR.value.replace("2", "8"))
     val ARBEIDSTAKER_UNKNOWN_AAREG = PersonIdentNumber(ARBEIDSTAKER_FNR.value.replace("2", "9"))
 

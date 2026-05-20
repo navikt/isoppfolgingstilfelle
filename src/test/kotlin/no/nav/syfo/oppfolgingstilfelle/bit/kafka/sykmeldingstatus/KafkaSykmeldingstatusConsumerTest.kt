@@ -107,6 +107,8 @@ class KafkaSykmeldingstatusConsumerTest {
             oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
         ),
         tilfellebitRepository = tilfellebitRepository,
+        pdlClient = externalMockEnvironment.pdlClient,
+        kandidatRepository = externalMockEnvironment.kandidatRepository,
     )
 
     @BeforeEach

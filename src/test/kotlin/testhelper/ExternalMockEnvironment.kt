@@ -3,7 +3,10 @@ package testhelper
 import no.nav.syfo.ApplicationState
 import no.nav.syfo.api.cache.ValkeyStore
 import no.nav.syfo.application.OppfolgingstilfelleService
+import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
+import no.nav.syfo.infrastructure.client.pdl.PdlClient
 import no.nav.syfo.infrastructure.database.OppfolgingstilfellePersonRepository
+import no.nav.syfo.infrastructure.database.SykmeldtUtenArbeidsgiverKandidatRepository
 import no.nav.syfo.infrastructure.database.bit.TilfellebitRepository
 import redis.clients.jedis.DefaultJedisClientConfig
 import redis.clients.jedis.HostAndPort
@@ -43,6 +46,16 @@ class ExternalMockEnvironment private constructor() {
     val oppfolgingstilfellePersonRepository = OppfolgingstilfellePersonRepository(database = database)
     val tilfellebitRepository = TilfellebitRepository(database = database)
     val oppfolgingstilfelleService = OppfolgingstilfelleService(oppfolgingstilfellePersonRepository)
+    val pdlClient = PdlClient(
+        azureAdClient = AzureAdClient(
+            azureEnviroment = environment.azure,
+            valkeyStore = valkeyStore,
+            httpClient = mockHttpClient,
+        ),
+        clientEnvironment = environment.clients.pdl,
+        httpClient = mockHttpClient,
+    )
+    val kandidatRepository = SykmeldtUtenArbeidsgiverKandidatRepository(database = database)
 
     companion object {
         val instance: ExternalMockEnvironment by lazy {

@@ -146,6 +146,8 @@ class KafkaSyketilfelleBitConsumerTest {
             oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
         ),
         tilfellebitRepository = tilfellebitRepository,
+        pdlClient = externalMockEnvironment.pdlClient,
+        kandidatRepository = externalMockEnvironment.kandidatRepository,
     )
 
     @BeforeEach
