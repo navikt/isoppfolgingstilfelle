@@ -69,32 +69,36 @@ class OppfolgingstilfelleCronjob(
         incomingBit: OppfolgingstilfelleBit,
         alleBiterForPerson: List<OppfolgingstilfelleBit>,
     ) {
-        if (!incomingBit.isSykmeldingBekreftet()) return
+        try {
+            if (!incomingBit.isSykmeldingBekreftet()) return
 
-        val latestTilfelle = alleBiterForPerson.generateOppfolgingstilfelleList().lastOrNull() ?: return
+            val latestTilfelle = alleBiterForPerson.generateOppfolgingstilfelleList().lastOrNull() ?: return
 
-        // Ignore if tilfelle is not current
-        if (latestTilfelle.end.isBefore(LocalDate.now())) return
+            // Ignore if tilfelle is not current
+            if (latestTilfelle.end.isBefore(LocalDate.now())) return
 
-        // Ignore incomingBit if not the latest bit in tilfelle
-        if (latestTilfelle.end != incomingBit.tom) return
+            // Ignore incomingBit if not the latest bit in tilfelle
+            if (latestTilfelle.end != incomingBit.tom) return
 
-        // Maybe redundant (since BEKREFTET)?
-        if (latestTilfelle.arbeidstakerAtTilfelleEnd) return
+            // Maybe redundant (since BEKREFTET)?
+            if (latestTilfelle.arbeidstakerAtTilfelleEnd) return
 
-        val aktorId = pdlClient.pdlIdenter(incomingBit.personIdentNumber)?.hentIdenter?.aktivAktorId ?: run {
-            log.warn("Fant ikke aktorId i PDL for BEKREFTET kandidat, hopper over")
-            return
+            val aktorId = pdlClient.pdlIdenter(incomingBit.personIdentNumber)?.hentIdenter?.aktivAktorId ?: run {
+                log.warn("Fant ikke aktorId i PDL for BEKREFTET kandidat, hopper over")
+                return
+            }
+
+            val kandidat = SykmeldtUtenArbeidsgiverKandidat.opprett(
+                personident = incomingBit.personIdentNumber,
+                aktorId = aktorId,
+                referanseId = incomingBit.ressursId,
+                tilfelleStart = latestTilfelle.start,
+            )
+            kandidatRepository.createIfMissing(kandidat)
+            log.info("Opprettet BEKREFTET kandidat uten arbeidsgiver")
+        } catch (exc: Exception) {
+            log.error("Failed to process SykmeldtUtenArbeidsgiverKandidat for tilfellebit: ${incomingBit.uuid}", exc)
         }
-
-        val kandidat = SykmeldtUtenArbeidsgiverKandidat.opprett(
-            personident = incomingBit.personIdentNumber,
-            aktorId = aktorId,
-            referanseId = incomingBit.ressursId,
-            tilfelleStart = latestTilfelle.start,
-        )
-        kandidatRepository.createIfMissing(kandidat)
-        log.info("Opprettet BEKREFTET kandidat uten arbeidsgiver")
     }
 
     companion object {
