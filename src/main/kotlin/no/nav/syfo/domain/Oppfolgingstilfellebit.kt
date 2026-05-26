@@ -224,6 +224,8 @@ fun OppfolgingstilfelleBit.isSykmeldingNy(): Boolean = this.tagList in (Tag.SYKM
 fun OppfolgingstilfelleBit.isInntektsmelding(): Boolean =
     this.tagList in (Tag.INNTEKTSMELDING and Tag.ARBEIDSGIVERPERIODE)
 
+fun OppfolgingstilfelleBit.isSykmeldingBekreftet(): Boolean = this.tagList in (Tag.SYKMELDING and Tag.BEKREFTET)
+
 fun OppfolgingstilfelleBit.isArbeidsdag() =
     this.tagList in (
         (Tag.SYKMELDING and Tag.PERIODE and Tag.FULL_AKTIVITET)

@@ -7,7 +7,9 @@ import no.nav.syfo.application.OppfolgingstilfellePersonService
 import no.nav.syfo.infrastructure.client.ArbeidsforholdClient
 import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
 import no.nav.syfo.infrastructure.client.leaderelection.LeaderPodClient
+import no.nav.syfo.infrastructure.client.pdl.PdlClient
 import no.nav.syfo.infrastructure.database.DatabaseInterface
+import no.nav.syfo.infrastructure.database.SykmeldtUtenArbeidsgiverKandidatRepository
 import no.nav.syfo.infrastructure.database.bit.TilfellebitRepository
 import no.nav.syfo.launchBackgroundTask
 
@@ -18,6 +20,7 @@ fun launchCronjobModule(
     oppfolgingstilfellePersonService: OppfolgingstilfellePersonService,
     tilfellebitRepository: TilfellebitRepository,
     valkeyStore: ValkeyStore,
+    pdlClient: PdlClient,
 ) {
     val leaderPodClient = LeaderPodClient(
         electorPath = environment.electorPath
@@ -34,6 +37,7 @@ fun launchCronjobModule(
         azureAdClient = azureAdClient,
         clientEnvironment = environment.clients.arbeidsforhold,
     )
+    val kandidatRepository = SykmeldtUtenArbeidsgiverKandidatRepository(database = database)
     val sykmeldingNyCronjob = SykmeldingNyCronjob(
         database = database,
         arbeidsforholdClient = arbeidsforholdClient,
@@ -43,6 +47,8 @@ fun launchCronjobModule(
     val oppfolgingstilfelleCronjob = OppfolgingstilfelleCronjob(
         oppfolgingstilfellePersonService = oppfolgingstilfellePersonService,
         tilfellebitRepository = tilfellebitRepository,
+        pdlClient = pdlClient,
+        kandidatRepository = kandidatRepository,
         intervalDelayMinutes = environment.oppfolgingstilfelleCronjobIntervalDelayMinutes,
     )
     launchBackgroundTask(

@@ -5,6 +5,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.mockk.*
+import kotlinx.coroutines.runBlocking
 import no.nav.syfo.api.endpoints.OppfolgingstilfellePersonDTO
 import no.nav.syfo.application.OppfolgingstilfelleBitService
 import no.nav.syfo.application.OppfolgingstilfellePersonService
@@ -88,6 +89,8 @@ class OppfolgingstilfelleApiTest {
             oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
         ),
         tilfellebitRepository = tilfellebitRepository,
+        pdlClient = externalMockEnvironment.pdlClient,
+        kandidatRepository = externalMockEnvironment.kandidatRepository,
     )
     private val oppfolgingstilfelleApiV1Path = "/api/internad/v1/oppfolgingstilfelle"
     private val validToken = generateJWT(
@@ -128,7 +131,7 @@ class OppfolgingstilfelleApiTest {
                 syketilfellebitConsumer.pollAndProcessRecords(
                     consumer = mockKafkaConsumerSyketilfelleBit,
                 )
-                oppfolgingstilfelleCronjob.runJob()
+                runBlocking { oppfolgingstilfelleCronjob.runJob() }
 
                 verify(exactly = 1) {
                     mockKafkaConsumerSyketilfelleBit.commitSync()
@@ -182,7 +185,7 @@ class OppfolgingstilfelleApiTest {
                 syketilfellebitConsumer.pollAndProcessRecords(
                     consumer = mockKafkaConsumerSyketilfelleBit,
                 )
-                oppfolgingstilfelleCronjob.runJob()
+                runBlocking { oppfolgingstilfelleCronjob.runJob() }
                 val dodsdato = LocalDate.now().minusDays(3)
                 oppfolgingstilfellePersonRepository.createPerson(
                     uuid = UUID.randomUUID(),
@@ -225,7 +228,7 @@ class OppfolgingstilfelleApiTest {
                 syketilfellebitConsumer.pollAndProcessRecords(
                     consumer = mockKafkaConsumerSyketilfelleBit,
                 )
-                oppfolgingstilfelleCronjob.runJob()
+                runBlocking { oppfolgingstilfelleCronjob.runJob() }
 
                 verify(exactly = 1) {
                     mockKafkaConsumerSyketilfelleBit.commitSync()
@@ -270,7 +273,7 @@ class OppfolgingstilfelleApiTest {
                 syketilfellebitConsumer.pollAndProcessRecords(
                     consumer = mockKafkaConsumerSyketilfelleBit,
                 )
-                oppfolgingstilfelleCronjob.runJob()
+                runBlocking { oppfolgingstilfelleCronjob.runJob() }
 
                 verify(exactly = 1) {
                     mockKafkaConsumerSyketilfelleBit.commitSync()
@@ -316,7 +319,7 @@ class OppfolgingstilfelleApiTest {
                 syketilfellebitConsumer.pollAndProcessRecords(
                     consumer = mockKafkaConsumerSyketilfelleBit,
                 )
-                oppfolgingstilfelleCronjob.runJob()
+                runBlocking { oppfolgingstilfelleCronjob.runJob() }
 
                 verify(exactly = 1) {
                     mockKafkaConsumerSyketilfelleBit.commitSync()
@@ -375,7 +378,7 @@ class OppfolgingstilfelleApiTest {
                 syketilfellebitConsumer.pollAndProcessRecords(
                     consumer = mockKafkaConsumerSyketilfelleBit,
                 )
-                oppfolgingstilfelleCronjob.runJob()
+                runBlocking { oppfolgingstilfelleCronjob.runJob() }
 
                 verify(exactly = 2) {
                     mockKafkaConsumerSyketilfelleBit.commitSync()
@@ -462,7 +465,7 @@ class OppfolgingstilfelleApiTest {
                 syketilfellebitConsumer.pollAndProcessRecords(
                     consumer = mockKafkaConsumerSyketilfelleBit,
                 )
-                oppfolgingstilfelleCronjob.runJob()
+                runBlocking { oppfolgingstilfelleCronjob.runJob() }
 
                 verify(exactly = 1) {
                     mockKafkaConsumerSyketilfelleBit.commitSync()

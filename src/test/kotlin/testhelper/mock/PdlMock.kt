@@ -32,6 +32,11 @@ fun generatePdlIdenterResponse(
                     historisk = true,
                     gruppe = IdentType.FOLKEREGISTERIDENT.name,
                 ),
+                PdlIdent(
+                    ident = UserConstants.ARBEIDSTAKER_AKTOR_ID,
+                    historisk = false,
+                    gruppe = IdentType.AKTORID.name,
+                ),
             ),
         ),
     ),

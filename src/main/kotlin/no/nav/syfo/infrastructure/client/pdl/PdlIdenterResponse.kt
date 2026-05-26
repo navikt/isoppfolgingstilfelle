@@ -18,6 +18,10 @@ data class PdlIdenter(
         it.gruppe == IdentType.FOLKEREGISTERIDENT.name && !it.historisk
     }?.ident
 
+    val aktivAktorId: String? = identer.firstOrNull {
+        it.gruppe == IdentType.AKTORID.name && !it.historisk
+    }?.ident
+
     fun identhendelseIsNotHistorisk(newIdent: String): Boolean {
         return identer.none { it.ident == newIdent && it.historisk }
     }
@@ -31,6 +35,7 @@ data class PdlIdent(
 
 enum class IdentType {
     FOLKEREGISTERIDENT,
+    AKTORID,
 }
 
 fun PdlIdenter.toPersonIdentNumberList(): List<PersonIdentNumber> =
