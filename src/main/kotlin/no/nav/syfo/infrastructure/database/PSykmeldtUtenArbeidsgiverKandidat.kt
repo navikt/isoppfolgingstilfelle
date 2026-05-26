@@ -32,7 +32,7 @@ fun ResultSet.toPSykmeldtUtenArbeidsgiverKandidat() = PSykmeldtUtenArbeidsgiverK
 
 fun PSykmeldtUtenArbeidsgiverKandidat.toKandidat() = SykmeldtUtenArbeidsgiverKandidat(
     uuid = uuid,
-    personIdentNumber = PersonIdentNumber(personident),
+    personident = PersonIdentNumber(personident),
     aktorId = aktorId,
     referanseId = referanseId,
     createdAt = createdAt,

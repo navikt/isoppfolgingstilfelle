@@ -61,8 +61,8 @@ class OppfolgingstilfelleCronjobKandidatTest {
         justRun { oppfolgingstilfellePersonProducer.sendOppfolgingstilfellePerson(any()) }
     }
 
-    private fun pollAndRun(bits: List<KafkaSyketilfellebit>) {
-        val records = bits.mapIndexed { i, bit ->
+    private fun pollAndRun(biter: List<KafkaSyketilfellebit>) {
+        val records = biter.mapIndexed { i, bit ->
             ConsumerRecord(SYKETILFELLEBIT_TOPIC, 0, i.toLong(), bit.id, bit)
         }
         every { mockKafkaConsumer.poll(any<Duration>()) } returns ConsumerRecords(

@@ -14,7 +14,7 @@ enum class KandidatStatus {
 
 data class SykmeldtUtenArbeidsgiverKandidat(
     val uuid: UUID,
-    val personIdentNumber: PersonIdentNumber,
+    val personident: PersonIdentNumber,
     val aktorId: String,
     val referanseId: String?,
     val createdAt: OffsetDateTime,
@@ -23,22 +23,25 @@ data class SykmeldtUtenArbeidsgiverKandidat(
 ) {
     companion object {
         fun opprett(
-            personIdentNumber: PersonIdentNumber,
+            personident: PersonIdentNumber,
             aktorId: String,
             referanseId: String?,
             tilfelleStart: LocalDate,
-        ): SykmeldtUtenArbeidsgiverKandidat {
-            val now = nowUTC()
-            val processAt28 = tilfelleStart.plusDays(28).atStartOfDay(ZoneId.of("Europe/Oslo")).toOffsetDateTime()
-            return SykmeldtUtenArbeidsgiverKandidat(
+        ) =
+            SykmeldtUtenArbeidsgiverKandidat(
                 uuid = UUID.randomUUID(),
-                personIdentNumber = personIdentNumber,
+                personident = personident,
                 aktorId = aktorId,
                 referanseId = referanseId,
-                createdAt = now,
+                createdAt = nowUTC(),
                 status = KandidatStatus.NY,
-                nextProcessingAt = if (now.isBefore(processAt28)) processAt28 else now,
+                nextProcessingAt = calculatePlannedProcessingTime(tilfelleStart),
             )
-        }
     }
+}
+
+private fun calculatePlannedProcessingTime(tilfelleStart: LocalDate): OffsetDateTime {
+    val now = nowUTC()
+    val processAt = tilfelleStart.plusDays(28).atStartOfDay(ZoneId.of("Europe/Oslo")).toOffsetDateTime()
+    return if (now.isBefore(processAt)) processAt else now
 }

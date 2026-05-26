@@ -54,7 +54,7 @@ class OppfolgingstilfelleCronjob(
 
                 lagreBekreftetKandidatHvisAktuelt(
                     incomingBit = oppfolgingstilfelleBit,
-                    allBitsForPerson = oppfolgingstilfelleBitForPersonList,
+                    alleBiterForPerson = oppfolgingstilfelleBitForPersonList,
                 )
 
                 result.updated++
@@ -67,11 +67,11 @@ class OppfolgingstilfelleCronjob(
 
     private suspend fun lagreBekreftetKandidatHvisAktuelt(
         incomingBit: OppfolgingstilfelleBit,
-        allBitsForPerson: List<OppfolgingstilfelleBit>,
+        alleBiterForPerson: List<OppfolgingstilfelleBit>,
     ) {
         if (!incomingBit.isSykmeldingBekreftet()) return
 
-        val latestTilfelle = allBitsForPerson.generateOppfolgingstilfelleList().lastOrNull() ?: return
+        val latestTilfelle = alleBiterForPerson.generateOppfolgingstilfelleList().lastOrNull() ?: return
 
         // Ignore if tilfelle is not current
         if (latestTilfelle.end.isBefore(LocalDate.now())) return
@@ -88,7 +88,7 @@ class OppfolgingstilfelleCronjob(
         }
 
         val kandidat = SykmeldtUtenArbeidsgiverKandidat.opprett(
-            personIdentNumber = incomingBit.personIdentNumber,
+            personident = incomingBit.personIdentNumber,
             aktorId = aktorId,
             referanseId = incomingBit.ressursId,
             tilfelleStart = latestTilfelle.start,

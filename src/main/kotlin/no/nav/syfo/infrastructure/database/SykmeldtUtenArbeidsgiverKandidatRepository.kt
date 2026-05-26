@@ -11,14 +11,14 @@ class SykmeldtUtenArbeidsgiverKandidatRepository(private val database: DatabaseI
     fun createIfMissing(kandidat: SykmeldtUtenArbeidsgiverKandidat) {
         database.connection.use { connection ->
             val hasActive = connection.prepareStatement(QUERY_GET_ACTIVE_KANDIDAT).use {
-                it.setString(1, kandidat.personIdentNumber.value)
+                it.setString(1, kandidat.personident.value)
                 it.executeQuery().next()
             }
             if (!hasActive) {
                 connection.prepareStatement(QUERY_INSERT_KANDIDAT).use {
                     it.setString(1, kandidat.uuid.toString())
                     it.setTimestamp(2, Timestamp.from(kandidat.createdAt.toInstant()))
-                    it.setString(3, kandidat.personIdentNumber.value)
+                    it.setString(3, kandidat.personident.value)
                     it.setString(4, kandidat.aktorId)
                     it.setString(5, kandidat.referanseId)
                     it.setString(6, kandidat.status.name)
