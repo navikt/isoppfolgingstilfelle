@@ -12,6 +12,8 @@ enum class KandidatStatus {
     FERDIG,
 }
 
+const val DAYS_AFTER_TILFELLE_START = 28L
+
 data class SykmeldtUtenArbeidsgiverKandidat(
     val uuid: UUID,
     val personident: PersonIdentNumber,
@@ -42,6 +44,6 @@ data class SykmeldtUtenArbeidsgiverKandidat(
 
 private fun calculatePlannedProcessingTime(tilfelleStart: LocalDate): OffsetDateTime {
     val now = nowUTC()
-    val processAt = tilfelleStart.plusDays(28).atStartOfDay(ZoneId.of("Europe/Oslo")).toOffsetDateTime()
+    val processAt = tilfelleStart.plusDays(DAYS_AFTER_TILFELLE_START).atStartOfDay(ZoneId.of("Europe/Oslo")).toOffsetDateTime()
     return if (now.isBefore(processAt)) processAt else now
 }
