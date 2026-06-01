@@ -114,3 +114,9 @@ spec:
       value: "7"
     - name: SYKMELDING_NY_CRONJOB_INTERVAL_DELAY_MINUTES
       value: "10"
+    - name: MODIA_AO_OVERSENDING_CRONJOB_INITIAL_DELAY_MINUTES
+      value: "11"
+    - name: MODIA_AO_OVERSENDING_CRONJOB_INTERVAL_DELAY_MINUTES
+      value: "60"
+    - name: MODIA_AO_SEND_ENABLED
+      value: "false"
