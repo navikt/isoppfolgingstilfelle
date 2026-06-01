@@ -85,6 +85,13 @@ fun DatabaseInterface.countKandidater() =
         }
     }
 
+fun DatabaseInterface.setKandidatFerdig() {
+    this.connection.use { connection ->
+        connection.prepareStatement("UPDATE KANDIDAT_UTEN_ARBEIDSGIVER SET status = 'FERDIG'").execute()
+        connection.commit()
+    }
+}
+
 const val queryGetOppfolgingstilfelleBitForIdent =
     """
     SELECT *

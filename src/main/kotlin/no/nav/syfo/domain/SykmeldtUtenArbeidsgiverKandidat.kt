@@ -20,6 +20,7 @@ data class SykmeldtUtenArbeidsgiverKandidat(
     val aktorId: String,
     val referanseId: String?,
     val createdAt: OffsetDateTime,
+    val tilfelleStart: LocalDate,
     val status: KandidatStatus,
     val nextProcessingAt: OffsetDateTime,
 ) {
@@ -36,6 +37,7 @@ data class SykmeldtUtenArbeidsgiverKandidat(
                 aktorId = aktorId,
                 referanseId = referanseId,
                 createdAt = nowUTC(),
+                tilfelleStart = tilfelleStart,
                 status = KandidatStatus.NY,
                 nextProcessingAt = calculatePlannedProcessingTime(tilfelleStart),
             )
