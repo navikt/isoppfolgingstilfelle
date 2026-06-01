@@ -5,9 +5,6 @@ import java.sql.Timestamp
 
 class SykmeldtUtenArbeidsgiverKandidatRepository(private val database: DatabaseInterface) {
 
-    /**
-     * Oppretter kandidaten hvis det ikke allerede finnes en aktiv (NY/UTSATT) kandidat for personen.
-     */
     fun createIfMissing(kandidat: SykmeldtUtenArbeidsgiverKandidat) {
         database.connection.use { connection ->
             val hasExisting = connection.prepareStatement(QUERY_GET_EXISTING_KANDIDAT).use {

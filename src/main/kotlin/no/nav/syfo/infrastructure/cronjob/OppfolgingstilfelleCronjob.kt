@@ -54,7 +54,6 @@ class OppfolgingstilfelleCronjob(
 
                 lagreBekreftetKandidatHvisAktuell(
                     incomingBit = oppfolgingstilfelleBit,
-                    alleBiterForPerson = oppfolgingstilfelleBitForPersonList,
                     oppfolgingstilfellePerson = oppfolgingstilfellePerson,
                 )
 
@@ -68,7 +67,6 @@ class OppfolgingstilfelleCronjob(
 
     private suspend fun lagreBekreftetKandidatHvisAktuell(
         incomingBit: OppfolgingstilfelleBit,
-        alleBiterForPerson: List<OppfolgingstilfelleBit>,
         oppfolgingstilfellePerson: OppfolgingstilfellePerson,
     ) {
         try {
@@ -97,7 +95,6 @@ class OppfolgingstilfelleCronjob(
                 tilfelleStart = latestTilfelle.start,
             )
             kandidatRepository.createIfMissing(kandidat)
-            log.info("Opprettet BEKREFTET kandidat uten arbeidsgiver")
         } catch (exc: Exception) {
             log.error("Failed to process SykmeldtUtenArbeidsgiverKandidat for tilfellebit: ${incomingBit.uuid}", exc)
         }
