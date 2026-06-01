@@ -4,6 +4,7 @@ import no.nav.syfo.ApplicationState
 import no.nav.syfo.Environment
 import no.nav.syfo.api.cache.ValkeyStore
 import no.nav.syfo.application.OppfolgingstilfellePersonService
+import no.nav.syfo.application.OppfolgingstilfelleService
 import no.nav.syfo.infrastructure.client.ArbeidsforholdClient
 import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
 import no.nav.syfo.infrastructure.client.leaderelection.LeaderPodClient
@@ -51,6 +52,13 @@ fun launchCronjobModule(
         kandidatRepository = kandidatRepository,
         intervalDelayMinutes = environment.oppfolgingstilfelleCronjobIntervalDelayMinutes,
     )
+    val modiaAOOversendingCronjob = ModiaAOOversendingCronjob(
+        oppfolgingstilfelleService = OppfolgingstilfelleService(oppfolgingstilfellePersonService.oppfolgingstilfellePersonRepository),
+        kandidatRepository = kandidatRepository,
+        initialDelayMinutes = environment.modiaAOOversendingCronjobInitialDelayMinutes,
+        intervalDelayMinutes = environment.modiaAOOversendingCronjobIntervalDelayMinutes,
+        sendEnabled = environment.modiaAOSendEnabled,
+    )
     launchBackgroundTask(
         applicationState = applicationState,
     ) {
@@ -63,6 +71,13 @@ fun launchCronjobModule(
     ) {
         cronjobRunner.start(
             cronjob = oppfolgingstilfelleCronjob,
+        )
+    }
+    launchBackgroundTask(
+        applicationState = applicationState,
+    ) {
+        cronjobRunner.start(
+            cronjob = modiaAOOversendingCronjob,
         )
     }
 }

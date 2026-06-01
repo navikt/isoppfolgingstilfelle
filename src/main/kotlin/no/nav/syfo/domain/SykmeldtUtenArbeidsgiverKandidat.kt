@@ -23,6 +23,7 @@ data class SykmeldtUtenArbeidsgiverKandidat(
     val tilfelleStart: LocalDate,
     val status: KandidatStatus,
     val nextProcessingAt: OffsetDateTime,
+    val oversendtAt: OffsetDateTime?,
 ) {
     companion object {
         fun opprett(
@@ -40,6 +41,7 @@ data class SykmeldtUtenArbeidsgiverKandidat(
                 tilfelleStart = tilfelleStart,
                 status = KandidatStatus.NY,
                 nextProcessingAt = calculatePlannedProcessingTime(tilfelleStart),
+                oversendtAt = null,
             )
     }
 }

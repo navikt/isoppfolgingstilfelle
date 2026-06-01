@@ -3,6 +3,8 @@ package testhelper
 import io.zonky.test.db.postgres.embedded.EmbeddedPostgres
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.infrastructure.database.DatabaseInterface
+import no.nav.syfo.infrastructure.database.PSykmeldtUtenArbeidsgiverKandidat
+import no.nav.syfo.infrastructure.database.toPSykmeldtUtenArbeidsgiverKandidat
 import no.nav.syfo.infrastructure.database.bit.POppfolgingstilfelleBit
 import no.nav.syfo.infrastructure.database.bit.toPOppfolgingstilfelleBit
 import no.nav.syfo.infrastructure.database.toList
@@ -109,6 +111,14 @@ fun DatabaseInterface.insertKandidatFerdig(personident: PersonIdentNumber, tilfe
         connection.commit()
     }
 }
+
+fun DatabaseInterface.getKandidaterForPersonident(personident: PersonIdentNumber): List<PSykmeldtUtenArbeidsgiverKandidat> =
+    this.connection.use { connection ->
+        connection.prepareStatement("SELECT * FROM KANDIDAT_UTEN_ARBEIDSGIVER WHERE personident = ?").use {
+            it.setString(1, personident.value)
+            it.executeQuery().toList { toPSykmeldtUtenArbeidsgiverKandidat() }
+        }
+    }
 
 const val queryGetOppfolgingstilfelleBitForIdent =
     """

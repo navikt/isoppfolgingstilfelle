@@ -19,6 +19,7 @@ data class PSykmeldtUtenArbeidsgiverKandidat(
     val tilfelleStart: LocalDate,
     val status: String,
     val nextProcessingAt: OffsetDateTime,
+    val oversendtAt: OffsetDateTime?,
 )
 
 fun ResultSet.toPSykmeldtUtenArbeidsgiverKandidat() = PSykmeldtUtenArbeidsgiverKandidat(
@@ -31,6 +32,7 @@ fun ResultSet.toPSykmeldtUtenArbeidsgiverKandidat() = PSykmeldtUtenArbeidsgiverK
     tilfelleStart = getDate("tilfelle_start").toLocalDate(),
     status = getString("status"),
     nextProcessingAt = getTimestamp("next_processing_at").toOffsetDateTimeUTC(),
+    oversendtAt = getTimestamp("oversendt_at")?.toOffsetDateTimeUTC(),
 )
 
 fun PSykmeldtUtenArbeidsgiverKandidat.toKandidat() = SykmeldtUtenArbeidsgiverKandidat(
@@ -42,4 +44,5 @@ fun PSykmeldtUtenArbeidsgiverKandidat.toKandidat() = SykmeldtUtenArbeidsgiverKan
     tilfelleStart = tilfelleStart,
     status = KandidatStatus.valueOf(status),
     nextProcessingAt = nextProcessingAt,
+    oversendtAt = oversendtAt,
 )
