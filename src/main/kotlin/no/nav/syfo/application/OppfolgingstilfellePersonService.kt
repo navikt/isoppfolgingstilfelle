@@ -1,6 +1,7 @@
 package no.nav.syfo.application
 
 import no.nav.syfo.domain.OppfolgingstilfelleBit
+import no.nav.syfo.domain.OppfolgingstilfellePerson
 import no.nav.syfo.domain.generateOppfolgingstilfelleList
 import no.nav.syfo.domain.hasGjentakendeSykefravar
 import no.nav.syfo.domain.toOppfolgingstilfellePerson
@@ -14,7 +15,7 @@ class OppfolgingstilfellePersonService(
     fun createOppfolgingstilfellePerson(
         oppfolgingstilfelleBit: OppfolgingstilfelleBit,
         oppfolgingstilfelleBitForPersonList: List<OppfolgingstilfelleBit>,
-    ) {
+    ): OppfolgingstilfellePerson {
         val oppfolgingstilfellePerson = oppfolgingstilfelleBit.toOppfolgingstilfellePerson(
             oppfolgingstilfelleBitList = oppfolgingstilfelleBitForPersonList,
             dodsdato = oppfolgingstilfellePersonRepository.getDodsdato(oppfolgingstilfelleBit.personIdentNumber),
@@ -28,5 +29,6 @@ class OppfolgingstilfellePersonService(
         oppfolgingstilfellePersonProducer.sendOppfolgingstilfellePerson(
             oppfolgingstilfellePerson = oppfolgingstilfellePerson
         )
+        return oppfolgingstilfellePerson
     }
 }
