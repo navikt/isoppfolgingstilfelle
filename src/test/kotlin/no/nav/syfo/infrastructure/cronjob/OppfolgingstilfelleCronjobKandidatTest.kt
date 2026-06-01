@@ -22,7 +22,9 @@ import testhelper.UserConstants.VIRKSOMHETSNUMMER_DEFAULT
 import testhelper.countKandidater
 import testhelper.dropData
 import testhelper.generator.generateKafkaSyketilfellebitRelevantSykmeldingBekreftet
+import testhelper.insertKandidatFerdig
 import testhelper.mock.toHistoricalPersonIdentNumber
+import testhelper.setKandidatFerdig
 import java.time.Duration
 import java.time.LocalDate
 
@@ -205,22 +207,15 @@ class OppfolgingstilfelleCronjobKandidatTest {
 
     @Test
     fun `stores new kandidat for new tilfelle when previous kandidat is FERDIG`() {
-        val bit1 = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
-            personIdentNumber = personIdentDefault,
-            fom = LocalDate.now().minusDays(30),
-            tom = LocalDate.now().minusDays(2),
-        )
-        pollAndRun(listOf(bit1))
+        database.insertKandidatFerdig(personIdentDefault, LocalDate.now().minusDays(60))
         assertEquals(1, database.countKandidater())
 
-        database.setKandidatFerdig()
-
-        val bit2 = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
+        val bit = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
             personIdentNumber = personIdentDefault,
-            fom = LocalDate.now().minusDays(1),
+            fom = LocalDate.now().minusDays(10),
             tom = LocalDate.now(),
         )
-        pollAndRun(listOf(bit2))
+        pollAndRun(listOf(bit))
         assertEquals(2, database.countKandidater())
     }
 }
