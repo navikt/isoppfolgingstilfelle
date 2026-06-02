@@ -8,6 +8,7 @@ import no.nav.syfo.infrastructure.database.bit.toPOppfolgingstilfelleBit
 import no.nav.syfo.infrastructure.database.toList
 import org.flywaydb.core.Flyway
 import java.sql.Connection
+import java.time.LocalDate
 
 class TestDatabase : DatabaseInterface {
     private val pg: EmbeddedPostgres
@@ -84,6 +85,30 @@ fun DatabaseInterface.countKandidater() =
             resultSet.getInt(1)
         }
     }
+
+fun DatabaseInterface.setKandidatFerdig() {
+    this.connection.use { connection ->
+        connection.prepareStatement("UPDATE KANDIDAT_UTEN_ARBEIDSGIVER SET status = 'FERDIG'").execute()
+        connection.commit()
+    }
+}
+
+fun DatabaseInterface.insertKandidatFerdig(personident: PersonIdentNumber, tilfelleStart: LocalDate) {
+    this.connection.use { connection ->
+        connection.prepareStatement(
+            """
+            INSERT INTO KANDIDAT_UTEN_ARBEIDSGIVER (uuid, created_at, personident, aktor_id, tilfelle_start, status, next_processing_at)
+            VALUES (?, now(), ?, 'test-aktor-id', ?, 'FERDIG', now())
+            """
+        ).use {
+            it.setString(1, java.util.UUID.randomUUID().toString())
+            it.setString(2, personident.value)
+            it.setObject(3, tilfelleStart)
+            it.executeUpdate()
+        }
+        connection.commit()
+    }
+}
 
 const val queryGetOppfolgingstilfelleBitForIdent =
     """

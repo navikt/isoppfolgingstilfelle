@@ -3,8 +3,8 @@ package no.nav.syfo.infrastructure.cronjob
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.application.OppfolgingstilfellePersonService
 import no.nav.syfo.domain.OppfolgingstilfelleBit
+import no.nav.syfo.domain.OppfolgingstilfellePerson
 import no.nav.syfo.domain.SykmeldtUtenArbeidsgiverKandidat
-import no.nav.syfo.domain.generateOppfolgingstilfelleList
 import no.nav.syfo.domain.isSykmeldingBekreftet
 import no.nav.syfo.infrastructure.client.pdl.PdlClient
 import no.nav.syfo.infrastructure.database.SykmeldtUtenArbeidsgiverKandidatRepository
@@ -46,15 +46,15 @@ class OppfolgingstilfelleCronjob(
                     )
                 }
 
-                oppfolgingstilfellePersonService.createOppfolgingstilfellePerson(
+                val oppfolgingstilfellePerson = oppfolgingstilfellePersonService.createOppfolgingstilfellePerson(
                     oppfolgingstilfelleBit = oppfolgingstilfelleBit,
                     oppfolgingstilfelleBitForPersonList = oppfolgingstilfelleBitForPersonList,
                 )
                 tilfellebitRepository.setProcessedOppfolgingstilfelleBit(oppfolgingstilfelleBit.uuid)
 
-                lagreBekreftetKandidatHvisAktuelt(
+                lagreBekreftetKandidatHvisAktuell(
                     incomingBit = oppfolgingstilfelleBit,
-                    alleBiterForPerson = oppfolgingstilfelleBitForPersonList,
+                    oppfolgingstilfellePerson = oppfolgingstilfellePerson,
                 )
 
                 result.updated++
@@ -65,14 +65,14 @@ class OppfolgingstilfelleCronjob(
         }
     }
 
-    private suspend fun lagreBekreftetKandidatHvisAktuelt(
+    private suspend fun lagreBekreftetKandidatHvisAktuell(
         incomingBit: OppfolgingstilfelleBit,
-        alleBiterForPerson: List<OppfolgingstilfelleBit>,
+        oppfolgingstilfellePerson: OppfolgingstilfellePerson,
     ) {
         try {
             if (!incomingBit.isSykmeldingBekreftet()) return
 
-            val latestTilfelle = alleBiterForPerson.generateOppfolgingstilfelleList().lastOrNull() ?: return
+            val latestTilfelle = oppfolgingstilfellePerson.oppfolgingstilfelleList.lastOrNull() ?: return
 
             // Ignore if tilfelle is not current
             if (latestTilfelle.end.isBefore(LocalDate.now())) return
@@ -95,7 +95,6 @@ class OppfolgingstilfelleCronjob(
                 tilfelleStart = latestTilfelle.start,
             )
             kandidatRepository.createIfMissing(kandidat)
-            log.info("Opprettet BEKREFTET kandidat uten arbeidsgiver")
         } catch (exc: Exception) {
             log.error("Failed to process SykmeldtUtenArbeidsgiverKandidat for tilfellebit: ${incomingBit.uuid}", exc)
         }

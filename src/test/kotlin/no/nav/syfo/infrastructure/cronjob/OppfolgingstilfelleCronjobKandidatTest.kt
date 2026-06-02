@@ -22,7 +22,9 @@ import testhelper.UserConstants.VIRKSOMHETSNUMMER_DEFAULT
 import testhelper.countKandidater
 import testhelper.dropData
 import testhelper.generator.generateKafkaSyketilfellebitRelevantSykmeldingBekreftet
+import testhelper.insertKandidatFerdig
 import testhelper.mock.toHistoricalPersonIdentNumber
+import testhelper.setKandidatFerdig
 import java.time.Duration
 import java.time.LocalDate
 
@@ -179,5 +181,41 @@ class OppfolgingstilfelleCronjobKandidatTest {
         )
         pollAndRun(listOf(bekreftetBit))
         assertEquals(0, database.countKandidater())
+    }
+
+    @Test
+    fun `does not store new kandidat for same tilfelle when previous kandidat is FERDIG`() {
+        val fom = LocalDate.now().minusDays(30)
+        val bit1 = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
+            personIdentNumber = personIdentDefault,
+            fom = fom,
+            tom = LocalDate.now(),
+        )
+        pollAndRun(listOf(bit1))
+        assertEquals(1, database.countKandidater())
+
+        database.setKandidatFerdig()
+
+        val bit2 = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
+            personIdentNumber = personIdentDefault,
+            fom = fom,
+            tom = LocalDate.now(),
+        )
+        pollAndRun(listOf(bit2))
+        assertEquals(1, database.countKandidater())
+    }
+
+    @Test
+    fun `stores new kandidat for new tilfelle when previous kandidat is FERDIG`() {
+        database.insertKandidatFerdig(personIdentDefault, LocalDate.now().minusDays(60))
+        assertEquals(1, database.countKandidater())
+
+        val bit = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
+            personIdentNumber = personIdentDefault,
+            fom = LocalDate.now().minusDays(10),
+            tom = LocalDate.now(),
+        )
+        pollAndRun(listOf(bit))
+        assertEquals(2, database.countKandidater())
     }
 }
