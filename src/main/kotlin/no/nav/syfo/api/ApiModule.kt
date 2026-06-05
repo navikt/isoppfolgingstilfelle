@@ -16,8 +16,8 @@ import no.nav.syfo.api.endpoints.registerOppfolgingstilfelleSystemApi
 import no.nav.syfo.api.metric.registerMetricApi
 import no.nav.syfo.application.NarmesteLederAccessService
 import no.nav.syfo.application.OppfolgingstilfelleService
+import no.nav.syfo.common.tilgangskontroll.client.TilgangskontrollClient
 import no.nav.syfo.infrastructure.client.narmesteleder.NarmesteLederClient
-import no.nav.syfo.infrastructure.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.infrastructure.client.wellknown.WellKnown
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 
@@ -29,7 +29,7 @@ fun Application.apiModule(
     wellKnownInternalAzureAD: WellKnown,
     wellKnownSelvbetjening: WellKnown,
     narmesteLederClient: NarmesteLederClient,
-    veilederTilgangskontrollClient: VeilederTilgangskontrollClient,
+    veilederTilgangskontrollClient: TilgangskontrollClient,
 ) {
     installMetrics()
     installCallId()
@@ -64,7 +64,7 @@ fun Application.apiModule(
         authenticate(JwtIssuerType.INTERNAL_AZUREAD.name) {
             registerOppfolgingstilfelleApi(
                 oppfolgingstilfelleService = oppfolgingstilfelleService,
-                veilederTilgangskontrollClient = veilederTilgangskontrollClient,
+                tilgangskontrollClient = veilederTilgangskontrollClient,
             )
             registerOppfolgingstilfelleSystemApi(
                 apiConsumerAccessService = apiConsumerAccessService,

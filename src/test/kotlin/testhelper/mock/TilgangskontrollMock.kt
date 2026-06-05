@@ -2,7 +2,7 @@ package testhelper.mock
 
 import io.ktor.client.engine.mock.*
 import io.ktor.client.request.*
-import no.nav.syfo.infrastructure.client.veiledertilgang.Tilgang
+import no.nav.syfo.common.mock.MockTilgangResponse
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 import testhelper.UserConstants.PERSONIDENTNUMBER_VEILEDER_NO_ACCESS
 
@@ -14,11 +14,11 @@ suspend fun MockRequestHandleScope.tilgangskontrollResponse(request: HttpRequest
             val personident = request.headers[NAV_PERSONIDENT_HEADER]
             when (personident) {
                 PERSONIDENTNUMBER_VEILEDER_NO_ACCESS.value -> {
-                    respondOk(Tilgang(erGodkjent = false))
+                    respondOk(MockTilgangResponse(erGodkjent = false, fullTilgang = false))
                 }
 
                 else -> {
-                    respondOk(Tilgang(erGodkjent = true))
+                    respondOk(MockTilgangResponse(erGodkjent = true, fullTilgang = true))
                 }
             }
         }

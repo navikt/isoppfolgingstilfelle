@@ -4,6 +4,8 @@ import org.jlleitschuh.gradle.ktlint.tasks.KtLintCheckTask
 group = "no.nav.syfo"
 version = "1.0.0"
 
+val isyfoBackendCommon = "0.0.44"
+
 val confluent = "8.2.1"
 val flyway = "11.20.3"
 val hikari = "7.0.2"
@@ -36,6 +38,13 @@ repositories {
     mavenCentral()
     maven(url = "https://packages.confluent.io/maven/")
     maven(url = "https://jitpack.io")
+    maven {
+        url = uri("https://maven.pkg.github.com/navikt/isyfo-backend-common")
+        credentials {
+            username = project.findProperty("githubUser") as String? ?: "x-access-token"
+            password = project.findProperty("githubPassword") as String? ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
 }
 
 configurations.all {
@@ -46,6 +55,8 @@ configurations.all {
 dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
+
+    implementation("no.nav.syfo:isyfo-backend-common:$isyfoBackendCommon")
 
     implementation("io.ktor:ktor-server-auth-jwt:$ktor")
     implementation("io.ktor:ktor-server-content-negotiation:$ktor")
@@ -115,6 +126,8 @@ dependencies {
         }
     }
 
+    // Tests
+    testImplementation(testFixtures("no.nav.syfo:isyfo-backend-common:$isyfoBackendCommon"))
     testImplementation("com.nimbusds:nimbus-jose-jwt:$nimbusJoseJwt")
     testImplementation("io.ktor:ktor-server-test-host:$ktor")
     testImplementation("io.ktor:ktor-client-mock:$ktor")

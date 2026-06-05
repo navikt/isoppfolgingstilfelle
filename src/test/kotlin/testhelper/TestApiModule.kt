@@ -2,10 +2,11 @@ package testhelper
 
 import io.ktor.server.application.*
 import no.nav.syfo.api.apiModule
+import no.nav.syfo.common.tilgangskontroll.client.TilgangskontrollClient
+import no.nav.syfo.common.util.ClientConfig
 import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
 import no.nav.syfo.infrastructure.client.narmesteleder.NarmesteLederClient
 import no.nav.syfo.infrastructure.client.tokendings.TokendingsClient
-import no.nav.syfo.infrastructure.client.veiledertilgang.VeilederTilgangskontrollClient
 
 fun Application.testApiModule(
     externalMockEnvironment: ExternalMockEnvironment,
@@ -35,9 +36,14 @@ fun Application.testApiModule(
             valkeyStore = externalMockEnvironment.valkeyStore,
             httpClient = externalMockEnvironment.mockHttpClient,
         ),
-        veilederTilgangskontrollClient = VeilederTilgangskontrollClient(
-            azureAdClient = azureAdClient,
-            clientEnvironment = externalMockEnvironment.environment.clients.tilgangskontroll,
+        veilederTilgangskontrollClient = TilgangskontrollClient(
+            oboTokenProvider = { scopeClientId, token ->
+                azureAdClient.getOnBehalfOfToken(scopeClientId, token)?.accessToken
+            },
+            clientConfig = ClientConfig(
+                baseUrl = externalMockEnvironment.environment.clients.tilgangskontroll.baseUrl,
+                clientId = externalMockEnvironment.environment.clients.tilgangskontroll.clientId,
+            ),
             httpClient = externalMockEnvironment.mockHttpClient,
         ),
     )
