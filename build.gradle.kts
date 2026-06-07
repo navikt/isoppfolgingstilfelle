@@ -4,7 +4,7 @@ import org.jlleitschuh.gradle.ktlint.tasks.KtLintCheckTask
 group = "no.nav.syfo"
 version = "1.0.0"
 
-val isyfoBackendCommon = "0.0.44"
+val isyfoBackendCommon = "0.0.46"
 
 val confluent = "8.2.1"
 val flyway = "11.20.3"

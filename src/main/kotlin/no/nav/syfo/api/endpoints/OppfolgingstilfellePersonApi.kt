@@ -8,6 +8,7 @@ import no.nav.syfo.application.OppfolgingstilfelleService
 import no.nav.syfo.common.tilgangskontroll.checkPersonAndSyfoTilgang
 import no.nav.syfo.common.tilgangskontroll.client.TilgangskontrollClient
 import no.nav.syfo.common.tilgangskontroll.filterPersonsUserHasAccessTo
+import no.nav.syfo.common.types.ident.PersonIdent
 import no.nav.syfo.domain.Oppfolgingstilfelle
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.domain.hasGjentakendeSykefravar
@@ -23,8 +24,8 @@ fun Route.registerOppfolgingstilfelleApi(
             checkPersonAndSyfoTilgang(
                 action = "Read OppfolgingstilfelleDTO for Person with PersonIdent",
                 tilgangskontrollClient = tilgangskontrollClient,
-            ) { authorized ->
-                val personIdent = PersonIdentNumber(authorized.personIdent.value)
+            ) { _, targetPersonIdent, _ ->
+                val personIdent = PersonIdentNumber(targetPersonIdent.value)
                 val dodsdato = oppfolgingstilfelleService.getDodsdato(personIdent)
                 val oppfolgingstilfellePersonDTO =
                     oppfolgingstilfelleService.getOppfolgingstilfellePerson(personIdent = personIdent)
@@ -39,19 +40,20 @@ fun Route.registerOppfolgingstilfelleApi(
         }
 
         post("/persons") {
-            val personIdentStrings = call.receive<List<String>>()
+            val personIdents = call.receive<List<String>>().map { PersonIdent(it) }
 
-            val personsUserHasAccessToStrings = filterPersonsUserHasAccessTo(
+            val personsUserHasAccessTo = filterPersonsUserHasAccessTo(
                 action = "Filter persons for OppfolgingstilfelleDTO",
-                personIdenter = personIdentStrings,
+                personIdenter = personIdents,
                 tilgangskontrollClient = tilgangskontrollClient,
             ) ?: emptyList()
-            val personsUserHasAccessTo = personsUserHasAccessToStrings.map { PersonIdentNumber(it) }
 
             val (oppfolgingstilfellerPersonsDTOs, duration) = measureTimedValue {
                 personsUserHasAccessTo.map {
-                    val dodsdato = oppfolgingstilfelleService.getDodsdato(it)
-                    oppfolgingstilfelleService.getOppfolgingstilfellePerson(personIdent = it)
+                    val personIdent = PersonIdentNumber(it.value)
+                    val dodsdato = oppfolgingstilfelleService.getDodsdato(personIdent)
+
+                    oppfolgingstilfelleService.getOppfolgingstilfellePerson(personIdent)
                         ?.toOppfolgingstilfellePersonDTO() ?: OppfolgingstilfellePersonDTO(
                         oppfolgingstilfelleList = emptyList(),
                         personIdent = it.value,
@@ -61,7 +63,7 @@ fun Route.registerOppfolgingstilfelleApi(
                 }
             }
 
-            application.log.info("Got oppfolgingstilfeller for ${personsUserHasAccessToStrings.size} persons in ${duration.inWholeMilliseconds} ms")
+            application.log.info("Got oppfolgingstilfeller for ${personsUserHasAccessTo.size} persons in ${duration.inWholeMilliseconds} ms")
 
             call.respond(oppfolgingstilfellerPersonsDTOs)
         }
