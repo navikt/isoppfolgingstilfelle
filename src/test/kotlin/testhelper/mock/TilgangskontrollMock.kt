@@ -2,7 +2,7 @@ package testhelper.mock
 
 import io.ktor.client.engine.mock.*
 import io.ktor.client.request.*
-import no.nav.syfo.common.mock.MockTilgangResponse
+import no.nav.syfo.common.mock.tilgangskontroll.MockTilgangResponse
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 import testhelper.UserConstants.PERSONIDENTNUMBER_VEILEDER_NO_ACCESS
 

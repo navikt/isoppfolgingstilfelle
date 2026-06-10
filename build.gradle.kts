@@ -4,7 +4,7 @@ import org.jlleitschuh.gradle.ktlint.tasks.KtLintCheckTask
 group = "no.nav.syfo"
 version = "1.0.0"
 
-val isyfoBackendCommon = "0.0.46"
+val isyfoBackendCommon = "0.0.47"
 
 val confluent = "8.2.1"
 val flyway = "11.20.3"
@@ -39,7 +39,7 @@ repositories {
     maven {
         url = uri("https://maven.pkg.github.com/navikt/isyfo-backend-common")
         credentials {
-            username = providers.gradleProperty("githubUser").orNull
+            username = providers.gradleProperty("githubUser").getOrElse("")
             password = providers.gradleProperty("githubPassword").orNull
         }
     }
