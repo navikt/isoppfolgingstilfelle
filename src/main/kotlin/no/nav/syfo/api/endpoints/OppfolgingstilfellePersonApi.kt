@@ -5,30 +5,27 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import no.nav.syfo.application.OppfolgingstilfelleService
+import no.nav.syfo.common.tilgangskontroll.checkPersonAndSyfoTilgang
+import no.nav.syfo.common.tilgangskontroll.client.TilgangskontrollClient
+import no.nav.syfo.common.tilgangskontroll.filterPersonsUserHasAccessTo
+import no.nav.syfo.common.types.ident.PersonIdent
 import no.nav.syfo.domain.Oppfolgingstilfelle
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.domain.hasGjentakendeSykefravar
 import no.nav.syfo.domain.toOppfolgingstilfellePersonDTO
-import no.nav.syfo.infrastructure.client.veiledertilgang.VeilederTilgangskontrollClient
-import no.nav.syfo.util.*
 import kotlin.time.measureTimedValue
 
 fun Route.registerOppfolgingstilfelleApi(
     oppfolgingstilfelleService: OppfolgingstilfelleService,
-    veilederTilgangskontrollClient: VeilederTilgangskontrollClient,
+    tilgangskontrollClient: TilgangskontrollClient,
 ) {
     route("/api/internad/v1/oppfolgingstilfelle") {
         get("/personident") {
-            val personIdent = personIdentHeader()?.let { personIdent ->
-                PersonIdentNumber(personIdent)
-            }
-                ?: throw IllegalArgumentException("Failed to retrieve OppfolgingstilfelleDTO: No $NAV_PERSONIDENT_HEADER supplied in request header")
-
-            validateVeilederAccess(
+            checkPersonAndSyfoTilgang(
                 action = "Read OppfolgingstilfelleDTO for Person with PersonIdent",
-                personIdentToAccess = personIdent,
-                veilederTilgangskontrollClient = veilederTilgangskontrollClient,
-            ) {
+                tilgangskontrollClient = tilgangskontrollClient,
+            ) { _, targetPersonIdent, _ ->
+                val personIdent = PersonIdentNumber(targetPersonIdent.value)
                 val dodsdato = oppfolgingstilfelleService.getDodsdato(personIdent)
                 val oppfolgingstilfellePersonDTO =
                     oppfolgingstilfelleService.getOppfolgingstilfellePerson(personIdent = personIdent)
@@ -41,20 +38,22 @@ fun Route.registerOppfolgingstilfelleApi(
                 call.respond(oppfolgingstilfellePersonDTO)
             }
         }
+
         post("/persons") {
-            val token = getBearerHeader()!!
-            val callId = getCallId()
-            val personIdents = call.receive<List<String>>().map { PersonIdentNumber(it) }
-            val personIdentsWithVeilederAccess = veilederTilgangskontrollClient.hasAccessToPersons(
-                personIdents = personIdents,
-                token = token,
-                callId = callId,
-            )
+            val personIdents = call.receive<List<String>>().map { PersonIdent(it) }
+
+            val personsUserHasAccessTo = filterPersonsUserHasAccessTo(
+                action = "Filter persons for OppfolgingstilfelleDTO",
+                personIdenter = personIdents,
+                tilgangskontrollClient = tilgangskontrollClient,
+            ) ?: emptyList()
 
             val (oppfolgingstilfellerPersonsDTOs, duration) = measureTimedValue {
-                personIdentsWithVeilederAccess.map {
-                    val dodsdato = oppfolgingstilfelleService.getDodsdato(it)
-                    oppfolgingstilfelleService.getOppfolgingstilfellePerson(personIdent = it)
+                personsUserHasAccessTo.map {
+                    val personIdent = PersonIdentNumber(it.value)
+                    val dodsdato = oppfolgingstilfelleService.getDodsdato(personIdent)
+
+                    oppfolgingstilfelleService.getOppfolgingstilfellePerson(personIdent)
                         ?.toOppfolgingstilfellePersonDTO() ?: OppfolgingstilfellePersonDTO(
                         oppfolgingstilfelleList = emptyList(),
                         personIdent = it.value,
@@ -64,7 +63,7 @@ fun Route.registerOppfolgingstilfelleApi(
                 }
             }
 
-            application.log.info("Got oppfolgingstilfeller for ${personIdentsWithVeilederAccess.size} persons in ${duration.inWholeMilliseconds} ms")
+            application.log.info("Got oppfolgingstilfeller for ${personsUserHasAccessTo.size} persons in ${duration.inWholeMilliseconds} ms")
 
             call.respond(oppfolgingstilfellerPersonsDTOs)
         }

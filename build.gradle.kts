@@ -4,6 +4,8 @@ import org.jlleitschuh.gradle.ktlint.tasks.KtLintCheckTask
 group = "no.nav.syfo"
 version = "1.0.0"
 
+val isyfoBackendCommon = "0.0.47"
+
 val confluent = "8.2.1"
 val flyway = "11.20.3"
 val hikari = "7.0.2"
@@ -30,12 +32,17 @@ plugins {
     id("com.adarshr.test-logger") version "4.0.0"
 }
 
-val githubUser: String by project
-val githubPassword: String by project
 repositories {
     mavenCentral()
     maven(url = "https://packages.confluent.io/maven/")
     maven(url = "https://jitpack.io")
+    maven {
+        url = uri("https://maven.pkg.github.com/navikt/isyfo-backend-common")
+        credentials {
+            username = providers.gradleProperty("githubUser").getOrElse("")
+            password = providers.gradleProperty("githubPassword").orNull
+        }
+    }
 }
 
 configurations.all {
@@ -46,6 +53,8 @@ configurations.all {
 dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
+
+    implementation("no.nav.syfo:isyfo-backend-common:$isyfoBackendCommon")
 
     implementation("io.ktor:ktor-server-auth-jwt:$ktor")
     implementation("io.ktor:ktor-server-content-negotiation:$ktor")
@@ -115,6 +124,8 @@ dependencies {
         }
     }
 
+    // Tests
+    testImplementation(testFixtures("no.nav.syfo:isyfo-backend-common:$isyfoBackendCommon"))
     testImplementation("com.nimbusds:nimbus-jose-jwt:$nimbusJoseJwt")
     testImplementation("io.ktor:ktor-server-test-host:$ktor")
     testImplementation("io.ktor:ktor-client-mock:$ktor")

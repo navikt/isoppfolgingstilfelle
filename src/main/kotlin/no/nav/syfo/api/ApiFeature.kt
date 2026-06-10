@@ -13,6 +13,7 @@ import io.ktor.server.response.*
 import io.micrometer.core.instrument.distribution.DistributionStatisticConfig
 import no.nav.syfo.api.access.ForbiddenAccessSystemConsumer
 import no.nav.syfo.api.metric.METRICS_REGISTRY
+import no.nav.syfo.common.tilgangskontroll.TilgangDeniedException
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.util.*
 import java.time.Duration
@@ -56,14 +57,24 @@ fun Application.installStatusPages() {
         exception<Throwable> { call, cause ->
             val callId = call.getCallId()
             val consumerClientId = call.getConsumerClientId()
-            val logExceptionMessage = "Caught exception, callId=$callId, consumerClientId=$consumerClientId"
+            val logExceptionMessage = "Caught exception: ${cause.message}  consumerClientId=$consumerClientId"
             when (cause) {
-                is ForbiddenAccessVeilederException -> {
-                    call.application.log.warn(logExceptionMessage, cause)
+                is TilgangDeniedException -> {
+                    call.application.log.atWarn()
+                        .setCause(cause)
+                        .setMessage(logExceptionMessage)
+                        .addKeyValue("callId", callId)
+                        .addKeyValue("consumerClientId", consumerClientId)
+                        .log()
                 }
 
                 else -> {
-                    call.application.log.error(logExceptionMessage, cause)
+                    call.application.log.atError()
+                        .setCause(cause)
+                        .setMessage(logExceptionMessage)
+                        .addKeyValue("callId", callId)
+                        .addKeyValue("consumerClientId", consumerClientId)
+                        .log()
                 }
             }
 
@@ -78,7 +89,7 @@ fun Application.installStatusPages() {
                     HttpStatusCode.BadRequest
                 }
 
-                is ForbiddenAccessVeilederException -> {
+                is TilgangDeniedException -> {
                     HttpStatusCode.Forbidden
                 }
 

@@ -5,17 +5,20 @@ import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.micrometer.core.instrument.Metrics
 import no.nav.syfo.api.apiModule
 import no.nav.syfo.api.cache.ValkeyStore
+import no.nav.syfo.api.metric.METRICS_REGISTRY
 import no.nav.syfo.application.IdenthendelseService
 import no.nav.syfo.application.OppfolgingstilfelleBitService
 import no.nav.syfo.application.OppfolgingstilfellePersonService
 import no.nav.syfo.application.OppfolgingstilfelleService
+import no.nav.syfo.common.tilgangskontroll.client.TilgangskontrollClient
+import no.nav.syfo.common.util.ClientConfig
 import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
 import no.nav.syfo.infrastructure.client.narmesteleder.NarmesteLederClient
 import no.nav.syfo.infrastructure.client.pdl.PdlClient
 import no.nav.syfo.infrastructure.client.tokendings.TokendingsClient
-import no.nav.syfo.infrastructure.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.infrastructure.client.wellknown.getWellKnown
 import no.nav.syfo.infrastructure.cronjob.launchCronjobModule
 import no.nav.syfo.infrastructure.database.OppfolgingstilfellePersonRepository
@@ -43,6 +46,8 @@ const val applicationPort = 8080
 fun main() {
     val applicationState = ApplicationState()
     val environment = Environment()
+
+    Metrics.addRegistry(METRICS_REGISTRY)
     val wellKnownInternalAzureAD = getWellKnown(
         wellKnownUrl = environment.azure.appWellKnownUrl,
     )
@@ -131,9 +136,14 @@ fun main() {
                     tokendingsClient = tokendingsClient,
                     valkeyStore = valkeyStore,
                 ),
-                veilederTilgangskontrollClient = VeilederTilgangskontrollClient(
-                    azureAdClient = azureAdClient,
-                    clientEnvironment = environment.clients.tilgangskontroll,
+                veilederTilgangskontrollClient = TilgangskontrollClient(
+                    oboTokenProvider = { scopeClientId, token ->
+                        azureAdClient.getOnBehalfOfToken(scopeClientId, token)?.accessToken
+                    },
+                    clientConfig = ClientConfig(
+                        baseUrl = environment.clients.tilgangskontroll.baseUrl,
+                        clientId = environment.clients.tilgangskontroll.clientId,
+                    ),
                 ),
             )
             monitor.subscribe(ApplicationStarted) { application ->
