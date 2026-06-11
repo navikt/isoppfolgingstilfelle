@@ -70,6 +70,11 @@ class ModiaAOOversendingCronjob(
 
                     else -> {
                         kandidatRepository.markerFerdig(kandidat.uuid)
+                        log.info(
+                            "Kandidat ferdigstilles fordi siste oppfolgingstilfelle har arbeidsgiver, {}, {}",
+                            StructuredArguments.keyValue("kandidatUuid", kandidat.uuid),
+                            StructuredArguments.keyValue("oppfolgingstilfellePersonUuid", oppfolgingstilfellePerson.uuid),
+                        )
                     }
                 }
                 result.updated++
