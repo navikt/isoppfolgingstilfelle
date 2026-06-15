@@ -50,19 +50,10 @@ data class Oppfolgingstilfelle(
 }
 
 fun OppfolgingstilfellePerson.toOppfolgingstilfellePersonDTO() = OppfolgingstilfellePersonDTO(
-    uuid = this.uuid,
     oppfolgingstilfelleList = this.oppfolgingstilfelleList.toOppfolgingstilfelleDTOList(),
     personIdent = this.personIdentNumber.value,
     dodsdato = this.dodsdato,
     hasGjentakendeSykefravar = this.hasGjentakendeSykefravar,
-)
-
-fun defaultEmptyOppfolgingstilfellePersonDTO(personident: String, dodsdato: LocalDate?) = OppfolgingstilfellePersonDTO(
-    uuid = UUID.randomUUID(),
-    oppfolgingstilfelleList = emptyList(),
-    personIdent = personident,
-    dodsdato = dodsdato,
-    hasGjentakendeSykefravar = emptyList<Oppfolgingstilfelle>().hasGjentakendeSykefravar(),
 )
 
 fun List<Oppfolgingstilfelle>.toOppfolgingstilfelleDTOList() =
