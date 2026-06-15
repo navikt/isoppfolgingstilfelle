@@ -36,7 +36,7 @@ class ModiaAOOversendingCronjob(
                 )
                 val oppfolgingstilfellePersonDto = oppfolgingstilfellePerson?.toOppfolgingstilfellePersonDTO()
                 val oppfolgingstilfelleUuid = oppfolgingstilfellePerson?.uuid.toString()
-                val latestTilfelle = oppfolgingstilfellePersonDto?.oppfolgingstilfelleList?.lastOrNull()
+                val latestTilfelle = oppfolgingstilfellePersonDto?.oppfolgingstilfelleList?.firstOrNull()
 
                 val today = LocalDate.now(ZoneId.of("Europe/Oslo"))
 
