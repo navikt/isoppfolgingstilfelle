@@ -4,8 +4,9 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import no.nav.syfo.api.access.APIConsumerAccessService
 import no.nav.syfo.application.OppfolgingstilfelleService
+import no.nav.syfo.domain.Oppfolgingstilfelle
 import no.nav.syfo.domain.PersonIdentNumber
-import no.nav.syfo.domain.defaultEmptyOppfolgingstilfellePersonDTO
+import no.nav.syfo.domain.hasGjentakendeSykefravar
 import no.nav.syfo.domain.toOppfolgingstilfellePersonDTO
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 import no.nav.syfo.util.getBearerHeader
@@ -27,17 +28,19 @@ fun Route.registerOppfolgingstilfelleSystemApi(
                 authorizedApplicationNames = authorizedApplicationNames,
                 token = token,
             )
-            val personident = personIdentHeader()?.let { personIdent ->
+            val personIdent = personIdentHeader()?.let { personIdent ->
                 PersonIdentNumber(personIdent)
             }
                 ?: throw IllegalArgumentException("Failed to retrieve OppfolgingstilfelleDTO: No $NAV_PERSONIDENT_HEADER supplied in request header")
 
-            val dodsdato = oppfolgingstilfelleService.getDodsdato(personident)
+            val dodsdato = oppfolgingstilfelleService.getDodsdato(personIdent)
             val oppfolgingstilfellePersonDTO =
-                oppfolgingstilfelleService.getOppfolgingstilfellePerson(personIdent = personident)
-                    ?.toOppfolgingstilfellePersonDTO() ?: defaultEmptyOppfolgingstilfellePersonDTO(
-                    personident.value,
-                    dodsdato
+                oppfolgingstilfelleService.getOppfolgingstilfellePerson(personIdent = personIdent)
+                    ?.toOppfolgingstilfellePersonDTO() ?: OppfolgingstilfellePersonDTO(
+                    oppfolgingstilfelleList = emptyList(),
+                    personIdent = personIdent.value,
+                    dodsdato = dodsdato,
+                    hasGjentakendeSykefravar = emptyList<Oppfolgingstilfelle>().hasGjentakendeSykefravar(),
                 )
             call.respond(oppfolgingstilfellePersonDTO)
         }

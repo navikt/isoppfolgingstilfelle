@@ -5,8 +5,9 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import no.nav.syfo.application.OppfolgingstilfelleService
+import no.nav.syfo.domain.Oppfolgingstilfelle
 import no.nav.syfo.domain.PersonIdentNumber
-import no.nav.syfo.domain.defaultEmptyOppfolgingstilfellePersonDTO
+import no.nav.syfo.domain.hasGjentakendeSykefravar
 import no.nav.syfo.domain.toOppfolgingstilfellePersonDTO
 import no.nav.syfo.infrastructure.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.util.*
@@ -18,22 +19,24 @@ fun Route.registerOppfolgingstilfelleApi(
 ) {
     route("/api/internad/v1/oppfolgingstilfelle") {
         get("/personident") {
-            val personident = personIdentHeader()?.let { personIdent ->
+            val personIdent = personIdentHeader()?.let { personIdent ->
                 PersonIdentNumber(personIdent)
             }
                 ?: throw IllegalArgumentException("Failed to retrieve OppfolgingstilfelleDTO: No $NAV_PERSONIDENT_HEADER supplied in request header")
 
             validateVeilederAccess(
                 action = "Read OppfolgingstilfelleDTO for Person with PersonIdent",
-                personIdentToAccess = personident,
+                personIdentToAccess = personIdent,
                 veilederTilgangskontrollClient = veilederTilgangskontrollClient,
             ) {
-                val dodsdato = oppfolgingstilfelleService.getDodsdato(personident)
+                val dodsdato = oppfolgingstilfelleService.getDodsdato(personIdent)
                 val oppfolgingstilfellePersonDTO =
-                    oppfolgingstilfelleService.getOppfolgingstilfellePerson(personIdent = personident)
-                        ?.toOppfolgingstilfellePersonDTO() ?: defaultEmptyOppfolgingstilfellePersonDTO(
-                        personident.value,
-                        dodsdato
+                    oppfolgingstilfelleService.getOppfolgingstilfellePerson(personIdent = personIdent)
+                        ?.toOppfolgingstilfellePersonDTO() ?: OppfolgingstilfellePersonDTO(
+                        oppfolgingstilfelleList = emptyList(),
+                        personIdent = personIdent.value,
+                        dodsdato = dodsdato,
+                        hasGjentakendeSykefravar = emptyList<Oppfolgingstilfelle>().hasGjentakendeSykefravar()
                     )
                 call.respond(oppfolgingstilfellePersonDTO)
             }
@@ -52,9 +55,11 @@ fun Route.registerOppfolgingstilfelleApi(
                 personIdentsWithVeilederAccess.map {
                     val dodsdato = oppfolgingstilfelleService.getDodsdato(it)
                     oppfolgingstilfelleService.getOppfolgingstilfellePerson(personIdent = it)
-                        ?.toOppfolgingstilfellePersonDTO() ?: defaultEmptyOppfolgingstilfellePersonDTO(
-                        it.value,
-                        dodsdato
+                        ?.toOppfolgingstilfellePersonDTO() ?: OppfolgingstilfellePersonDTO(
+                        oppfolgingstilfelleList = emptyList(),
+                        personIdent = it.value,
+                        dodsdato = dodsdato,
+                        hasGjentakendeSykefravar = emptyList<Oppfolgingstilfelle>().hasGjentakendeSykefravar(),
                     )
                 }
             }
