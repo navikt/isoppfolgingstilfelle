@@ -33,14 +33,16 @@ class ModiaAOOversendingCronjob(
             try {
                 val oppfolgingstilfellePerson = oppfolgingstilfelleService.getOppfolgingstilfellePerson(
                     personIdent = kandidat.personident
-                )?.toOppfolgingstilfellePersonDTO()
-                val latestTilfelle = oppfolgingstilfellePerson?.oppfolgingstilfelleList?.lastOrNull()
+                )
+                val oppfolgingstilfellePersonDto = oppfolgingstilfellePerson?.toOppfolgingstilfellePersonDTO()
+                val oppfolgingstilfelleUuid = oppfolgingstilfellePerson?.uuid.toString()
+                val latestTilfelle = oppfolgingstilfellePersonDto?.oppfolgingstilfelleList?.lastOrNull()
 
                 val today = LocalDate.now(ZoneId.of("Europe/Oslo"))
 
                 when {
-                    oppfolgingstilfellePerson == null || latestTilfelle == null ||
-                        oppfolgingstilfellePerson.dodsdato != null ||
+                    oppfolgingstilfellePersonDto == null || latestTilfelle == null ||
+                        oppfolgingstilfellePersonDto.dodsdato != null ||
                         latestTilfelle.end.plusDays(DAYS_AFTER_TILFELLE_END).isBefore(today) -> {
                         kandidatRepository.markerFerdig(kandidat.uuid)
                     }
@@ -70,6 +72,11 @@ class ModiaAOOversendingCronjob(
 
                     else -> {
                         kandidatRepository.markerFerdig(kandidat.uuid)
+                        log.info(
+                            "Kandidat ferdigstilles fordi siste oppfolgingstilfelle har arbeidsgiver, {}, {}",
+                            StructuredArguments.keyValue("kandidatUuid", kandidat.uuid),
+                            StructuredArguments.keyValue("oppfolgingstilfellePersonDtoUuid", oppfolgingstilfelleUuid),
+                        )
                     }
                 }
                 result.updated++

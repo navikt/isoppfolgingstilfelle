@@ -56,6 +56,13 @@ fun OppfolgingstilfellePerson.toOppfolgingstilfellePersonDTO() = Oppfolgingstilf
     hasGjentakendeSykefravar = this.hasGjentakendeSykefravar,
 )
 
+fun defaultEmptyOppfolgingstilfellePersonDTO(personident: String, dodsdato: LocalDate?) = OppfolgingstilfellePersonDTO(
+    oppfolgingstilfelleList = emptyList(),
+    personIdent = personident,
+    dodsdato = dodsdato,
+    hasGjentakendeSykefravar = emptyList<Oppfolgingstilfelle>().hasGjentakendeSykefravar(),
+)
+
 fun List<Oppfolgingstilfelle>.toOppfolgingstilfelleDTOList() =
     this.map { oppfolgingstilfelle ->
         OppfolgingstilfelleDTO(
