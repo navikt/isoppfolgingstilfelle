@@ -72,7 +72,7 @@ class OppfolgingstilfelleCronjob(
         try {
             if (!incomingBit.isSykmeldingBekreftet()) return
 
-            val latestTilfelle = oppfolgingstilfellePerson.oppfolgingstilfelleList.firstOrNull() ?: return
+            val latestTilfelle = oppfolgingstilfellePerson.oppfolgingstilfelleList.lastOrNull() ?: return
 
             // Ignore if tilfelle is not current
             if (latestTilfelle.end.isBefore(LocalDate.now())) return

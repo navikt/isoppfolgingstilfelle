@@ -65,6 +65,29 @@ class ModiaAOOversendingCronjobTest {
         oppfolgingstilfellePersonRepository.createOppfolgingstilfellePerson(person)
     }
 
+    private fun createTilfelleWithOldTilfelle(
+        start: LocalDate,
+        end: LocalDate,
+        arbeidstakerAtTilfelleEnd: Boolean = false,
+    ) {
+        val oppfolgingstilfellePerson = generateOppfolgingstilfellePerson(
+            personIdent = PERSONIDENTNUMBER_DEFAULT,
+            oppfolgingstilfelleList = listOf(
+                generateOppfolgingstilfelle(
+                    start = start.minusYears(1),
+                    end = end.minusYears(1),
+                    arbeidstakerAtTilfelleEnd = arbeidstakerAtTilfelleEnd,
+                ),
+                generateOppfolgingstilfelle(
+                    start = start,
+                    end = end,
+                    arbeidstakerAtTilfelleEnd = arbeidstakerAtTilfelleEnd,
+                )
+            ),
+        )
+        oppfolgingstilfellePersonRepository.createOppfolgingstilfellePerson(oppfolgingstilfellePerson)
+    }
+
     @Test
     fun `sets FERDIG when no tilfelle exists for kandidat`() {
         createKandidatForProcessing()
@@ -149,6 +172,22 @@ class ModiaAOOversendingCronjobTest {
     fun `sets FERDIG and oversendt_at when latest tilfelle is more than 28 days old and kandidat does not have arbeidsgiver`() {
         createKandidatForProcessing()
         createTilfelle(
+            start = LocalDate.now().minusDays(30),
+            end = LocalDate.now(),
+            arbeidstakerAtTilfelleEnd = false,
+        )
+
+        cronjob.runJob()
+
+        val kandidat = database.getKandidaterForPersonident(PERSONIDENTNUMBER_DEFAULT).single()
+        assertEquals(KandidatStatus.FERDIG, KandidatStatus.valueOf(kandidat.status))
+        assertNotNull(kandidat.oversendtAt)
+    }
+
+    @Test
+    fun `sets FERDIG and oversendt_at when latest tilfelle is more than 28 days old and kandidat does not have arbeidsgiver and old tilfelle exists`() {
+        createKandidatForProcessing()
+        createTilfelleWithOldTilfelle(
             start = LocalDate.now().minusDays(30),
             end = LocalDate.now(),
             arbeidstakerAtTilfelleEnd = false,

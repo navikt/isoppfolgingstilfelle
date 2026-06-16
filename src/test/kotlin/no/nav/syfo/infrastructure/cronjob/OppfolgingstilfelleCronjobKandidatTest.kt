@@ -86,6 +86,23 @@ class OppfolgingstilfelleCronjobKandidatTest {
     }
 
     @Test
+    fun `stores kandidat when BEKREFTET bit has active tilfelle at least 28 days old and exists old tilfelle`() {
+        val bit1 = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
+            personIdentNumber = personIdentDefault,
+            fom = LocalDate.now().minusDays(365),
+            tom = LocalDate.now().minusDays(300),
+        )
+        pollAndRun(listOf(bit1))
+        val bit2 = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
+            personIdentNumber = personIdentDefault,
+            fom = LocalDate.now().minusDays(30),
+            tom = LocalDate.now(),
+        )
+        pollAndRun(listOf(bit2))
+        assertEquals(1, database.countKandidater())
+    }
+
+    @Test
     fun `stores kandidat with future nextProcessingAt when tilfelle is under 28 days`() {
         val bit = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
             personIdentNumber = personIdentDefault,
