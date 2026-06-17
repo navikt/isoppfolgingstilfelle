@@ -39,6 +39,7 @@ fun launchCronjobModule(
         clientEnvironment = environment.clients.arbeidsforhold,
     )
     val kandidatRepository = SykmeldtUtenArbeidsgiverKandidatRepository(database = database)
+
     val sykmeldingNyCronjob = SykmeldingNyCronjob(
         database = database,
         arbeidsforholdClient = arbeidsforholdClient,
@@ -59,25 +60,17 @@ fun launchCronjobModule(
         intervalDelayMinutes = environment.modiaAOOversendingCronjobIntervalDelayMinutes,
         sendEnabled = environment.modiaAOSendEnabled,
     )
-    launchBackgroundTask(
-        applicationState = applicationState,
-    ) {
-        cronjobRunner.start(
-            cronjob = sykmeldingNyCronjob,
-        )
-    }
-    launchBackgroundTask(
-        applicationState = applicationState,
-    ) {
-        cronjobRunner.start(
-            cronjob = oppfolgingstilfelleCronjob,
-        )
-    }
-    launchBackgroundTask(
-        applicationState = applicationState,
-    ) {
-        cronjobRunner.start(
-            cronjob = modiaAOOversendingCronjob,
-        )
+    val aktoridCronjob = AktoridCronjob(
+        database = database,
+        pdlClient = pdlClient,
+    )
+    listOf(sykmeldingNyCronjob, oppfolgingstilfelleCronjob, modiaAOOversendingCronjob, aktoridCronjob).forEach {
+        launchBackgroundTask(
+            applicationState = applicationState,
+        ) {
+            cronjobRunner.start(
+                cronjob = it,
+            )
+        }
     }
 }
