@@ -24,7 +24,7 @@ val postgresRuntimeVersion = "17.9.0"
 
 plugins {
     kotlin("jvm") version "2.3.20"
-    id("com.gradleup.shadow") version "8.3.8"
+    id("com.gradleup.shadow") version "9.4.1"
     id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
     id("com.github.davidmc24.gradle.plugin.avro") version "1.9.1"
     id("com.adarshr.test-logger") version "4.0.0"
