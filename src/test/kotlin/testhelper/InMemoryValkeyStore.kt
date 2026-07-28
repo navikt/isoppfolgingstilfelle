@@ -17,10 +17,6 @@ class InMemoryValkeyStore : IValkeyStore {
         store[key] = value
     }
 
-    override fun <T : Any> getObjectList(classType: KClass<T>, keyList: List<String>): List<T> {
-        return get(keyList).map { objectMapper.readValue(it, classType.java) }
-    }
-
     override fun <T> setObject(key: String, value: T, expireSeconds: Long) {
         set(key, objectMapper.writeValueAsString(value), expireSeconds)
     }

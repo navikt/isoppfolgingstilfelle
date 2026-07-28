@@ -7,7 +7,6 @@ interface IValkeyStore {
     fun get(key: String): String?
     fun get(keyList: List<String>): List<String>
     fun set(key: String, value: String, expireSeconds: Long)
-    fun <T : Any> getObjectList(classType: KClass<T>, keyList: List<String>): List<T>
     fun <T> setObject(key: String, value: T, expireSeconds: Long)
 }
 

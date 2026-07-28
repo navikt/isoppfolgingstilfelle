@@ -25,19 +25,6 @@ class ValkeyStore(
         }
     }
 
-    override fun <T : Any> getObjectList(
-        classType: KClass<T>,
-        keyList: List<String>,
-    ): List<T> {
-        return if (keyList.isEmpty()) {
-            emptyList()
-        } else {
-            get(keyList = keyList).map {
-                objectMapper.readValue(it, classType.java)
-            }
-        }
-    }
-
     override fun get(
         keyList: List<String>,
     ): List<String> {
