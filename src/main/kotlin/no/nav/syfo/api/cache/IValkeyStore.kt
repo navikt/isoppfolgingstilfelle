@@ -1,7 +1,6 @@
 package no.nav.syfo.api.cache
 
 import no.nav.syfo.util.configuredJacksonMapper
-import kotlin.reflect.KClass
 
 interface IValkeyStore {
     fun get(key: String): String?
