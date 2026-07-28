@@ -5,32 +5,13 @@ import no.nav.syfo.util.configuredJacksonMapper
 import org.slf4j.LoggerFactory
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.exceptions.JedisConnectionException
-import kotlin.reflect.KClass
 
 class ValkeyStore(
     private val jedisPool: JedisPool,
-) {
+) : IValkeyStore {
     val objectMapper: ObjectMapper = configuredJacksonMapper()
 
-    inline fun <reified T> getObject(
-        key: String,
-    ): T? {
-        return get(key)?.let { it ->
-            objectMapper.readValue(it, T::class.java)
-        }
-    }
-
-    inline fun <reified T> getListObject(key: String): List<T>? {
-        val value = get(key)
-        return if (value != null) {
-            objectMapper.readValue(
-                value,
-                objectMapper.typeFactory.constructCollectionType(ArrayList::class.java, T::class.java)
-            )
-        } else null
-    }
-
-    fun get(
+    override fun get(
         key: String,
     ): String? {
         try {
@@ -43,21 +24,7 @@ class ValkeyStore(
         }
     }
 
-    fun <T : Any> getObjectList(
-        classType: KClass<T>,
-        keyList: List<String>,
-    ): List<T> {
-        return if (keyList.isEmpty()) {
-            emptyList()
-        } else {
-            get(keyList = keyList).map {
-                classType.java
-                objectMapper.readValue(it, classType.java)
-            }
-        }
-    }
-
-    fun get(
+    override fun get(
         keyList: List<String>,
     ): List<String> {
         return try {
@@ -70,7 +37,7 @@ class ValkeyStore(
         }
     }
 
-    fun <T> setObject(
+    override fun <T> setObject(
         key: String,
         value: T,
         expireSeconds: Long,
@@ -79,7 +46,7 @@ class ValkeyStore(
         set(key, valueJson, expireSeconds)
     }
 
-    fun set(
+    override fun set(
         key: String,
         value: String,
         expireSeconds: Long,

@@ -2,13 +2,12 @@ package no.nav.syfo.client.narmesteleder
 
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
-import no.nav.syfo.api.cache.ValkeyStore
+import no.nav.syfo.api.cache.getListObject
 import no.nav.syfo.infrastructure.client.narmesteleder.NarmesteLederClient
 import no.nav.syfo.infrastructure.client.narmesteleder.NarmesteLederRelasjonDTO
 import no.nav.syfo.infrastructure.client.narmesteleder.NarmesteLederRelasjonStatus
 import no.nav.syfo.infrastructure.client.tokendings.TokendingsClient
 import no.nav.syfo.infrastructure.client.tokendings.TokenendingsToken
-import no.nav.syfo.util.configuredJacksonMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -22,18 +21,17 @@ import java.util.*
 
 class NarmesteLederClientTest {
 
-    private val mapper = configuredJacksonMapper()
     private val anyToken = "token"
     private val anyCallId = "callId"
 
     private val externalMockEnvironment = ExternalMockEnvironment.instance
     private val tokendingsClientMock = mockk<TokendingsClient>()
-    private val cacheMock = mockk<ValkeyStore>()
+    private val cache = externalMockEnvironment.valkeyStore
     private val client = NarmesteLederClient(
         narmesteLederBaseUrl = externalMockEnvironment.environment.clients.narmesteLeder.baseUrl,
         narmestelederClientId = externalMockEnvironment.environment.clients.narmesteLeder.clientId,
         tokendingsClient = tokendingsClientMock,
-        valkeyStore = cacheMock,
+        valkeyStore = cache,
         httpClient = externalMockEnvironment.mockHttpClient,
     )
     private val cacheKey =
@@ -67,13 +65,16 @@ class NarmesteLederClientTest {
             accessToken = anyToken,
             expires = LocalDateTime.now().plusDays(1)
         )
-        clearMocks(cacheMock)
+        cache.clear()
     }
 
     @Test
     fun `aktive ledere returns cached value`() {
-        every { cacheMock.objectMapper } returns mapper
-        every { cacheMock.get(cacheKey) } returns mapper.writeValueAsString(cachedValue)
+        cache.setObject(
+            cacheKey,
+            cachedValue,
+            NarmesteLederClient.CACHE_NARMESTE_LEDER_EXPIRE_SECONDS,
+        )
 
         runBlocking {
             val result = client.getAktiveAnsatte(
@@ -83,16 +84,11 @@ class NarmesteLederClientTest {
             )
             assertEquals(1, result.size)
         }
-        verify(exactly = 1) { cacheMock.get(cacheKey) }
-        verify(exactly = 0) { cacheMock.setObject(any(), any() as List<NarmesteLederRelasjonDTO>?, any()) }
+        coVerify(exactly = 0) { tokendingsClientMock.getOnBehalfOfToken(any(), any()) }
     }
 
     @Test
     fun `aktive ledere when no cached value`() {
-        every { cacheMock.objectMapper } returns mapper
-        every { cacheMock.get(cacheKey) } returns null
-        justRun { cacheMock.setObject(any(), any() as List<NarmesteLederRelasjonDTO>, any()) }
-
         runBlocking {
             val result = client.getAktiveAnsatte(
                 narmesteLederIdent = NARMESTELEDER_FNR,
@@ -101,7 +97,8 @@ class NarmesteLederClientTest {
             )
             assertEquals(2, result.size)
         }
-        verify(exactly = 1) { cacheMock.get(cacheKey) }
-        verify(exactly = 1) { cacheMock.setObject(any(), any() as List<NarmesteLederRelasjonDTO>?, any()) }
+        coVerify(exactly = 1) { tokendingsClientMock.getOnBehalfOfToken(any(), any()) }
+        val cached = cache.getListObject<NarmesteLederRelasjonDTO>(cacheKey)
+        assertEquals(2, cached?.size)
     }
 }

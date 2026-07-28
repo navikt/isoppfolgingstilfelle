@@ -1,7 +1,6 @@
 package no.nav.syfo.identhendelse
 
 import kotlinx.coroutines.runBlocking
-import no.nav.syfo.api.cache.ValkeyStore
 import no.nav.syfo.application.IdenthendelseService
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.domain.toOppfolgingstilfelleBit
@@ -11,10 +10,6 @@ import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.getIdentCount
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import redis.clients.jedis.DefaultJedisClientConfig
-import redis.clients.jedis.HostAndPort
-import redis.clients.jedis.JedisPool
-import redis.clients.jedis.JedisPoolConfig
 import testhelper.ExternalMockEnvironment
 import testhelper.UserConstants
 import testhelper.dropData
@@ -26,23 +21,13 @@ class IdenthendelseServiceTest {
 
     private val externalMockEnvironment = ExternalMockEnvironment.instance
     private val database = externalMockEnvironment.database
-    private val redisConfig = externalMockEnvironment.environment.valkeyConfig
 
     private val oppfolgingstilfelleRepository = externalMockEnvironment.oppfolgingstilfellePersonRepository
     private val tilfelleBitRepository = externalMockEnvironment.tilfellebitRepository
     private val pdlClient = PdlClient(
         azureAdClient = AzureAdClient(
             azureEnviroment = externalMockEnvironment.environment.azure,
-            valkeyStore = ValkeyStore(
-                JedisPool(
-                    JedisPoolConfig(),
-                    HostAndPort(redisConfig.host, redisConfig.port),
-                    DefaultJedisClientConfig.builder()
-                        .ssl(redisConfig.ssl)
-                        .password(redisConfig.valkeyPassword)
-                        .build()
-                )
-            ),
+            valkeyStore = externalMockEnvironment.valkeyStore,
             httpClient = externalMockEnvironment.mockHttpClient,
         ),
         clientEnvironment = externalMockEnvironment.environment.clients.pdl,

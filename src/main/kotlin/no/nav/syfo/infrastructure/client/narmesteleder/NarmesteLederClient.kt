@@ -7,7 +7,8 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import net.logstash.logback.argument.StructuredArguments
-import no.nav.syfo.api.cache.ValkeyStore
+import no.nav.syfo.api.cache.IValkeyStore
+import no.nav.syfo.api.cache.getListObject
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.infrastructure.client.httpClientDefault
 import no.nav.syfo.infrastructure.client.tokendings.TokendingsClient
@@ -18,7 +19,7 @@ class NarmesteLederClient(
     narmesteLederBaseUrl: String,
     private val narmestelederClientId: String,
     private val tokendingsClient: TokendingsClient,
-    private val valkeyStore: ValkeyStore,
+    private val valkeyStore: IValkeyStore,
     private val httpClient: HttpClient = httpClientDefault(),
 ) {
     private val ansatteNarmesteLederSelvbetjeningPath = "$narmesteLederBaseUrl$NARMESTELEDERE_SELVBETJENING_PATH"
