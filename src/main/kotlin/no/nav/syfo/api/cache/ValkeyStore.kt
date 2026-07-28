@@ -5,7 +5,6 @@ import no.nav.syfo.util.configuredJacksonMapper
 import org.slf4j.LoggerFactory
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.exceptions.JedisConnectionException
-import kotlin.reflect.KClass
 
 class ValkeyStore(
     private val jedisPool: JedisPool,
