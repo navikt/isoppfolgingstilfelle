@@ -17,7 +17,7 @@ spec:
     partitions: 4
     replication: 3
     retentionBytes: -1  # -1 means unlimited
-    retentionHours: -1  # -1 means unlimited
+    retentionHours: 1440 # 60 dager
   acl:
     - team: teamsykefravr
       application: isoppfolgingstilfelle
