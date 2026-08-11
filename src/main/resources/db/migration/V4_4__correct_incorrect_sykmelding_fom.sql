@@ -1,4 +1,4 @@
--- Lege skrev feil fom ved forlengelse av sykmelding (ca. 5 mnd for langt tilbake)
+-- Vi mottok feil fom ved forlengelse av sykmelding (for langt tilbake)
 
 -- 1) Rett fom paa de feilaktige bitene.
 UPDATE TILFELLE_BIT SET fom='2026-07-16' WHERE uuid in ('aa2b5c69-a206-4a92-b814-d87cf50d223d', 'b1f10316-bcf6-4c5b-befd-1d19d9fa141c');
