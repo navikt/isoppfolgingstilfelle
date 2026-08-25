@@ -1041,6 +1041,118 @@ class OppfolgingstilfelleBitTest {
     }
 
     @Test
+    fun `should return arbeidstaker when sykmelding-sendt has virksomhetsnummer even if last sykmelding-ny bit lacks virksomhetsnummer`() {
+        val oppfolgingstilfelleBitList = listOf(
+            defaultBit.copy(
+                createdAt = nowUTC(),
+                inntruffet = nowUTC(),
+                tagList = listOf(SYKMELDING, BEKREFTET, PERIODE, INGEN_AKTIVITET),
+                fom = LocalDate.now().minusDays(16),
+                tom = LocalDate.now().minusDays(8),
+                virksomhetsnummer = null,
+            ),
+            defaultBit.copy(
+                createdAt = nowUTC(),
+                inntruffet = nowUTC(),
+                tagList = listOf(SYKMELDING, SENDT, PERIODE, INGEN_AKTIVITET),
+                fom = LocalDate.now().minusDays(6),
+                tom = LocalDate.now().minusDays(4),
+                virksomhetsnummer = "987654330",
+            ),
+            defaultBit.copy(
+                createdAt = nowUTC(),
+                inntruffet = nowUTC(),
+                tagList = listOf(SYKMELDING, NY, PERIODE, INGEN_AKTIVITET),
+                fom = LocalDate.now().minusDays(3),
+                tom = LocalDate.now(),
+                // Simulates aareg not responding/finding an employer for the sykmelding-ny bit
+                virksomhetsnummer = null,
+            ),
+        )
+
+        val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+        assertEquals(1, oppfolgingstilfelleList.size)
+        val oppfolgingstilfelle = oppfolgingstilfelleList.first()
+
+        val tilfelleDuration = oppfolgingstilfelle.start.until(oppfolgingstilfelle.end, ChronoUnit.DAYS)
+        assertEquals(16, tilfelleDuration)
+        assertEquals(1, oppfolgingstilfelle.virksomhetsnummerList.size)
+        assertTrue(oppfolgingstilfelle.arbeidstakerAtTilfelleEnd)
+    }
+
+    @Test
+    fun `should not let sykmelding-sendt with virksomhetsnummer from an earlier Oppfolgingstilfelle affect a later, separate Oppfolgingstilfelle`() {
+        val oppfolgingstilfelleBitList = listOf(
+            // Tilfelle 1: sykmelding-sendt with virksomhetsnummer, ends long before tilfelle 2 starts
+            defaultBit.copy(
+                createdAt = nowUTC(),
+                inntruffet = nowUTC().minusDays(60),
+                tagList = listOf(SYKMELDING, SENDT, PERIODE, INGEN_AKTIVITET),
+                fom = LocalDate.now().minusDays(80),
+                tom = LocalDate.now().minusDays(60),
+                virksomhetsnummer = "987654330",
+            ),
+            // Gap of more than 16 days (no bits) separates the two Oppfolgingstilfeller
+            // Tilfelle 2: only sykmelding-bekreftet followed by sykmelding-ny without virksomhetsnummer
+            defaultBit.copy(
+                createdAt = nowUTC(),
+                inntruffet = nowUTC(),
+                tagList = listOf(SYKMELDING, BEKREFTET, PERIODE, INGEN_AKTIVITET),
+                fom = LocalDate.now().minusDays(16),
+                tom = LocalDate.now().minusDays(8),
+                virksomhetsnummer = null,
+            ),
+            defaultBit.copy(
+                createdAt = nowUTC(),
+                inntruffet = nowUTC(),
+                tagList = listOf(SYKMELDING, NY, PERIODE, INGEN_AKTIVITET),
+                fom = LocalDate.now().minusDays(3),
+                tom = LocalDate.now(),
+                virksomhetsnummer = null,
+            ),
+        )
+
+        val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+        assertEquals(2, oppfolgingstilfelleList.size)
+
+        val forsteOppfolgingstilfelle = oppfolgingstilfelleList[0]
+        assertTrue(forsteOppfolgingstilfelle.arbeidstakerAtTilfelleEnd)
+
+        val andreOppfolgingstilfelle = oppfolgingstilfelleList[1]
+        assertFalse(andreOppfolgingstilfelle.arbeidstakerAtTilfelleEnd)
+    }
+
+    @Test
+    fun `should not apply sendt-sykmelding fallback when last bit is not sykmelding-ny`() {
+        val oppfolgingstilfelleBitList = listOf(
+            defaultBit.copy(
+                createdAt = nowUTC(),
+                inntruffet = nowUTC(),
+                tagList = listOf(SYKMELDING, SENDT, PERIODE, INGEN_AKTIVITET),
+                fom = LocalDate.now().minusDays(16),
+                tom = LocalDate.now().minusDays(8),
+                virksomhetsnummer = "987654330",
+            ),
+            // Last priority bit is sykmelding-bekreftet (not sykmelding-ny) and lacks virksomhetsnummer,
+            // so the fallback to the earlier sykmelding-sendt bit must not kick in.
+            defaultBit.copy(
+                createdAt = nowUTC(),
+                inntruffet = nowUTC(),
+                tagList = listOf(SYKMELDING, BEKREFTET, PERIODE, INGEN_AKTIVITET),
+                fom = LocalDate.now().minusDays(7),
+                tom = LocalDate.now(),
+                virksomhetsnummer = null,
+            ),
+        )
+
+        val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+        assertEquals(1, oppfolgingstilfelleList.size)
+        val oppfolgingstilfelle = oppfolgingstilfelleList.first()
+
+        assertFalse(oppfolgingstilfelle.arbeidstakerAtTilfelleEnd)
+    }
+
+    @Test
     fun `should return 1 Oppfolgingstilfelle and arbeidstaker when sykmelding-ny, sykpengesoknad-sendt and sykmelding-bekreftet`() {
         val oppfolgingstilfelleBitList = listOf(
             defaultBit.copy(

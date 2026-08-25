@@ -70,13 +70,23 @@ fun List<OppfolgingstilfelleDag>.isArbeidstakerAtTilfelleEnd() =
     if (this.isNotArbeidstakerTilfelle()) {
         false
     } else {
-        findLastPriorityOppfolgingstilfelleBit()?.isArbeidstakerBit() ?: false
+        val lastBit = findLastPriorityOppfolgingstilfelleBit()
+        lastBit?.isArbeidstakerBit() == true ||
+            (lastBit?.isSykmeldingNy() == true && this.hasSendtSykmeldingMedVirksomhetsnummer())
     }
 
 private fun List<OppfolgingstilfelleDag>.isNotArbeidstakerTilfelle() =
     this.any { it.priorityOppfolgingstilfelleBit?.tagList?.contains(Tag.BEKREFTET) == true } &&
         this.none { it.priorityOppfolgingstilfelleBit?.tagList?.contains(Tag.SENDT) == true } &&
         this.none { it.priorityOppfolgingstilfelleBit?.tagList?.contains(Tag.INNTEKTSMELDING) == true }
+
+// When the last priority bit is a sykmelding-ny without a virksomhetsnummer (e.g. missing aareg-response),
+// fall back to an earlier sykmelding-sendt bit with a known virksomhetsnummer in the same oppfolgingstilfelle.
+private fun List<OppfolgingstilfelleDag>.hasSendtSykmeldingMedVirksomhetsnummer() =
+    this.any {
+        val bit = it.priorityOppfolgingstilfelleBit
+        bit?.isSykmeldingSendt() == true && bit.virksomhetsnummer != null
+    }
 
 private fun List<OppfolgingstilfelleDag>.findLastPriorityOppfolgingstilfelleBit() =
     this.last {
