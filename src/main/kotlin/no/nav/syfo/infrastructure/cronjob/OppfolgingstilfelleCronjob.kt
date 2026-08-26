@@ -6,6 +6,7 @@ import no.nav.syfo.domain.OppfolgingstilfelleBit
 import no.nav.syfo.domain.OppfolgingstilfellePerson
 import no.nav.syfo.domain.SykmeldtUtenArbeidsgiverKandidat
 import no.nav.syfo.domain.isSykmeldingBekreftet
+import no.nav.syfo.domain.isSykmeldingNy
 import no.nav.syfo.infrastructure.client.pdl.PdlClient
 import no.nav.syfo.infrastructure.database.SykmeldtUtenArbeidsgiverKandidatRepository
 import no.nav.syfo.infrastructure.database.bit.TilfellebitRepository
@@ -55,6 +56,7 @@ class OppfolgingstilfelleCronjob(
                 lagreBekreftetKandidatHvisAktuell(
                     incomingBit = oppfolgingstilfelleBit,
                     oppfolgingstilfellePerson = oppfolgingstilfellePerson,
+                    oppfolgingstilfelleBitForPersonList = oppfolgingstilfelleBitForPersonList,
                 )
 
                 result.updated++
@@ -68,6 +70,7 @@ class OppfolgingstilfelleCronjob(
     private suspend fun lagreBekreftetKandidatHvisAktuell(
         incomingBit: OppfolgingstilfelleBit,
         oppfolgingstilfellePerson: OppfolgingstilfellePerson,
+        oppfolgingstilfelleBitForPersonList: List<OppfolgingstilfelleBit>,
     ) {
         try {
             if (!incomingBit.isSykmeldingBekreftet()) return
@@ -77,10 +80,16 @@ class OppfolgingstilfelleCronjob(
             // Ignore if tilfelle is not current
             if (latestTilfelle.end.isBefore(LocalDate.now())) return
 
-            // Ignore incomingBit if not the latest bit in tilfelle
-            if (latestTilfelle.end != incomingBit.tom) return
+            // Ignore incomingBit (bekreftet) if there is a newer bit in tilfelle, unless the only newer bit(s) are SYKMELDING NY
+            val nyereBiterSomIkkeErSykmeldingNy = oppfolgingstilfelleBitForPersonList.filter { bit ->
+                bit.tom > incomingBit.tom
+            }.filterNot { bit ->
+                bit.isSykmeldingNy()
+            }
+            if (nyereBiterSomIkkeErSykmeldingNy.isNotEmpty()) return
 
-            // Maybe redundant (since BEKREFTET)?
+            // A higher-priority SENDT/INNTEKTSMELDING bit may still "win" the tilfelle end day
+            // even though the incoming bit is BEKREFTET, so this check is not redundant.
             if (latestTilfelle.arbeidstakerAtTilfelleEnd) return
 
             val aktorId = pdlClient.pdlIdenter(incomingBit.personIdentNumber)?.hentIdenter?.aktivAktorId ?: run {

@@ -177,6 +177,50 @@ class OppfolgingstilfelleCronjobKandidatTest {
     }
 
     @Test
+    fun `stores kandidat when the only newer bit is SYKMELDING NY`() {
+        // A SYKMELDING NY bit arrives first, extending the tilfelle a few days forward
+        val nyBit = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
+            personIdentNumber = personIdentDefault,
+            fom = LocalDate.now().plusDays(1),
+            tom = LocalDate.now().plusDays(5),
+        ).copy(tags = listOf(Tag.SYKMELDING, Tag.NY, Tag.PERIODE, Tag.INGEN_AKTIVITET).map { it.name })
+        pollAndRun(listOf(nyBit))
+
+        // BEKREFTET bit ending today: the only newer bit is the NY bit → do not skip
+        val bekreftetBit = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
+            personIdentNumber = personIdentDefault,
+            fom = LocalDate.now().minusDays(30),
+            tom = LocalDate.now(),
+        )
+        pollAndRun(listOf(bekreftetBit))
+        assertEquals(1, database.countKandidater())
+    }
+
+    @Test
+    fun `does not store kandidat when a newer non-NY bit exists`() {
+        // A SENDT bit with an employer arrives first, extending the tilfelle a few days forward
+        val sendtBit = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
+            personIdentNumber = personIdentDefault,
+            fom = LocalDate.now().plusDays(1),
+            tom = LocalDate.now().plusDays(5),
+        ).copy(
+            orgnummer = VIRKSOMHETSNUMMER_DEFAULT.value,
+            tags = listOf(Tag.SYKMELDING, Tag.SENDT, Tag.PERIODE, Tag.INGEN_AKTIVITET).map { it.name },
+        )
+        pollAndRun(listOf(sendtBit))
+        assertEquals(0, database.countKandidater())
+
+        // BEKREFTET bit ending today: a newer non-NY bit exists → skip
+        val bekreftetBit = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
+            personIdentNumber = personIdentDefault,
+            fom = LocalDate.now().minusDays(30),
+            tom = LocalDate.now(),
+        )
+        pollAndRun(listOf(bekreftetBit))
+        assertEquals(0, database.countKandidater())
+    }
+
+    @Test
     fun `does not store kandidat when person has employer at tilfelle end`() {
         // A SENDT bit with virksomhetsnummer marks the tilfelle as arbeidstaker
         val sendtBitWithEmployer = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
