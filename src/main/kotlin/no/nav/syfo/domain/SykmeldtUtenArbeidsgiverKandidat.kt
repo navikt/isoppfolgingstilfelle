@@ -24,6 +24,7 @@ data class SykmeldtUtenArbeidsgiverKandidat(
     val status: KandidatStatus,
     val nextProcessingAt: OffsetDateTime,
     val oversendtAt: OffsetDateTime?,
+    val hasSykepengesoknad: Boolean,
 ) {
     companion object {
         fun opprett(
@@ -31,6 +32,7 @@ data class SykmeldtUtenArbeidsgiverKandidat(
             aktorId: String,
             referanseId: String?,
             tilfelleStart: LocalDate,
+            hasSykepengesoknad: Boolean = false,
         ) =
             SykmeldtUtenArbeidsgiverKandidat(
                 uuid = UUID.randomUUID(),
@@ -42,6 +44,7 @@ data class SykmeldtUtenArbeidsgiverKandidat(
                 status = KandidatStatus.NY,
                 nextProcessingAt = calculatePlannedProcessingTime(tilfelleStart),
                 oversendtAt = null,
+                hasSykepengesoknad = hasSykepengesoknad,
             )
     }
 }

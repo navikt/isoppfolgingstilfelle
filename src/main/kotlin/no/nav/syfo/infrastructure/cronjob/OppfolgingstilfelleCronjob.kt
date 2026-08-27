@@ -7,6 +7,7 @@ import no.nav.syfo.domain.OppfolgingstilfellePerson
 import no.nav.syfo.domain.SykmeldtUtenArbeidsgiverKandidat
 import no.nav.syfo.domain.isSykmeldingBekreftet
 import no.nav.syfo.domain.isSykmeldingNy
+import no.nav.syfo.domain.isSykepengesoknad
 import no.nav.syfo.infrastructure.client.pdl.PdlClient
 import no.nav.syfo.infrastructure.database.SykmeldtUtenArbeidsgiverKandidatRepository
 import no.nav.syfo.infrastructure.database.bit.TilfellebitRepository
@@ -97,11 +98,16 @@ class OppfolgingstilfelleCronjob(
                 return
             }
 
+            val hasSykepengesoknad = oppfolgingstilfelleBitForPersonList.any { bit ->
+                bit.isSykepengesoknad() && bit.fom <= latestTilfelle.end && bit.tom >= latestTilfelle.start
+            }
+
             val kandidat = SykmeldtUtenArbeidsgiverKandidat.opprett(
                 personident = incomingBit.personIdentNumber,
                 aktorId = aktorId,
                 referanseId = incomingBit.ressursId,
                 tilfelleStart = latestTilfelle.start,
+                hasSykepengesoknad = hasSykepengesoknad,
             )
             kandidatRepository.createIfMissing(kandidat)
         } catch (exc: Exception) {

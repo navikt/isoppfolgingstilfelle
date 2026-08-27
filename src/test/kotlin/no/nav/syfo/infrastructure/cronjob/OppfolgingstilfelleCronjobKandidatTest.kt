@@ -22,6 +22,8 @@ import testhelper.UserConstants.VIRKSOMHETSNUMMER_DEFAULT
 import testhelper.countKandidater
 import testhelper.dropData
 import testhelper.generator.generateKafkaSyketilfellebitRelevantSykmeldingBekreftet
+import testhelper.generator.generateKafkaSyketilfellebitRelevantVirksomhet
+import testhelper.getKandidaterForPersonident
 import testhelper.insertKandidatFerdig
 import testhelper.mock.toHistoricalPersonIdentNumber
 import testhelper.setKandidatFerdig
@@ -83,6 +85,28 @@ class OppfolgingstilfelleCronjobKandidatTest {
         )
         pollAndRun(listOf(bit))
         assertEquals(1, database.countKandidater())
+        assertEquals(false, database.getKandidaterForPersonident(personIdentDefault).single().hasSykepengesoknad)
+    }
+
+    @Test
+    fun `stores kandidat with hasSykepengesoknad true when a sykepengesoknad bit exists in the same tilfelle`() {
+        val sykepengesoknadBit = generateKafkaSyketilfellebitRelevantVirksomhet(
+            personIdent = personIdentDefault,
+        ).copy(
+            fom = LocalDate.now().minusDays(20),
+            tom = LocalDate.now().minusDays(15),
+        )
+        pollAndRun(listOf(sykepengesoknadBit))
+
+        val bekreftetBit = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
+            personIdentNumber = personIdentDefault,
+            fom = LocalDate.now().minusDays(30),
+            tom = LocalDate.now(),
+        )
+        pollAndRun(listOf(bekreftetBit))
+
+        assertEquals(1, database.countKandidater())
+        assertEquals(true, database.getKandidaterForPersonident(personIdentDefault).single().hasSykepengesoknad)
     }
 
     @Test

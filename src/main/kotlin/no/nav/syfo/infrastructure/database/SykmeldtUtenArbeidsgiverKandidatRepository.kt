@@ -29,6 +29,7 @@ class SykmeldtUtenArbeidsgiverKandidatRepository(private val database: DatabaseI
                     it.setObject(6, kandidat.tilfelleStart)
                     it.setString(7, kandidat.status.name)
                     it.setTimestamp(8, Timestamp.from(kandidat.nextProcessingAt.toInstant()))
+                    it.setBoolean(9, kandidat.hasSykepengesoknad)
                     it.executeUpdate()
                 }
                 connection.commit()
@@ -89,13 +90,13 @@ class SykmeldtUtenArbeidsgiverKandidatRepository(private val database: DatabaseI
         private const val QUERY_INSERT_KANDIDAT =
             """
             INSERT INTO KANDIDAT_UTEN_ARBEIDSGIVER (
-                uuid, created_at, personident, aktor_id, referanse_id, tilfelle_start, status, next_processing_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                uuid, created_at, personident, aktor_id, referanse_id, tilfelle_start, status, next_processing_at, has_sykepengesoknad
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """
 
         private const val QUERY_GET_KANDIDATER_FOR_PROCESSING =
             """
-            SELECT uuid, created_at, personident, aktor_id, referanse_id, status, tilfelle_start, next_processing_at, oversendt_at
+            SELECT uuid, created_at, personident, aktor_id, referanse_id, status, tilfelle_start, next_processing_at, oversendt_at, has_sykepengesoknad
             FROM KANDIDAT_UTEN_ARBEIDSGIVER
             WHERE status IN ('NY', 'UTSATT')
             AND oversendt_at IS NULL
@@ -136,4 +137,5 @@ private fun ResultSet.toSykmeldtUtenArbeidsgiverKandidat() = SykmeldtUtenArbeids
     tilfelleStart = getObject("tilfelle_start", LocalDate::class.java),
     nextProcessingAt = getTimestamp("next_processing_at").toOffsetDateTimeUTC(),
     oversendtAt = getTimestamp("oversendt_at")?.toOffsetDateTimeUTC(),
+    hasSykepengesoknad = getBoolean("has_sykepengesoknad"),
 )
