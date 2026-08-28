@@ -93,6 +93,9 @@ data class OppfolgingstilfelleBit(
     }
 }
 
+fun OppfolgingstilfelleBit.isWithin(oppfolgingstilfelle: Oppfolgingstilfelle) =
+    this.fom <= oppfolgingstilfelle.end && this.tom >= oppfolgingstilfelle.start
+
 fun List<OppfolgingstilfelleBit>.generateOppfolgingstilfelleList(): List<Oppfolgingstilfelle> {
     val ikkeKorrigerteOppfolgingstilfelleBiter = this.fjernKorrigerteOppfolgingstilfelleBiter()
     return if (ikkeKorrigerteOppfolgingstilfelleBiter.isEmpty()) {

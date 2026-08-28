@@ -8,6 +8,7 @@ import no.nav.syfo.domain.SykmeldtUtenArbeidsgiverKandidat
 import no.nav.syfo.domain.isSykmeldingBekreftet
 import no.nav.syfo.domain.isSykmeldingNy
 import no.nav.syfo.domain.isSykepengesoknad
+import no.nav.syfo.domain.isWithin
 import no.nav.syfo.infrastructure.client.pdl.PdlClient
 import no.nav.syfo.infrastructure.database.SykmeldtUtenArbeidsgiverKandidatRepository
 import no.nav.syfo.infrastructure.database.bit.TilfellebitRepository
@@ -104,7 +105,7 @@ class OppfolgingstilfelleCronjob(
             }
 
             val hasSykepengesoknad = oppfolgingstilfelleBitForPersonList.any { bit ->
-                bit.isSykepengesoknad() && bit.fom <= latestTilfelle.end && bit.tom >= latestTilfelle.start
+                bit.isSykepengesoknad() && bit.isWithin(latestTilfelle)
             }
 
             val kandidat = SykmeldtUtenArbeidsgiverKandidat.opprett(
