@@ -37,6 +37,25 @@ class SykmeldtUtenArbeidsgiverKandidatRepository(private val database: DatabaseI
         }
     }
 
+    fun existsForPersonident(personident: PersonIdentNumber): Boolean =
+        database.connection.use { connection ->
+            connection.prepareStatement(QUERY_EXISTS_FOR_PERSONIDENT).use {
+                it.setString(1, personident.value)
+                it.executeQuery().next()
+            }
+        }
+
+    fun oppdaterHasSykepengesoknad(personident: PersonIdentNumber, tilfelleStart: LocalDate) {
+        database.connection.use { connection ->
+            connection.prepareStatement(QUERY_UPDATE_HAS_SYKEPENGESOKNAD).use {
+                it.setString(1, personident.value)
+                it.setObject(2, tilfelleStart)
+                it.executeUpdate()
+            }
+            connection.commit()
+        }
+    }
+
     fun getKandidaterForProcessing(): List<SykmeldtUtenArbeidsgiverKandidat> =
         database.connection.use { connection ->
             connection.prepareStatement(QUERY_GET_KANDIDATER_FOR_PROCESSING).use {
@@ -92,6 +111,22 @@ class SykmeldtUtenArbeidsgiverKandidatRepository(private val database: DatabaseI
             INSERT INTO KANDIDAT_UTEN_ARBEIDSGIVER (
                 uuid, created_at, personident, aktor_id, referanse_id, tilfelle_start, status, next_processing_at, has_sykepengesoknad
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """
+
+        private const val QUERY_EXISTS_FOR_PERSONIDENT =
+            """
+            SELECT 1 FROM KANDIDAT_UTEN_ARBEIDSGIVER
+            WHERE personident = ?
+            LIMIT 1
+            """
+
+        private const val QUERY_UPDATE_HAS_SYKEPENGESOKNAD =
+            """
+            UPDATE KANDIDAT_UTEN_ARBEIDSGIVER
+            SET has_sykepengesoknad = TRUE
+            WHERE personident = ?
+            AND tilfelle_start = ?
+            AND NOT has_sykepengesoknad
             """
 
         private const val QUERY_GET_KANDIDATER_FOR_PROCESSING =

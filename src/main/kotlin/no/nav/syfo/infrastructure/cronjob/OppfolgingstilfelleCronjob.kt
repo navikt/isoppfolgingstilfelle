@@ -60,6 +60,11 @@ class OppfolgingstilfelleCronjob(
                     oppfolgingstilfelleBitForPersonList = oppfolgingstilfelleBitForPersonList,
                 )
 
+                oppdaterHasSykepengesoknadHvisAktuell(
+                    incomingBit = oppfolgingstilfelleBit,
+                    oppfolgingstilfellePerson = oppfolgingstilfellePerson,
+                )
+
                 result.updated++
             } catch (exc: Exception) {
                 log.error("caught exception when processing oppfolgingstilfelleBit", exc)
@@ -112,6 +117,30 @@ class OppfolgingstilfelleCronjob(
             kandidatRepository.createIfMissing(kandidat)
         } catch (exc: Exception) {
             log.error("Failed to process SykmeldtUtenArbeidsgiverKandidat for tilfellebit: ${incomingBit.uuid}", exc)
+        }
+    }
+
+    private fun oppdaterHasSykepengesoknadHvisAktuell(
+        incomingBit: OppfolgingstilfelleBit,
+        oppfolgingstilfellePerson: OppfolgingstilfellePerson,
+    ) {
+        try {
+            if (!incomingBit.isSykepengesoknad()) return
+
+            if (!kandidatRepository.existsForPersonident(incomingBit.personIdentNumber)) return
+
+            // Finn tilfellet som sykepengesøknaden hører til, slik at vi kan oppdatere
+            // en eventuell eksisterende kandidat for det tilfellet (identifisert ved tilfelle_start)
+            val tilfelle = oppfolgingstilfellePerson.oppfolgingstilfelleList.find { tilfelle ->
+                incomingBit.fom <= tilfelle.end && incomingBit.tom >= tilfelle.start
+            } ?: return
+
+            kandidatRepository.oppdaterHasSykepengesoknad(
+                personident = incomingBit.personIdentNumber,
+                tilfelleStart = tilfelle.start,
+            )
+        } catch (exc: Exception) {
+            log.error("Failed to update hasSykepengesoknad for tilfellebit: ${incomingBit.uuid}", exc)
         }
     }
 
