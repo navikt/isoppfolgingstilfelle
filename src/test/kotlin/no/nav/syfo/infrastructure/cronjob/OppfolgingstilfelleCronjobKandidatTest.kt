@@ -326,4 +326,33 @@ class OppfolgingstilfelleCronjobKandidatTest {
         pollAndRun(listOf(bit))
         assertEquals(2, database.countKandidater())
     }
+
+    @Test
+    fun `updates existing kandidat tilfelle_start when tilfelle is extended backward (e g egenmeldingsdager)`() {
+        val bit1 = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
+            personIdentNumber = personIdentDefault,
+            fom = LocalDate.now().minusDays(30),
+            tom = LocalDate.now(),
+        )
+        pollAndRun(listOf(bit1))
+        assertEquals(1, database.countKandidater())
+        assertEquals(
+            LocalDate.now().minusDays(30),
+            database.getKandidaterForPersonident(personIdentDefault).single().tilfelleStart,
+        )
+
+        // A later bit (e.g. egenmeldingsdager) extends the same tilfelle further back in time
+        val bit2 = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
+            personIdentNumber = personIdentDefault,
+            fom = LocalDate.now().minusDays(35),
+            tom = LocalDate.now(),
+        )
+        pollAndRun(listOf(bit2))
+
+        assertEquals(1, database.countKandidater())
+        assertEquals(
+            LocalDate.now().minusDays(35),
+            database.getKandidaterForPersonident(personIdentDefault).single().tilfelleStart,
+        )
+    }
 }

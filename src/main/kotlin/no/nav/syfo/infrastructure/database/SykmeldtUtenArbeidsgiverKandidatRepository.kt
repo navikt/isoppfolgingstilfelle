@@ -12,14 +12,37 @@ import java.util.*
 
 class SykmeldtUtenArbeidsgiverKandidatRepository(private val database: DatabaseInterface) {
 
-    fun createIfMissing(kandidat: SykmeldtUtenArbeidsgiverKandidat) {
+    fun createIfMissing(kandidat: SykmeldtUtenArbeidsgiverKandidat, tilfelleEnd: LocalDate) {
         database.connection.use { connection ->
             val hasExisting = connection.prepareStatement(QUERY_GET_EXISTING_KANDIDAT).use {
                 it.setString(1, kandidat.personident.value)
                 it.setObject(2, kandidat.tilfelleStart)
                 it.executeQuery().next()
             }
-            if (!hasExisting) {
+            if (hasExisting) {
+                return@use
+            }
+
+            val overlappingKandidatUuid = connection.prepareStatement(QUERY_GET_OVERLAPPING_KANDIDAT).use {
+                it.setString(1, kandidat.personident.value)
+                it.setObject(2, kandidat.tilfelleStart)
+                it.setObject(3, tilfelleEnd)
+                it.executeQuery().toList { getString("uuid") }
+            }.firstOrNull()
+
+            if (overlappingKandidatUuid != null) {
+                // Tilfellet er allerede representert av en eksisterende kandidat, men tilfelle_start
+                // har forskjøvet seg (f.eks. pga. egenmeldingsdager som utvider tilfellet bakover).
+                // Oppdater den eksisterende raden i stedet for å opprette en duplikatrad.
+                connection.prepareStatement(QUERY_UPDATE_OVERLAPPING_KANDIDAT).use {
+                    it.setObject(1, kandidat.tilfelleStart)
+                    it.setString(2, kandidat.aktorId)
+                    it.setString(3, kandidat.referanseId)
+                    it.setBoolean(4, kandidat.hasSykepengesoknad)
+                    it.setString(5, overlappingKandidatUuid)
+                    it.executeUpdate()
+                }
+            } else {
                 connection.prepareStatement(QUERY_INSERT_KANDIDAT).use {
                     it.setString(1, kandidat.uuid.toString())
                     it.setTimestamp(2, Timestamp.from(kandidat.createdAt.toInstant()))
@@ -32,8 +55,8 @@ class SykmeldtUtenArbeidsgiverKandidatRepository(private val database: DatabaseI
                     it.setBoolean(9, kandidat.hasSykepengesoknad)
                     it.executeUpdate()
                 }
-                connection.commit()
             }
+            connection.commit()
         }
     }
 
@@ -104,6 +127,22 @@ class SykmeldtUtenArbeidsgiverKandidatRepository(private val database: DatabaseI
             SELECT id FROM KANDIDAT_UTEN_ARBEIDSGIVER
             WHERE personident = ?
             AND tilfelle_start = ?
+            """
+
+        private const val QUERY_GET_OVERLAPPING_KANDIDAT =
+            """
+            SELECT uuid FROM KANDIDAT_UTEN_ARBEIDSGIVER
+            WHERE personident = ?
+            AND tilfelle_start BETWEEN ? AND ?
+            ORDER BY created_at DESC
+            LIMIT 1
+            """
+
+        private const val QUERY_UPDATE_OVERLAPPING_KANDIDAT =
+            """
+            UPDATE KANDIDAT_UTEN_ARBEIDSGIVER
+            SET tilfelle_start = ?, aktor_id = ?, referanse_id = ?, has_sykepengesoknad = ?
+            WHERE uuid = ?
             """
 
         private const val QUERY_INSERT_KANDIDAT =

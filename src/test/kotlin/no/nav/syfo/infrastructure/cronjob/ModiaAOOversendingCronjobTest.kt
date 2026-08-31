@@ -44,7 +44,7 @@ class ModiaAOOversendingCronjobTest {
             referanseId = UUID.randomUUID().toString(),
             tilfelleStart = tilfelleStart,
         )
-        kandidatRepository.createIfMissing(kandidat)
+        kandidatRepository.createIfMissing(kandidat, tilfelleEnd = tilfelleStart)
     }
 
     private fun createTilfelle(
