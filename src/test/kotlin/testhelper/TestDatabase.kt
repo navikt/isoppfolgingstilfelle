@@ -96,16 +96,21 @@ fun DatabaseInterface.setKandidatFerdig() {
 }
 
 fun DatabaseInterface.insertKandidatFerdig(personident: PersonIdentNumber, tilfelleStart: LocalDate) {
+    insertKandidat(personident, tilfelleStart, status = "FERDIG")
+}
+
+fun DatabaseInterface.insertKandidat(personident: PersonIdentNumber, tilfelleStart: LocalDate, status: String = "NY") {
     this.connection.use { connection ->
         connection.prepareStatement(
             """
             INSERT INTO KANDIDAT_UTEN_ARBEIDSGIVER (uuid, created_at, personident, aktor_id, tilfelle_start, status, next_processing_at)
-            VALUES (?, now(), ?, 'test-aktor-id', ?, 'FERDIG', now())
+            VALUES (?, now(), ?, 'test-aktor-id', ?, ?, now())
             """
         ).use {
             it.setString(1, java.util.UUID.randomUUID().toString())
             it.setString(2, personident.value)
             it.setObject(3, tilfelleStart)
+            it.setString(4, status)
             it.executeUpdate()
         }
         connection.commit()

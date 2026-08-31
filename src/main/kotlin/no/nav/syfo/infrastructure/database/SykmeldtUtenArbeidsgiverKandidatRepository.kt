@@ -3,6 +3,7 @@ package no.nav.syfo.infrastructure.database
 import no.nav.syfo.domain.KandidatStatus
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.domain.SykmeldtUtenArbeidsgiverKandidat
+import no.nav.syfo.infrastructure.cronjob.MINIMUM_NUMBER_OF_DAYS_BETWEEN_TILFELLER
 import no.nav.syfo.util.toOffsetDateTimeUTC
 import java.sql.ResultSet
 import java.sql.Timestamp
@@ -19,44 +20,42 @@ class SykmeldtUtenArbeidsgiverKandidatRepository(private val database: DatabaseI
                 it.setObject(2, kandidat.tilfelleStart)
                 it.executeQuery().next()
             }
-            if (hasExisting) {
-                return@use
-            }
+            if (!hasExisting) {
+                val overlappingKandidatUuid = connection.prepareStatement(QUERY_GET_OVERLAPPING_KANDIDAT).use {
+                    it.setString(1, kandidat.personident.value)
+                    it.setObject(2, kandidat.tilfelleStart.minusDays(MINIMUM_NUMBER_OF_DAYS_BETWEEN_TILFELLER))
+                    it.setObject(3, tilfelleEnd)
+                    it.executeQuery().toList { getString("uuid") }
+                }.firstOrNull()
 
-            val overlappingKandidatUuid = connection.prepareStatement(QUERY_GET_OVERLAPPING_KANDIDAT).use {
-                it.setString(1, kandidat.personident.value)
-                it.setObject(2, kandidat.tilfelleStart)
-                it.setObject(3, tilfelleEnd)
-                it.executeQuery().toList { getString("uuid") }
-            }.firstOrNull()
-
-            if (overlappingKandidatUuid != null) {
-                // Tilfellet er allerede representert av en eksisterende kandidat, men tilfelle_start
-                // har forskjøvet seg (f.eks. pga. egenmeldingsdager som utvider tilfellet bakover).
-                // Oppdater den eksisterende raden i stedet for å opprette en duplikatrad.
-                connection.prepareStatement(QUERY_UPDATE_OVERLAPPING_KANDIDAT).use {
-                    it.setObject(1, kandidat.tilfelleStart)
-                    it.setString(2, kandidat.aktorId)
-                    it.setString(3, kandidat.referanseId)
-                    it.setBoolean(4, kandidat.hasSykepengesoknad)
-                    it.setString(5, overlappingKandidatUuid)
-                    it.executeUpdate()
+                if (overlappingKandidatUuid != null) {
+                    // Tilfellet er allerede representert av en eksisterende kandidat, men tilfelle_start
+                    // har forskjøvet seg (f.eks. pga. egenmeldingsdager som utvider tilfellet bakover).
+                    // Oppdater den eksisterende raden i stedet for å opprette en duplikatrad.
+                    connection.prepareStatement(QUERY_UPDATE_OVERLAPPING_KANDIDAT).use {
+                        it.setObject(1, kandidat.tilfelleStart)
+                        it.setString(2, kandidat.aktorId)
+                        it.setString(3, kandidat.referanseId)
+                        it.setBoolean(4, kandidat.hasSykepengesoknad)
+                        it.setString(5, overlappingKandidatUuid)
+                        it.executeUpdate()
+                    }
+                } else {
+                    connection.prepareStatement(QUERY_INSERT_KANDIDAT).use {
+                        it.setString(1, kandidat.uuid.toString())
+                        it.setTimestamp(2, Timestamp.from(kandidat.createdAt.toInstant()))
+                        it.setString(3, kandidat.personident.value)
+                        it.setString(4, kandidat.aktorId)
+                        it.setString(5, kandidat.referanseId)
+                        it.setObject(6, kandidat.tilfelleStart)
+                        it.setString(7, kandidat.status.name)
+                        it.setTimestamp(8, Timestamp.from(kandidat.nextProcessingAt.toInstant()))
+                        it.setBoolean(9, kandidat.hasSykepengesoknad)
+                        it.executeUpdate()
+                    }
                 }
-            } else {
-                connection.prepareStatement(QUERY_INSERT_KANDIDAT).use {
-                    it.setString(1, kandidat.uuid.toString())
-                    it.setTimestamp(2, Timestamp.from(kandidat.createdAt.toInstant()))
-                    it.setString(3, kandidat.personident.value)
-                    it.setString(4, kandidat.aktorId)
-                    it.setString(5, kandidat.referanseId)
-                    it.setObject(6, kandidat.tilfelleStart)
-                    it.setString(7, kandidat.status.name)
-                    it.setTimestamp(8, Timestamp.from(kandidat.nextProcessingAt.toInstant()))
-                    it.setBoolean(9, kandidat.hasSykepengesoknad)
-                    it.executeUpdate()
-                }
+                connection.commit()
             }
-            connection.commit()
         }
     }
 
