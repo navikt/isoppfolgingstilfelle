@@ -136,7 +136,7 @@ class OppfolgingstilfelleCronjob(
             // Finn tilfellet som sykepengesøknaden hører til, slik at vi kan oppdatere
             // en eventuell eksisterende kandidat for det tilfellet (identifisert ved tilfelle_start)
             val tilfelle = oppfolgingstilfellePerson.oppfolgingstilfelleList.find { tilfelle ->
-                incomingBit.fom <= tilfelle.end && incomingBit.tom >= tilfelle.start
+                incomingBit.isWithin(tilfelle)
             } ?: return
 
             kandidatRepository.oppdaterHasSykepengesoknad(
