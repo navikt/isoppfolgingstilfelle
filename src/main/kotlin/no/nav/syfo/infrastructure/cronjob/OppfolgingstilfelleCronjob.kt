@@ -87,6 +87,9 @@ class OppfolgingstilfelleCronjob(
             // Ignore if tilfelle is not current
             if (latestTilfelle.end.isBefore(LocalDate.now())) return
 
+            // Ignore if incomingBit is not part of latestTilfelle (i.e. it is part of an older tilfelle)
+            if (!incomingBit.isWithin(latestTilfelle)) return
+
             // Ignore incomingBit (bekreftet) if there is a newer bit in tilfelle, unless the only newer bit(s) are SYKMELDING NY
             val nyereBiterSomIkkeErSykmeldingNy = oppfolgingstilfelleBitForPersonList.filter { bit ->
                 bit.tom > incomingBit.tom
