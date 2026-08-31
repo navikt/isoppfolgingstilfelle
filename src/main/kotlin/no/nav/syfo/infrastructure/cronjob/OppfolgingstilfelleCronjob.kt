@@ -7,6 +7,8 @@ import no.nav.syfo.domain.OppfolgingstilfellePerson
 import no.nav.syfo.domain.SykmeldtUtenArbeidsgiverKandidat
 import no.nav.syfo.domain.isSykmeldingBekreftet
 import no.nav.syfo.domain.isSykmeldingNy
+import no.nav.syfo.domain.isSykepengesoknad
+import no.nav.syfo.domain.isWithin
 import no.nav.syfo.infrastructure.client.pdl.PdlClient
 import no.nav.syfo.infrastructure.database.SykmeldtUtenArbeidsgiverKandidatRepository
 import no.nav.syfo.infrastructure.database.bit.TilfellebitRepository
@@ -59,6 +61,11 @@ class OppfolgingstilfelleCronjob(
                     oppfolgingstilfelleBitForPersonList = oppfolgingstilfelleBitForPersonList,
                 )
 
+                oppdaterHasSykepengesoknadHvisAktuell(
+                    incomingBit = oppfolgingstilfelleBit,
+                    oppfolgingstilfellePerson = oppfolgingstilfellePerson,
+                )
+
                 result.updated++
             } catch (exc: Exception) {
                 log.error("caught exception when processing oppfolgingstilfelleBit", exc)
@@ -80,6 +87,9 @@ class OppfolgingstilfelleCronjob(
             // Ignore if tilfelle is not current
             if (latestTilfelle.end.isBefore(LocalDate.now())) return
 
+            // Ignore if incomingBit is not part of latestTilfelle (i.e. it is part of an older tilfelle)
+            if (!incomingBit.isWithin(latestTilfelle)) return
+
             // Ignore incomingBit (bekreftet) if there is a newer bit in tilfelle, unless the only newer bit(s) are SYKMELDING NY
             val nyereBiterSomIkkeErSykmeldingNy = oppfolgingstilfelleBitForPersonList.filter { bit ->
                 bit.tom > incomingBit.tom
@@ -97,15 +107,44 @@ class OppfolgingstilfelleCronjob(
                 return
             }
 
+            val hasSykepengesoknad = oppfolgingstilfelleBitForPersonList.any { bit ->
+                bit.isSykepengesoknad() && bit.isWithin(latestTilfelle)
+            }
+
             val kandidat = SykmeldtUtenArbeidsgiverKandidat.opprett(
                 personident = incomingBit.personIdentNumber,
                 aktorId = aktorId,
                 referanseId = incomingBit.ressursId,
                 tilfelleStart = latestTilfelle.start,
+                hasSykepengesoknad = hasSykepengesoknad,
             )
             kandidatRepository.createIfMissing(kandidat)
         } catch (exc: Exception) {
             log.error("Failed to process SykmeldtUtenArbeidsgiverKandidat for tilfellebit: ${incomingBit.uuid}", exc)
+        }
+    }
+
+    private fun oppdaterHasSykepengesoknadHvisAktuell(
+        incomingBit: OppfolgingstilfelleBit,
+        oppfolgingstilfellePerson: OppfolgingstilfellePerson,
+    ) {
+        try {
+            if (!incomingBit.isSykepengesoknad()) return
+
+            if (!kandidatRepository.existsForPersonident(incomingBit.personIdentNumber)) return
+
+            // Finn tilfellet som sykepengesøknaden hører til, slik at vi kan oppdatere
+            // en eventuell eksisterende kandidat for det tilfellet (identifisert ved tilfelle_start)
+            val tilfelle = oppfolgingstilfellePerson.oppfolgingstilfelleList.find { tilfelle ->
+                incomingBit.isWithin(tilfelle)
+            } ?: return
+
+            kandidatRepository.oppdaterHasSykepengesoknad(
+                personident = incomingBit.personIdentNumber,
+                tilfelleStart = tilfelle.start,
+            )
+        } catch (exc: Exception) {
+            log.error("Failed to update hasSykepengesoknad for tilfellebit: ${incomingBit.uuid}", exc)
         }
     }
 

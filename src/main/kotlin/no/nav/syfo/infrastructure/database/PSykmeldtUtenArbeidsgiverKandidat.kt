@@ -20,6 +20,7 @@ data class PSykmeldtUtenArbeidsgiverKandidat(
     val status: String,
     val nextProcessingAt: OffsetDateTime,
     val oversendtAt: OffsetDateTime?,
+    val hasSykepengesoknad: Boolean,
 )
 
 fun ResultSet.toPSykmeldtUtenArbeidsgiverKandidat() = PSykmeldtUtenArbeidsgiverKandidat(
@@ -33,6 +34,7 @@ fun ResultSet.toPSykmeldtUtenArbeidsgiverKandidat() = PSykmeldtUtenArbeidsgiverK
     status = getString("status"),
     nextProcessingAt = getTimestamp("next_processing_at").toOffsetDateTimeUTC(),
     oversendtAt = getTimestamp("oversendt_at")?.toOffsetDateTimeUTC(),
+    hasSykepengesoknad = getBoolean("has_sykepengesoknad"),
 )
 
 fun PSykmeldtUtenArbeidsgiverKandidat.toKandidat() = SykmeldtUtenArbeidsgiverKandidat(
@@ -45,4 +47,5 @@ fun PSykmeldtUtenArbeidsgiverKandidat.toKandidat() = SykmeldtUtenArbeidsgiverKan
     status = KandidatStatus.valueOf(status),
     nextProcessingAt = nextProcessingAt,
     oversendtAt = oversendtAt,
+    hasSykepengesoknad = hasSykepengesoknad,
 )

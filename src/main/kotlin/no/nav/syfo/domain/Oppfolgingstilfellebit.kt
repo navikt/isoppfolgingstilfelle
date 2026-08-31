@@ -93,6 +93,9 @@ data class OppfolgingstilfelleBit(
     }
 }
 
+fun OppfolgingstilfelleBit.isWithin(oppfolgingstilfelle: Oppfolgingstilfelle) =
+    this.fom <= oppfolgingstilfelle.end && this.tom >= oppfolgingstilfelle.start
+
 fun List<OppfolgingstilfelleBit>.generateOppfolgingstilfelleList(): List<Oppfolgingstilfelle> {
     val ikkeKorrigerteOppfolgingstilfelleBiter = this.fjernKorrigerteOppfolgingstilfelleBiter()
     return if (ikkeKorrigerteOppfolgingstilfelleBiter.isEmpty()) {
@@ -225,6 +228,8 @@ fun OppfolgingstilfelleBit.isInntektsmelding(): Boolean =
     this.tagList in (Tag.INNTEKTSMELDING and Tag.ARBEIDSGIVERPERIODE)
 
 fun OppfolgingstilfelleBit.isSykmeldingBekreftet(): Boolean = this.tagList in (Tag.SYKMELDING and Tag.BEKREFTET)
+
+fun OppfolgingstilfelleBit.isSykepengesoknad(): Boolean = this.tagList.contains(Tag.SYKEPENGESOKNAD)
 
 fun OppfolgingstilfelleBit.isSykmeldingSendt(): Boolean = this.tagList in (Tag.SYKMELDING and Tag.SENDT)
 
