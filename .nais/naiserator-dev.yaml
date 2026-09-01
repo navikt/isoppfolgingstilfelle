@@ -119,4 +119,4 @@ spec:
     - name: MODIA_AO_OVERSENDING_CRONJOB_INTERVAL_DELAY_MINUTES
       value: "60"
     - name: MODIA_AO_SEND_ENABLED
-      value: "false"
+      value: "true"
