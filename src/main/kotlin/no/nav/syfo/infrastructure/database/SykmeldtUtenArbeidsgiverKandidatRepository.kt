@@ -34,10 +34,9 @@ class SykmeldtUtenArbeidsgiverKandidatRepository(private val database: DatabaseI
                     // Oppdater den eksisterende raden i stedet for å opprette en duplikatrad.
                     connection.prepareStatement(QUERY_UPDATE_OVERLAPPING_KANDIDAT).use {
                         it.setObject(1, kandidat.tilfelleStart)
-                        it.setString(2, kandidat.aktorId)
-                        it.setString(3, kandidat.referanseId)
-                        it.setBoolean(4, kandidat.hasSykepengesoknad)
-                        it.setString(5, overlappingKandidatUuid)
+                        it.setString(2, kandidat.referanseId)
+                        it.setBoolean(3, kandidat.hasSykepengesoknad)
+                        it.setString(4, overlappingKandidatUuid)
                         it.executeUpdate()
                     }
                 } else {
@@ -140,7 +139,7 @@ class SykmeldtUtenArbeidsgiverKandidatRepository(private val database: DatabaseI
         private const val QUERY_UPDATE_OVERLAPPING_KANDIDAT =
             """
             UPDATE KANDIDAT_UTEN_ARBEIDSGIVER
-            SET tilfelle_start = ?, aktor_id = ?, referanse_id = ?, has_sykepengesoknad = ?
+            SET tilfelle_start = ?, referanse_id = ?, has_sykepengesoknad = ?
             WHERE uuid = ?
             """
 
