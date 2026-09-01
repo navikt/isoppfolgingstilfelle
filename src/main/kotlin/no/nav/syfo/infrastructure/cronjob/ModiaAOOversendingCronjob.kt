@@ -5,6 +5,7 @@ import no.nav.syfo.application.OppfolgingstilfelleService
 import no.nav.syfo.domain.DAYS_AFTER_TILFELLE_START
 import no.nav.syfo.domain.toOppfolgingstilfellePersonDTO
 import no.nav.syfo.infrastructure.database.SykmeldtUtenArbeidsgiverKandidatRepository
+import no.nav.syfo.infrastructure.kafka.StartOppfolgingProducer
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.ZoneId
@@ -14,6 +15,7 @@ val MINIMUM_NUMBER_OF_DAYS_BETWEEN_TILFELLER = 16L
 class ModiaAOOversendingCronjob(
     private val oppfolgingstilfelleService: OppfolgingstilfelleService,
     private val kandidatRepository: SykmeldtUtenArbeidsgiverKandidatRepository,
+    private val startOppfolgingProducer: StartOppfolgingProducer,
     private val sendEnabled: Boolean = false,
     override val initialDelayMinutes: Long = 11,
     override val intervalDelayMinutes: Long = 60,
@@ -65,7 +67,9 @@ class ModiaAOOversendingCronjob(
 
                     !latestTilfelle.arbeidstakerAtTilfelleEnd -> {
                         if (sendEnabled) {
-                            // TODO: Send kandidat til Modia/AO
+                            startOppfolgingProducer.sendSykmeldtUtenArbeidsgiverKandidat(
+                                personident = kandidat.personident,
+                            )
                         }
                         kandidatRepository.markerOversendt(kandidat.uuid)
                     }

@@ -12,7 +12,10 @@ import no.nav.syfo.infrastructure.client.pdl.PdlClient
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.SykmeldtUtenArbeidsgiverKandidatRepository
 import no.nav.syfo.infrastructure.database.bit.TilfellebitRepository
+import no.nav.syfo.infrastructure.kafka.StartOppfolgingProducer
+import no.nav.syfo.infrastructure.kafka.kafkaStartOppfolgingProducerConfig
 import no.nav.syfo.launchBackgroundTask
+import org.apache.kafka.clients.producer.KafkaProducer
 
 fun launchCronjobModule(
     applicationState: ApplicationState,
@@ -39,6 +42,13 @@ fun launchCronjobModule(
         clientEnvironment = environment.clients.arbeidsforhold,
     )
     val kandidatRepository = SykmeldtUtenArbeidsgiverKandidatRepository(database = database)
+    val startOppfolgingProducer = StartOppfolgingProducer(
+        producer = KafkaProducer(
+            kafkaStartOppfolgingProducerConfig(
+                kafkaEnvironment = environment.kafka,
+            )
+        )
+    )
 
     val sykmeldingNyCronjob = SykmeldingNyCronjob(
         database = database,
@@ -56,6 +66,7 @@ fun launchCronjobModule(
     val modiaAOOversendingCronjob = ModiaAOOversendingCronjob(
         oppfolgingstilfelleService = OppfolgingstilfelleService(oppfolgingstilfellePersonService.oppfolgingstilfellePersonRepository),
         kandidatRepository = kandidatRepository,
+        startOppfolgingProducer = startOppfolgingProducer,
         initialDelayMinutes = environment.modiaAOOversendingCronjobInitialDelayMinutes,
         intervalDelayMinutes = environment.modiaAOOversendingCronjobIntervalDelayMinutes,
         sendEnabled = environment.modiaAOSendEnabled,
