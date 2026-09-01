@@ -66,8 +66,8 @@ fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelleList(): List<Oppfolgingsti
     return oppfolgingstilfelleList
 }
 
-fun List<OppfolgingstilfelleDag>.isArbeidstakerAtTilfelleEnd(): Boolean {
-    return if (this.isNotArbeidstakerTilfelle()) {
+fun List<OppfolgingstilfelleDag>.isArbeidstakerAtTilfelleEnd() =
+    if (this.isNotArbeidstakerTilfelle()) {
         false
     } else {
         val lastBit = findLastPriorityOppfolgingstilfelleBit()
@@ -81,7 +81,6 @@ fun List<OppfolgingstilfelleDag>.isArbeidstakerAtTilfelleEnd(): Boolean {
             lastBit?.isArbeidstakerBit() == true
         }
     }
-}
 
 private fun List<OppfolgingstilfelleDag>.isNotArbeidstakerTilfelle() =
     this.any { it.priorityOppfolgingstilfelleBit?.tagList?.contains(Tag.BEKREFTET) == true } &&
