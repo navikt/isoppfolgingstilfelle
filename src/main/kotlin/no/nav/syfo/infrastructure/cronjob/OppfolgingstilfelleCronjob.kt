@@ -118,7 +118,7 @@ class OppfolgingstilfelleCronjob(
                 tilfelleStart = latestTilfelle.start,
                 hasSykepengesoknad = hasSykepengesoknad,
             )
-            kandidatRepository.createIfMissing(kandidat)
+            kandidatRepository.createIfMissing(kandidat, tilfelleEnd = latestTilfelle.end)
         } catch (exc: Exception) {
             log.error("Failed to process SykmeldtUtenArbeidsgiverKandidat for tilfellebit: ${incomingBit.uuid}", exc)
         }

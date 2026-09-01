@@ -4,6 +4,7 @@ import io.mockk.*
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.application.OppfolgingstilfelleBitService
 import no.nav.syfo.application.OppfolgingstilfellePersonService
+import no.nav.syfo.domain.KandidatStatus
 import no.nav.syfo.domain.Tag
 import no.nav.syfo.infrastructure.kafka.OppfolgingstilfellePersonProducer
 import no.nav.syfo.infrastructure.kafka.syketilfelle.KafkaSyketilfellebit
@@ -24,6 +25,7 @@ import testhelper.dropData
 import testhelper.generator.generateKafkaSyketilfellebitRelevantSykmeldingBekreftet
 import testhelper.generator.generateKafkaSyketilfellebitRelevantVirksomhet
 import testhelper.getKandidaterForPersonident
+import testhelper.insertKandidat
 import testhelper.insertKandidatFerdig
 import testhelper.mock.toHistoricalPersonIdentNumber
 import testhelper.setKandidatFerdig
@@ -325,5 +327,88 @@ class OppfolgingstilfelleCronjobKandidatTest {
         )
         pollAndRun(listOf(bit))
         assertEquals(2, database.countKandidater())
+    }
+
+    @Test
+    fun `updates existing kandidat tilfelle_start when tilfelle is extended backward (e g egenmeldingsdager)`() {
+        val bit1 = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
+            personIdentNumber = personIdentDefault,
+            fom = LocalDate.now().minusDays(30),
+            tom = LocalDate.now(),
+        )
+        pollAndRun(listOf(bit1))
+        assertEquals(1, database.countKandidater())
+        assertEquals(
+            LocalDate.now().minusDays(30),
+            database.getKandidaterForPersonident(personIdentDefault).single().tilfelleStart,
+        )
+
+        // A later bit (e.g. egenmeldingsdager) extends the same tilfelle further back in time
+        val bit2 = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
+            personIdentNumber = personIdentDefault,
+            fom = LocalDate.now().minusDays(35),
+            tom = LocalDate.now(),
+        )
+        pollAndRun(listOf(bit2))
+
+        assertEquals(1, database.countKandidater())
+        assertEquals(
+            LocalDate.now().minusDays(35),
+            database.getKandidaterForPersonident(personIdentDefault).single().tilfelleStart,
+        )
+    }
+
+    @Test
+    fun `updates existing kandidat tilfelle_start when tilfelle_start moves to a newer date`() {
+        // An active (not yet ferdigstilt) kandidat exists with tilfelle_start 20 days ago,
+        // e.g. still NY awaiting further processing
+        database.insertKandidat(personIdentDefault, LocalDate.now().minusDays(20), status = "NY")
+        assertEquals(1, database.countKandidater())
+
+        // A new tilfelle starts 10 days ago, i.e. tilfelle_start moves to a newer date.
+        // The gap to the previous tilfelle_start (20 days ago) is less than
+        // MINIMUM_NUMBER_OF_DAYS_BETWEEN_TILFELLER, so the existing row is updated in place
+        // instead of inserting a new kandidat.
+        val bit = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
+            personIdentNumber = personIdentDefault,
+            fom = LocalDate.now().minusDays(10),
+            tom = LocalDate.now(),
+        )
+        pollAndRun(listOf(bit))
+
+        assertEquals(1, database.countKandidater())
+        assertEquals(
+            LocalDate.now().minusDays(10),
+            database.getKandidaterForPersonident(personIdentDefault).single().tilfelleStart,
+        )
+    }
+
+    @Test
+    fun `stores new kandidat instead of updating an overlapping FERDIG kandidat`() {
+        // A previous kandidat is already FERDIG (ferdigbehandlet) with tilfelle_start 20 days ago
+        database.insertKandidatFerdig(personIdentDefault, LocalDate.now().minusDays(20))
+        assertEquals(1, database.countKandidater())
+
+        // A new tilfelle starts 10 days ago. The gap to the FERDIG kandidat's tilfelle_start
+        // is within MINIMUM_NUMBER_OF_DAYS_BETWEEN_TILFELLER, but since that kandidat is FERDIG
+        // it must not be resurrected/updated - a new kandidat should be stored instead.
+        val bit = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
+            personIdentNumber = personIdentDefault,
+            fom = LocalDate.now().minusDays(10),
+            tom = LocalDate.now(),
+        )
+        pollAndRun(listOf(bit))
+
+        assertEquals(2, database.countKandidater())
+        val kandidater = database.getKandidaterForPersonident(personIdentDefault)
+        assertEquals(1, kandidater.count { it.status == KandidatStatus.FERDIG.name })
+        assertEquals(
+            LocalDate.now().minusDays(20),
+            kandidater.single { it.status == KandidatStatus.FERDIG.name }.tilfelleStart,
+        )
+        assertEquals(
+            LocalDate.now().minusDays(10),
+            kandidater.single { it.status != KandidatStatus.FERDIG.name }.tilfelleStart,
+        )
     }
 }

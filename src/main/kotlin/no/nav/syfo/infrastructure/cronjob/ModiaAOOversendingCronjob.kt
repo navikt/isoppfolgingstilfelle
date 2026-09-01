@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.ZoneId
 
-val DAYS_AFTER_TILFELLE_END = 16L
+val MINIMUM_NUMBER_OF_DAYS_BETWEEN_TILFELLER = 16L
 
 class ModiaAOOversendingCronjob(
     private val oppfolgingstilfelleService: OppfolgingstilfelleService,
@@ -43,7 +43,7 @@ class ModiaAOOversendingCronjob(
                 when {
                     oppfolgingstilfellePersonDto == null || latestTilfelle == null ||
                         oppfolgingstilfellePersonDto.dodsdato != null ||
-                        latestTilfelle.end.plusDays(DAYS_AFTER_TILFELLE_END).isBefore(today) -> {
+                        latestTilfelle.end.plusDays(MINIMUM_NUMBER_OF_DAYS_BETWEEN_TILFELLER).isBefore(today) -> {
                         kandidatRepository.markerFerdig(kandidat.uuid)
                     }
 
