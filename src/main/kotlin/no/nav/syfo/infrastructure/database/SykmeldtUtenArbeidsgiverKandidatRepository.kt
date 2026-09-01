@@ -132,6 +132,7 @@ class SykmeldtUtenArbeidsgiverKandidatRepository(private val database: DatabaseI
             SELECT uuid FROM KANDIDAT_UTEN_ARBEIDSGIVER
             WHERE personident = ?
             AND tilfelle_start BETWEEN ? AND ?
+            AND status != 'FERDIG'
             ORDER BY created_at DESC
             LIMIT 1
             """
