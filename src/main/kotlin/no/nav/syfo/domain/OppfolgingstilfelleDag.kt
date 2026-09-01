@@ -66,38 +66,47 @@ fun List<OppfolgingstilfelleDag>.toOppfolgingstilfelleList(): List<Oppfolgingsti
     return oppfolgingstilfelleList
 }
 
-fun List<OppfolgingstilfelleDag>.isArbeidstakerAtTilfelleEnd() =
-    if (this.isNotArbeidstakerTilfelle()) {
+fun List<OppfolgingstilfelleDag>.isArbeidstakerAtTilfelleEnd(): Boolean {
+    return if (this.isNotArbeidstakerTilfelle()) {
         false
     } else {
         val lastBit = findLastPriorityOppfolgingstilfelleBit()
-        lastBit?.isArbeidstakerBit() == true ||
-            (lastBit?.isSykmeldingNy() == true && this.hasSendtSykmeldingMedVirksomhetsnummer())
+        if (lastBit?.isSykmeldingNy() == true) {
+            // A sykmelding-ny's own virksomhetsnummer stems from an automatic aareg-lookup, not from a deliberate
+            // sendt/bekreftet action, so it is not trusted alone if the sykmeldt has switched from sending to
+            // confirming sykmeldinger (see harBekreftetEtterSisteSendtSykmelding below).
+            (lastBit.isArbeidstakerBit() || this.hasSendtSykmeldingMedVirksomhetsnummer()) &&
+                !this.harBekreftetEtterSisteSendtSykmelding()
+        } else {
+            lastBit?.isArbeidstakerBit() == true
+        }
     }
+}
 
 private fun List<OppfolgingstilfelleDag>.isNotArbeidstakerTilfelle() =
     this.any { it.priorityOppfolgingstilfelleBit?.tagList?.contains(Tag.BEKREFTET) == true } &&
         this.none { it.priorityOppfolgingstilfelleBit?.tagList?.contains(Tag.SENDT) == true } &&
         this.none { it.priorityOppfolgingstilfelleBit?.tagList?.contains(Tag.INNTEKTSMELDING) == true }
 
-// When the last priority bit is a sykmelding-ny without a virksomhetsnummer (e.g. missing aareg-response),
-// fall back to an earlier sykmelding-sendt bit in the same oppfolgingstilfelle. A sykmelding-sendt bit is by
-// definition sent to an arbeidsgiver, so it always has a virksomhetsnummer.
-// However, if the sykmeldt has started confirming (bekreftet) sykmeldinger instead of sending them - i.e. a
-// sykmelding-bekreftet bit with a later tom than the latest sykmelding-sendt bit - the fallback should not apply.
-// If the bekreftet and sendt sykmelding share the same tom, the fallback still applies.
-private fun List<OppfolgingstilfelleDag>.hasSendtSykmeldingMedVirksomhetsnummer(): Boolean {
-    val sisteSendtMedVirksomhetsnummerTom = this.mapNotNull { it.priorityOppfolgingstilfelleBit }
+// True if the sykmeldt has started confirming (bekreftet) sykmeldinger instead of sending them - i.e. a
+// sykmelding-bekreftet bit with a later tom than the latest sykmelding-sendt bit in the same oppfolgingstilfelle.
+// If there is no sendt sykmelding at all, or the bekreftet and sendt sykmelding share the same tom, this is false.
+private fun List<OppfolgingstilfelleDag>.harBekreftetEtterSisteSendtSykmelding(): Boolean {
+    val sisteSendtTom = this.mapNotNull { it.priorityOppfolgingstilfelleBit }
         .filter { it.isSykmeldingSendt() }
         .maxByOrNull { it.tom }
         ?.tom ?: return false
 
-    val harBekreftetEtterSisteSendt = this.mapNotNull { it.priorityOppfolgingstilfelleBit }
+    return this.mapNotNull { it.priorityOppfolgingstilfelleBit }
         .filter { it.isSykmeldingBekreftet() }
-        .any { it.tom.isAfter(sisteSendtMedVirksomhetsnummerTom) }
-
-    return !harBekreftetEtterSisteSendt
+        .any { it.tom.isAfter(sisteSendtTom) }
 }
+
+// When the last priority bit is a sykmelding-ny without a virksomhetsnummer (e.g. missing aareg-response),
+// fall back to an earlier sykmelding-sendt bit in the same oppfolgingstilfelle. A sykmelding-sendt bit is by
+// definition sent to an arbeidsgiver, so it always has a virksomhetsnummer.
+private fun List<OppfolgingstilfelleDag>.hasSendtSykmeldingMedVirksomhetsnummer(): Boolean =
+    this.any { it.priorityOppfolgingstilfelleBit?.isSykmeldingSendt() == true }
 
 private fun List<OppfolgingstilfelleDag>.findLastPriorityOppfolgingstilfelleBit() =
     this.last {
