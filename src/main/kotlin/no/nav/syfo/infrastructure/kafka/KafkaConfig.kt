@@ -22,6 +22,21 @@ fun kafkaOppfolgingstilfelleProducerConfig(
     }
 }
 
+fun kafkaStartOppfolgingProducerConfig(
+    kafkaEnvironment: KafkaEnvironment,
+): Properties {
+    return Properties().apply {
+        putAll(commonKafkaAivenConfig(kafkaEnvironment))
+        this[ProducerConfig.ACKS_CONFIG] = "all"
+        this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "true"
+        this[ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION] = "1"
+        this[ProducerConfig.MAX_BLOCK_MS_CONFIG] = "15000"
+        this[ProducerConfig.RETRIES_CONFIG] = "100000"
+        this[ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java.canonicalName
+        this[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = KafkaStartOppfolgingMeldingSerializer::class.java.canonicalName
+    }
+}
+
 fun commonKafkaAivenConfig(
     kafkaEnvironment: KafkaEnvironment,
 ) = Properties().apply {

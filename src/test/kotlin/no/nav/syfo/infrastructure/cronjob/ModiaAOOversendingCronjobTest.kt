@@ -3,6 +3,7 @@ package no.nav.syfo.infrastructure.cronjob
 import no.nav.syfo.application.OppfolgingstilfelleService
 import no.nav.syfo.domain.KandidatStatus
 import no.nav.syfo.domain.SykmeldtUtenArbeidsgiverKandidat
+import no.nav.syfo.infrastructure.kafka.StartOppfolgingProducer
 import no.nav.syfo.util.toLocalDateOslo
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -16,6 +17,8 @@ import testhelper.generator.generateOppfolgingstilfellePerson
 import testhelper.getKandidaterForPersonident
 import java.time.LocalDate
 import java.util.*
+import io.mockk.justRun
+import io.mockk.mockk
 
 class ModiaAOOversendingCronjobTest {
 
@@ -23,16 +26,19 @@ class ModiaAOOversendingCronjobTest {
     private val database = externalMockEnvironment.database
     private val oppfolgingstilfellePersonRepository = externalMockEnvironment.oppfolgingstilfellePersonRepository
     private val kandidatRepository = externalMockEnvironment.kandidatRepository
+    private val startOppfolgingProducer = mockk<StartOppfolgingProducer>()
 
     private val cronjob = ModiaAOOversendingCronjob(
         oppfolgingstilfelleService = OppfolgingstilfelleService(oppfolgingstilfellePersonRepository),
         kandidatRepository = kandidatRepository,
+        startOppfolgingProducer = startOppfolgingProducer,
         sendEnabled = true,
     )
 
     @BeforeEach
     fun beforeEach() {
         database.dropData()
+        justRun { startOppfolgingProducer.sendSykmeldtUtenArbeidsgiverKandidat(any()) }
     }
 
     private fun createKandidatForProcessing(
