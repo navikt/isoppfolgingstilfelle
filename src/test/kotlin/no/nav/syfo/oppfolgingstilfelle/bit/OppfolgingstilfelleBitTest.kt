@@ -1226,6 +1226,81 @@ class OppfolgingstilfelleBitTest {
     }
 
     @Test
+    fun `should not return arbeidstaker when sykmelding-ny has virksomhetsnummer but sykmelding-bekreftet has later tom than sykmelding-sendt`() {
+        val oppfolgingstilfelleBitList = listOf(
+            defaultBit.copy(
+                createdAt = nowUTC(),
+                inntruffet = nowUTC(),
+                tagList = listOf(SYKMELDING, SENDT, PERIODE, INGEN_AKTIVITET),
+                fom = LocalDate.now().minusDays(16),
+                tom = LocalDate.now().minusDays(9),
+                virksomhetsnummer = "987654330",
+            ),
+            // Sykmeldt has started confirming sykmeldinger instead of sending them, with a later tom
+            defaultBit.copy(
+                createdAt = nowUTC(),
+                inntruffet = nowUTC(),
+                tagList = listOf(SYKMELDING, BEKREFTET, PERIODE, INGEN_AKTIVITET),
+                fom = LocalDate.now().minusDays(8),
+                tom = LocalDate.now().minusDays(4),
+                virksomhetsnummer = null,
+            ),
+            // A later sykmelding-ny that has been enriched with a virksomhetsnummer from aareg should not
+            // override the fact that the sykmeldt has switched to confirming instead of sending sykmeldinger.
+            defaultBit.copy(
+                createdAt = nowUTC(),
+                inntruffet = nowUTC(),
+                tagList = listOf(SYKMELDING, NY, PERIODE, INGEN_AKTIVITET),
+                fom = LocalDate.now().minusDays(3),
+                tom = LocalDate.now(),
+                virksomhetsnummer = "123456789",
+            ),
+        )
+
+        val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+        assertEquals(1, oppfolgingstilfelleList.size)
+        val oppfolgingstilfelle = oppfolgingstilfelleList.first()
+
+        assertFalse(oppfolgingstilfelle.arbeidstakerAtTilfelleEnd)
+    }
+
+    @Test
+    fun `should return arbeidstaker when sykmelding-ny has virksomhetsnummer and sykmelding-bekreftet and sykmelding-sendt have the same tom`() {
+        val oppfolgingstilfelleBitList = listOf(
+            defaultBit.copy(
+                createdAt = nowUTC(),
+                inntruffet = nowUTC(),
+                tagList = listOf(SYKMELDING, BEKREFTET, PERIODE, INGEN_AKTIVITET),
+                fom = LocalDate.now().minusDays(16),
+                tom = LocalDate.now().minusDays(4),
+                virksomhetsnummer = null,
+            ),
+            defaultBit.copy(
+                createdAt = nowUTC(),
+                inntruffet = nowUTC(),
+                tagList = listOf(SYKMELDING, SENDT, PERIODE, INGEN_AKTIVITET),
+                fom = LocalDate.now().minusDays(5),
+                tom = LocalDate.now().minusDays(4),
+                virksomhetsnummer = "987654330",
+            ),
+            defaultBit.copy(
+                createdAt = nowUTC(),
+                inntruffet = nowUTC(),
+                tagList = listOf(SYKMELDING, NY, PERIODE, INGEN_AKTIVITET),
+                fom = LocalDate.now().minusDays(3),
+                tom = LocalDate.now(),
+                virksomhetsnummer = "123456789",
+            ),
+        )
+
+        val oppfolgingstilfelleList = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+        assertEquals(1, oppfolgingstilfelleList.size)
+        val oppfolgingstilfelle = oppfolgingstilfelleList.first()
+
+        assertTrue(oppfolgingstilfelle.arbeidstakerAtTilfelleEnd)
+    }
+
+    @Test
     fun `should return 1 Oppfolgingstilfelle and arbeidstaker when sykmelding-ny, sykpengesoknad-sendt and sykmelding-bekreftet`() {
         val oppfolgingstilfelleBitList = listOf(
             defaultBit.copy(
