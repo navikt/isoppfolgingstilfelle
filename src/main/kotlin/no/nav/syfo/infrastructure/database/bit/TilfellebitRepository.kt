@@ -8,7 +8,6 @@ import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.NoElementInsertedException
 import no.nav.syfo.infrastructure.database.toList
 import no.nav.syfo.util.toOffsetDateTimeUTC
-import org.slf4j.LoggerFactory
 import java.sql.*
 import java.sql.Date
 import java.time.OffsetDateTime
@@ -20,31 +19,26 @@ class TilfellebitRepository(private val database: DatabaseInterface) {
         oppfolgingstilfelleBit: OppfolgingstilfelleBit,
     ) {
         database.connection.use { connection ->
-            try {
-                val oppfolgingstilfelleBitIdList = connection.prepareStatement(QUERY_CREATE_TILFELLE_BIT).use {
-                    it.setString(1, oppfolgingstilfelleBit.uuid.toString())
-                    it.setTimestamp(2, Timestamp.from(oppfolgingstilfelleBit.createdAt.toInstant()))
-                    it.setTimestamp(3, Timestamp.from(oppfolgingstilfelleBit.inntruffet.toInstant()))
-                    it.setString(4, oppfolgingstilfelleBit.personIdentNumber.value)
-                    it.setString(5, oppfolgingstilfelleBit.ressursId)
-                    it.setString(6, oppfolgingstilfelleBit.tagsToString())
-                    it.setString(7, oppfolgingstilfelleBit.virksomhetsnummer)
-                    it.setDate(8, Date.valueOf(oppfolgingstilfelleBit.fom))
-                    it.setDate(9, Date.valueOf(oppfolgingstilfelleBit.tom))
-                    it.setBoolean(10, oppfolgingstilfelleBit.ready)
-                    it.setBoolean(11, oppfolgingstilfelleBit.processed)
-                    it.setString(12, oppfolgingstilfelleBit.korrigerer?.toString())
-                    it.executeQuery().toList { getInt("id") }
-                }
-
-                if (oppfolgingstilfelleBitIdList.size != 1) {
-                    throw NoElementInsertedException("Creating TILFELLE_BIT failed, no rows affected.")
-                }
-                connection.commit()
-            } catch (e: SQLException) {
-                connection.rollback()
-                log.error("Error creating OppfolgingstilfelleBit with uuid=${oppfolgingstilfelleBit.uuid}", e)
+            val oppfolgingstilfelleBitIdList = connection.prepareStatement(QUERY_CREATE_TILFELLE_BIT).use {
+                it.setString(1, oppfolgingstilfelleBit.uuid.toString())
+                it.setTimestamp(2, Timestamp.from(oppfolgingstilfelleBit.createdAt.toInstant()))
+                it.setTimestamp(3, Timestamp.from(oppfolgingstilfelleBit.inntruffet.toInstant()))
+                it.setString(4, oppfolgingstilfelleBit.personIdentNumber.value)
+                it.setString(5, oppfolgingstilfelleBit.ressursId)
+                it.setString(6, oppfolgingstilfelleBit.tagsToString())
+                it.setString(7, oppfolgingstilfelleBit.virksomhetsnummer)
+                it.setDate(8, Date.valueOf(oppfolgingstilfelleBit.fom))
+                it.setDate(9, Date.valueOf(oppfolgingstilfelleBit.tom))
+                it.setBoolean(10, oppfolgingstilfelleBit.ready)
+                it.setBoolean(11, oppfolgingstilfelleBit.processed)
+                it.setString(12, oppfolgingstilfelleBit.korrigerer?.toString())
+                it.executeQuery().toList { getInt("id") }
             }
+
+            if (oppfolgingstilfelleBitIdList.size != 1) {
+                throw NoElementInsertedException("Creating TILFELLE_BIT failed, no rows affected.")
+            }
+            connection.commit()
         }
     }
 
@@ -300,8 +294,6 @@ class TilfellebitRepository(private val database: DatabaseInterface) {
                 FROM TILFELLE_BIT_AVBRUTT a INNER JOIN TILFELLE_BIT t ON (t.id = a.tilfelle_bit_id) 
                 WHERE t.uuid=?
             """
-
-        private val log = LoggerFactory.getLogger(TilfellebitRepository::class.java)
     }
 }
 
