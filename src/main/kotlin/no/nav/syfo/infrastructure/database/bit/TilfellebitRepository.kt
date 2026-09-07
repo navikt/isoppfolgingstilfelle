@@ -71,6 +71,30 @@ class TilfellebitRepository(private val database: DatabaseInterface) {
             }
         }
 
+    fun markOppfolgingstilfelleBitForDeletion(uuid: UUID) =
+        database.connection.use { connection ->
+            connection.prepareStatement(QUERY_MARK_TILFELLE_BIT_FOR_DELETION).use {
+                it.setString(1, uuid.toString())
+                it.executeUpdate()
+            }.also { updateCount ->
+                if (updateCount != 1) {
+                    throw RuntimeException("Unexpected update count: $updateCount")
+                }
+            }
+            connection.commit()
+        }
+
+    // Only returns bits that are already processed, so that physical deletion never races
+    // with OppfolgingstilfelleCronjob's read-then-mark-processed flow for the same bit.
+    fun getOppfolgingstilfelleBitMarkedForDeletion(): List<POppfolgingstilfelleBit> =
+        database.connection.use { connection ->
+            connection.prepareStatement(QUERY_GET_TILFELLE_BIT_MARKED_FOR_DELETION).use {
+                it.executeQuery().toList {
+                    toPOppfolgingstilfelleBit()
+                }
+            }
+        }
+
     fun createOppfolgingstilfelleBitAvbrutt(
         pOppfolgingstilfelleBit: POppfolgingstilfelleBit,
         inntruffet: OffsetDateTime,
@@ -219,6 +243,22 @@ class TilfellebitRepository(private val database: DatabaseInterface) {
                 FROM TILFELLE_BIT
                 WHERE ready AND NOT processed
                 ORDER BY inntruffet ASC, id ASC 
+                LIMIT 4000;
+            """
+
+        private const val QUERY_MARK_TILFELLE_BIT_FOR_DELETION =
+            """
+                UPDATE TILFELLE_BIT
+                SET to_be_deleted=true
+                WHERE uuid=?
+            """
+
+        private const val QUERY_GET_TILFELLE_BIT_MARKED_FOR_DELETION =
+            """
+                SELECT *
+                FROM TILFELLE_BIT
+                WHERE to_be_deleted AND processed
+                ORDER BY inntruffet ASC, id ASC
                 LIMIT 4000;
             """
 

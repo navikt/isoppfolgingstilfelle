@@ -9,6 +9,7 @@ import no.nav.syfo.infrastructure.client.ArbeidsforholdClient
 import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
 import no.nav.syfo.infrastructure.cronjob.OppfolgingstilfelleCronjob
 import no.nav.syfo.infrastructure.cronjob.SykmeldingNyCronjob
+import no.nav.syfo.infrastructure.cronjob.TilfellebitDeleteCronjob
 import no.nav.syfo.infrastructure.kafka.OppfolgingstilfellePersonProducer
 import no.nav.syfo.infrastructure.kafka.syketilfelle.KafkaSyketilfellebit
 import no.nav.syfo.infrastructure.kafka.syketilfelle.SYKETILFELLEBIT_TOPIC
@@ -41,6 +42,13 @@ class KafkaSyketilfelleBitConsumerTest {
     private val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(tilfellebitRepository)
     private val kafkaSyketilfellebitService = SyketilfellebitConsumer(
         oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
+    )
+    private val tilfellebitDeleteCronjob = TilfellebitDeleteCronjob(
+        tilfellebitRepository = tilfellebitRepository,
+        oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(
+            oppfolgingstilfellePersonRepository = oppfolgingstilfelleRepository,
+            oppfolgingstilfellePersonProducer = oppfolgingstilfellePersonProducer,
+        ),
     )
     private val personIdentDefault = PERSONIDENTNUMBER_DEFAULT.toHistoricalPersonIdentNumber()
 
@@ -123,6 +131,26 @@ class KafkaSyketilfelleBitConsumerTest {
         partition,
         8,
         kafkaSyketilfellebitRecordEgenmelding.key(),
+        null,
+    )
+
+    private val kafkaSyketilfellebitSykmeldingBekreftet = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
+        personIdentNumber = personIdentDefault,
+        fom = LocalDate.now().minusDays(16),
+        tom = LocalDate.now().minusDays(14),
+    )
+    private val kafkaSyketilfellebitRecordSykmeldingBekreftet = ConsumerRecord(
+        SYKETILFELLEBIT_TOPIC,
+        partition,
+        9,
+        kafkaSyketilfellebitSykmeldingBekreftet.id,
+        kafkaSyketilfellebitSykmeldingBekreftet,
+    )
+    private val kafkaSyketilfellebitRecordSykmeldingBekreftetTombstone = ConsumerRecord<String, KafkaSyketilfellebit>(
+        SYKETILFELLEBIT_TOPIC,
+        partition,
+        10,
+        kafkaSyketilfellebitRecordSykmeldingBekreftet.key(),
         null,
     )
 
@@ -319,6 +347,14 @@ class KafkaSyketilfelleBitConsumerTest {
         kafkaSyketilfellebitService.pollAndProcessRecords(
             consumer = mockKafkaConsumerSyketilfelleBit,
         )
+        // Tombstone only marks the bit for deletion; physical deletion (and the resulting
+        // reprocessing trigger) happens in TilfellebitDeleteCronjob.
+        assertEquals(0, database.countDeletedTilfelleBit())
+
+        val deleteResult = tilfellebitDeleteCronjob.runJob()
+        assertEquals(0, deleteResult.failed)
+        assertEquals(1, deleteResult.updated)
+
         runBlocking {
             val result = oppfolgingstilfelleCronjob.runJob()
             assertEquals(0, result.failed)
@@ -337,6 +373,143 @@ class KafkaSyketilfelleBitConsumerTest {
         assertEquals(sykepengebitRecord.value().tom, oppfolgingstilfelle.end)
 
         assertEquals(1, database.countDeletedTilfelleBit())
+    }
+
+    @Test
+    fun `tombstone for the only tilfelleBit of a person should result in an empty oppfolgingstilfellePerson`() {
+        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+            mapOf(
+                syketilfellebitTopicPartition to listOf(
+                    kafkaSyketilfellebitRecordEgenmelding,
+                )
+            )
+        )
+        kafkaSyketilfellebitService.pollAndProcessRecords(
+            consumer = mockKafkaConsumerSyketilfelleBit,
+        )
+        runBlocking {
+            val result = oppfolgingstilfelleCronjob.runJob()
+            assertEquals(0, result.failed)
+            assertEquals(1, result.updated)
+        }
+        val oppfolgingstilfellePersonBeforeDelete =
+            oppfolgingstilfelleRepository.getOppfolgingstilfellePerson(personIdentDefault)
+        assertNotNull(oppfolgingstilfellePersonBeforeDelete)
+        assertEquals(1, oppfolgingstilfellePersonBeforeDelete!!.oppfolgingstilfeller.size)
+
+        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+            mapOf(
+                syketilfellebitTopicPartition to listOf(
+                    kafkaSyketilfellebitRecordEgenmeldingTombstone,
+                )
+            )
+        )
+        kafkaSyketilfellebitService.pollAndProcessRecords(
+            consumer = mockKafkaConsumerSyketilfelleBit,
+        )
+
+        val deleteResult = tilfellebitDeleteCronjob.runJob()
+        assertEquals(0, deleteResult.failed)
+        assertEquals(1, deleteResult.updated)
+        assertEquals(1, database.countDeletedTilfelleBit())
+
+        val oppfolgingstilfellePersonAfterDelete =
+            oppfolgingstilfelleRepository.getOppfolgingstilfellePerson(personIdentDefault)
+        assertNotNull(oppfolgingstilfellePersonAfterDelete)
+        assertEquals(personIdentDefault, oppfolgingstilfellePersonAfterDelete!!.personIdentNumber)
+        assertEquals(0, oppfolgingstilfellePersonAfterDelete.oppfolgingstilfeller.size)
+    }
+
+    @Test
+    fun `a newer unprocessed tilfelleBit arriving before an older processed SYKMELDING-BEKREFTET tilfelleBit is deleted should not be lost`() {
+        // Older bit (SYKMELDING-BEKREFTET, which is what tombstones are seen for in practice)
+        // arrives and is processed first, resulting in a person with a single tilfelle.
+        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+            mapOf(
+                syketilfellebitTopicPartition to listOf(
+                    kafkaSyketilfellebitRecordSykmeldingBekreftet,
+                )
+            )
+        )
+        kafkaSyketilfellebitService.pollAndProcessRecords(
+            consumer = mockKafkaConsumerSyketilfelleBit,
+        )
+        runBlocking {
+            val result = oppfolgingstilfelleCronjob.runJob()
+            assertEquals(0, result.failed)
+            assertEquals(1, result.updated)
+        }
+        val oppfolgingstilfellePersonBeforeDelete =
+            oppfolgingstilfelleRepository.getOppfolgingstilfellePerson(personIdentDefault)
+        assertNotNull(oppfolgingstilfellePersonBeforeDelete)
+        assertEquals(1, oppfolgingstilfellePersonBeforeDelete!!.oppfolgingstilfeller.size)
+
+        // A tombstone for the older SYKMELDING-BEKREFTET bit arrives, marking it for (later)
+        // deletion.
+        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+            mapOf(
+                syketilfellebitTopicPartition to listOf(
+                    kafkaSyketilfellebitRecordSykmeldingBekreftetTombstone,
+                )
+            )
+        )
+        kafkaSyketilfellebitService.pollAndProcessRecords(
+            consumer = mockKafkaConsumerSyketilfelleBit,
+        )
+
+        // Before TilfellebitDeleteCronjob runs, a newer tilfelleBit for the same person arrives,
+        // but has not yet been picked up/processed by OppfolgingstilfelleCronjob.
+        val nyereTilfellebitRecord = ConsumerRecord(
+            SYKETILFELLEBIT_TOPIC,
+            partition,
+            11,
+            kafkaSyketilfellebitRelevantVirksomhet.id,
+            kafkaSyketilfellebitRelevantVirksomhet.copy(
+                // inntruffet must be strictly later than the SYKMELDING-BEKREFTET bit being
+                // deleted, so that the person snapshot resulting from this bit correctly
+                // supersedes the transient empty snapshot from TilfellebitDeleteCronjob.
+                inntruffet = kafkaSyketilfellebitSykmeldingBekreftet.inntruffet.plusDays(1),
+                fom = LocalDate.now().minusDays(13),
+                tom = LocalDate.now(),
+            ),
+        )
+        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+            mapOf(
+                syketilfellebitTopicPartition to listOf(
+                    nyereTilfellebitRecord,
+                )
+            )
+        )
+        kafkaSyketilfellebitService.pollAndProcessRecords(
+            consumer = mockKafkaConsumerSyketilfelleBit,
+        )
+
+        // TilfellebitDeleteCronjob deletes the older (tombstoned) bit. At this point the newer
+        // bit is still unprocessed, so there is no other processed bit left for the person -
+        // this triggers the "no bits remain" branch, which (transiently) creates an empty
+        // oppfolgingstilfellePerson snapshot.
+        val deleteResult = tilfellebitDeleteCronjob.runJob()
+        assertEquals(0, deleteResult.failed)
+        assertEquals(1, deleteResult.updated)
+        assertEquals(1, database.countDeletedTilfelleBit())
+
+        // OppfolgingstilfelleCronjob later picks up the newer bit (still unprocessed) and
+        // recomputes the person - this must supersede the transient empty snapshot, so the
+        // newer bit's tilfelle is not lost.
+        runBlocking {
+            val result = oppfolgingstilfelleCronjob.runJob()
+            assertEquals(0, result.failed)
+            assertEquals(1, result.updated)
+        }
+
+        val oppfolgingstilfellePersonAfterReprocessing =
+            oppfolgingstilfelleRepository.getOppfolgingstilfellePerson(personIdentDefault)
+        assertNotNull(oppfolgingstilfellePersonAfterReprocessing)
+        assertEquals(personIdentDefault, oppfolgingstilfellePersonAfterReprocessing!!.personIdentNumber)
+        assertEquals(1, oppfolgingstilfellePersonAfterReprocessing.oppfolgingstilfeller.size)
+        val oppfolgingstilfelle = oppfolgingstilfellePersonAfterReprocessing.oppfolgingstilfeller[0]
+        assertEquals(nyereTilfellebitRecord.value().fom, oppfolgingstilfelle.start)
+        assertEquals(nyereTilfellebitRecord.value().tom, oppfolgingstilfelle.end)
     }
 
     @Test

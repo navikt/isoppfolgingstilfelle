@@ -3,7 +3,6 @@ package no.nav.syfo.application
 import no.nav.syfo.domain.OppfolgingstilfelleBit
 import no.nav.syfo.domain.containsSendtSykmeldingBit
 import no.nav.syfo.infrastructure.database.bit.TilfellebitRepository
-import no.nav.syfo.infrastructure.database.bit.toOppfolgingstilfelleBit
 import no.nav.syfo.infrastructure.database.bit.toOppfolgingstilfelleBitList
 import no.nav.syfo.infrastructure.kafka.syketilfelle.COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_CREATED
 import no.nav.syfo.infrastructure.kafka.syketilfelle.COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_DUPLICATE
@@ -48,18 +47,14 @@ class OppfolgingstilfelleBitService(
         }
     }
 
-    fun deleteOppfolgingstilfelleBitList(oppfolgingstilfelleBitIdList: List<UUID>) {
+    // Only marks the bit for deletion. The actual physical deletion is performed by
+    // TilfellebitDeleteCronjob, and only once the bit is confirmed processed - this avoids
+    // racing with OppfolgingstilfelleCronjob's read-then-mark-processed flow for the same bit.
+    fun markOppfolgingstilfelleBitListForDeletion(oppfolgingstilfelleBitIdList: List<UUID>) {
         oppfolgingstilfelleBitIdList.forEach { uuid ->
             val existing = tilfellebitRepository.getOppfolgingstilfelleBit(uuid)
             if (existing != null) {
-                tilfellebitRepository.deleteOppfolgingstilfelleBit(existing.toOppfolgingstilfelleBit())
-                tilfellebitRepository.getProcessedOppfolgingstilfelleBitList(
-                    personIdentNumber = existing.personIdentNumber,
-                    includeAvbrutt = true,
-                ).firstOrNull()?.let {
-                    // Set the newest tilfelleBit to unprocessed so that oppfolgingstilfelle is updated by cronjob
-                    tilfellebitRepository.setProcessedOppfolgingstilfelleBit(it.uuid, false)
-                }
+                tilfellebitRepository.markOppfolgingstilfelleBitForDeletion(uuid)
             } else {
                 log.warn("No tilfellebit found for tombstone with uuid $uuid")
             }
