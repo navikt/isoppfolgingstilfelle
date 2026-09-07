@@ -53,7 +53,7 @@ class SyketilfellebitConsumer(val oppfolgingstilfelleBitService: Oppfolgingstilf
             log.warn("Received tombstone record(s) with invalid key(s), not valid uuids")
             emptyList()
         }
-        oppfolgingstilfelleBitService.deleteOppfolgingstilfelleBitList(oppfolgingstilfelleBitIdList = idList)
+        oppfolgingstilfelleBitService.markOppfolgingstilfelleBitListForDeletion(oppfolgingstilfelleBitIdList = idList)
         COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_TOMBSTONE.increment(tombstoneRecordList.size.toDouble())
     }
 

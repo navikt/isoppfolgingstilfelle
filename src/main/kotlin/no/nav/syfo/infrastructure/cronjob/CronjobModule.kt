@@ -63,6 +63,10 @@ fun launchCronjobModule(
         kandidatRepository = kandidatRepository,
         intervalDelayMinutes = environment.oppfolgingstilfelleCronjobIntervalDelayMinutes,
     )
+    val tilfellebitDeleteCronjob = TilfellebitDeleteCronjob(
+        tilfellebitRepository = tilfellebitRepository,
+        oppfolgingstilfellePersonService = oppfolgingstilfellePersonService,
+    )
     val modiaAOOversendingCronjob = ModiaAOOversendingCronjob(
         oppfolgingstilfelleService = OppfolgingstilfelleService(oppfolgingstilfellePersonService.oppfolgingstilfellePersonRepository),
         kandidatRepository = kandidatRepository,
@@ -75,7 +79,13 @@ fun launchCronjobModule(
         database = database,
         pdlClient = pdlClient,
     )
-    listOf(sykmeldingNyCronjob, oppfolgingstilfelleCronjob, modiaAOOversendingCronjob, aktoridCronjob).forEach {
+    listOf(
+        sykmeldingNyCronjob,
+        oppfolgingstilfelleCronjob,
+        modiaAOOversendingCronjob,
+        aktoridCronjob,
+        tilfellebitDeleteCronjob,
+    ).forEach {
         launchBackgroundTask(
             applicationState = applicationState,
         ) {
