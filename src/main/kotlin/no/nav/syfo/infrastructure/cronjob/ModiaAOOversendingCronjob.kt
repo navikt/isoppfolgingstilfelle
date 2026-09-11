@@ -3,8 +3,11 @@ package no.nav.syfo.infrastructure.cronjob
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.application.OppfolgingstilfelleService
 import no.nav.syfo.domain.DAYS_AFTER_TILFELLE_START
+import no.nav.syfo.domain.isSykmeldingNy
 import no.nav.syfo.domain.toOppfolgingstilfellePersonDTO
 import no.nav.syfo.infrastructure.database.SykmeldtUtenArbeidsgiverKandidatRepository
+import no.nav.syfo.infrastructure.database.bit.TilfellebitRepository
+import no.nav.syfo.infrastructure.database.bit.toOppfolgingstilfelleBitList
 import no.nav.syfo.infrastructure.kafka.StartOppfolgingProducer
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -15,6 +18,7 @@ val MINIMUM_NUMBER_OF_DAYS_BETWEEN_TILFELLER = 16L
 class ModiaAOOversendingCronjob(
     private val oppfolgingstilfelleService: OppfolgingstilfelleService,
     private val kandidatRepository: SykmeldtUtenArbeidsgiverKandidatRepository,
+    private val tilfellebitRepository: TilfellebitRepository,
     private val startOppfolgingProducer: StartOppfolgingProducer,
     private val sendEnabled: Boolean = false,
     override val initialDelayMinutes: Long = 11,
@@ -66,12 +70,29 @@ class ModiaAOOversendingCronjob(
                     }
 
                     !latestTilfelle.arbeidstakerAtTilfelleEnd -> {
-                        if (sendEnabled) {
-                            startOppfolgingProducer.sendSykmeldtUtenArbeidsgiverKandidat(
-                                personident = kandidat.personident,
-                            )
+                        val nyesteSykmeldingNyBit = tilfellebitRepository.getProcessedOppfolgingstilfelleBitList(
+                            personIdentNumber = kandidat.personident,
+                        ).toOppfolgingstilfelleBitList().firstOrNull { bit ->
+                            bit.isSykmeldingNy() &&
+                                bit.fom <= latestTilfelle.end &&
+                                bit.tom >= latestTilfelle.start
                         }
-                        kandidatRepository.markerOversendt(kandidat.uuid)
+
+                        if (nyesteSykmeldingNyBit?.ufor == true) {
+                            kandidatRepository.markerFerdig(kandidat.uuid)
+                            log.info(
+                                "Kandidat ferdigstilles fordi nyeste SYKMELDING NY-bit i tilfellet har ufor=true, {}, {}",
+                                StructuredArguments.keyValue("kandidatUuid", kandidat.uuid),
+                                StructuredArguments.keyValue("oppfolgingstilfellePersonDtoUuid", oppfolgingstilfelleUuid),
+                            )
+                        } else {
+                            if (sendEnabled) {
+                                startOppfolgingProducer.sendSykmeldtUtenArbeidsgiverKandidat(
+                                    personident = kandidat.personident,
+                                )
+                            }
+                            kandidatRepository.markerOversendt(kandidat.uuid)
+                        }
                     }
 
                     else -> {

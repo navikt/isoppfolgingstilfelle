@@ -76,6 +76,7 @@ fun launchCronjobModule(
     val modiaAOOversendingCronjob = ModiaAOOversendingCronjob(
         oppfolgingstilfelleService = OppfolgingstilfelleService(oppfolgingstilfellePersonService.oppfolgingstilfellePersonRepository),
         kandidatRepository = kandidatRepository,
+        tilfellebitRepository = tilfellebitRepository,
         startOppfolgingProducer = startOppfolgingProducer,
         initialDelayMinutes = environment.modiaAOOversendingCronjobInitialDelayMinutes,
         intervalDelayMinutes = environment.modiaAOOversendingCronjobIntervalDelayMinutes,

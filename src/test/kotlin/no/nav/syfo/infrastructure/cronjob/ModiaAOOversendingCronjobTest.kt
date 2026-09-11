@@ -3,6 +3,7 @@ package no.nav.syfo.infrastructure.cronjob
 import no.nav.syfo.application.OppfolgingstilfelleService
 import no.nav.syfo.domain.KandidatStatus
 import no.nav.syfo.domain.SykmeldtUtenArbeidsgiverKandidat
+import no.nav.syfo.domain.Tag
 import no.nav.syfo.infrastructure.kafka.StartOppfolgingProducer
 import no.nav.syfo.util.toLocalDateOslo
 import org.junit.jupiter.api.Assertions.*
@@ -13,6 +14,7 @@ import testhelper.UserConstants.ARBEIDSTAKER_AKTOR_ID
 import testhelper.UserConstants.PERSONIDENTNUMBER_DEFAULT
 import testhelper.dropData
 import testhelper.generator.generateOppfolgingstilfelle
+import testhelper.generator.generateOppfolgingstilfelleBit
 import testhelper.generator.generateOppfolgingstilfellePerson
 import testhelper.getKandidaterForPersonident
 import java.time.LocalDate
@@ -31,6 +33,7 @@ class ModiaAOOversendingCronjobTest {
     private val cronjob = ModiaAOOversendingCronjob(
         oppfolgingstilfelleService = OppfolgingstilfelleService(oppfolgingstilfellePersonRepository),
         kandidatRepository = kandidatRepository,
+        tilfellebitRepository = externalMockEnvironment.tilfellebitRepository,
         startOppfolgingProducer = startOppfolgingProducer,
         sendEnabled = true,
     )
@@ -188,6 +191,31 @@ class ModiaAOOversendingCronjobTest {
         val kandidat = database.getKandidaterForPersonident(PERSONIDENTNUMBER_DEFAULT).single()
         assertEquals(KandidatStatus.FERDIG, KandidatStatus.valueOf(kandidat.status))
         assertNotNull(kandidat.oversendtAt)
+    }
+
+    @Test
+    fun `sets FERDIG without sending when newest SYKMELDING NY bit in tilfelle has ufor true`() {
+        createKandidatForProcessing()
+        createTilfelle(
+            start = LocalDate.now().minusDays(30),
+            end = LocalDate.now(),
+            arbeidstakerAtTilfelleEnd = false,
+        )
+        val uforBit = generateOppfolgingstilfelleBit(
+            personIdentNumber = PERSONIDENTNUMBER_DEFAULT,
+        ).copy(
+            fom = LocalDate.now().minusDays(5),
+            tom = LocalDate.now(),
+            tagList = listOf(Tag.SYKMELDING, Tag.NY, Tag.PERIODE, Tag.INGEN_AKTIVITET),
+            ufor = true,
+        )
+        externalMockEnvironment.tilfellebitRepository.createOppfolgingstilfelleBit(uforBit)
+
+        cronjob.runJob()
+
+        val kandidat = database.getKandidaterForPersonident(PERSONIDENTNUMBER_DEFAULT).single()
+        assertEquals(KandidatStatus.FERDIG, KandidatStatus.valueOf(kandidat.status))
+        assertNull(kandidat.oversendtAt)
     }
 
     @Test
