@@ -7,6 +7,7 @@ import no.nav.syfo.application.OppfolgingstilfellePersonService
 import no.nav.syfo.domain.Tag
 import no.nav.syfo.infrastructure.client.ArbeidsforholdClient
 import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
+import no.nav.syfo.infrastructure.client.pensjonpen.PensjonPenClient
 import no.nav.syfo.infrastructure.cronjob.OppfolgingstilfelleCronjob
 import no.nav.syfo.infrastructure.cronjob.SykmeldingNyCronjob
 import no.nav.syfo.infrastructure.cronjob.TilfellebitDeleteCronjob
@@ -166,7 +167,16 @@ class KafkaSyketilfelleBitConsumerTest {
             ),
             clientEnvironment = externalMockEnvironment.environment.clients.arbeidsforhold,
             httpClient = externalMockEnvironment.mockHttpClient,
-        )
+        ),
+        pensjonPenClient = PensjonPenClient(
+            azureAdClient = AzureAdClient(
+                azureEnviroment = externalMockEnvironment.environment.azure,
+                valkeyStore = externalMockEnvironment.valkeyStore,
+                httpClient = externalMockEnvironment.mockHttpClient,
+            ),
+            clientEnvironment = externalMockEnvironment.environment.clients.pensjonPen,
+            httpClient = externalMockEnvironment.mockHttpClient,
+        ),
     )
     private val oppfolgingstilfelleCronjob = OppfolgingstilfelleCronjob(
         oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(

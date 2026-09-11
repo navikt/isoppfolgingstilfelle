@@ -59,3 +59,23 @@ fun Connection.setReadyOppfolgingstilfelleBit(uuid: UUID) =
             throw RuntimeException("Unexpected update count: $updateCount")
         }
     }
+
+const val querySetUforOppfolgingstilfelleBit =
+    """
+    UPDATE TILFELLE_BIT 
+    SET ufor=?
+    WHERE uuid=?
+    """
+
+fun Connection.setUforOppfolgingstilfelleBit(
+    uuid: UUID,
+    ufor: Boolean,
+) = this.prepareStatement(querySetUforOppfolgingstilfelleBit).use {
+    it.setBoolean(1, ufor)
+    it.setString(2, uuid.toString())
+    it.executeUpdate()
+}.also { updateCount ->
+    if (updateCount != 1) {
+        throw RuntimeException("Unexpected update count: $updateCount")
+    }
+}

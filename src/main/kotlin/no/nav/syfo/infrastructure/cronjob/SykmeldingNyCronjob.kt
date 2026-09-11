@@ -2,9 +2,11 @@ package no.nav.syfo.infrastructure.cronjob
 
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.infrastructure.client.ArbeidsforholdClient
+import no.nav.syfo.infrastructure.client.pensjonpen.PensjonPenClient
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.bit.getNotReadyOppfolgingstilfelleBitList
 import no.nav.syfo.infrastructure.database.bit.setReadyOppfolgingstilfelleBit
+import no.nav.syfo.infrastructure.database.bit.setUforOppfolgingstilfelleBit
 import no.nav.syfo.infrastructure.database.bit.setVirksomhetsnummerOppfolgingstilfelleBit
 import no.nav.syfo.infrastructure.database.bit.toOppfolgingstilfelleBitList
 import org.slf4j.LoggerFactory
@@ -12,6 +14,7 @@ import org.slf4j.LoggerFactory
 class SykmeldingNyCronjob(
     private val database: DatabaseInterface,
     private val arbeidsforholdClient: ArbeidsforholdClient,
+    private val pensjonPenClient: PensjonPenClient,
     override val initialDelayMinutes: Long = 7,
     override val intervalDelayMinutes: Long = 10,
 ) : Cronjob {
@@ -36,6 +39,8 @@ class SykmeldingNyCronjob(
                         periode.startdato.isBefore(oppfolgingstilfelleBit.tom) &&
                         (periode.sluttdato == null || periode.sluttdato.isAfter(oppfolgingstilfelleBit.tom))
                 }?.arbeidssted?.getOrgnummer()
+                val uforegrad = pensjonPenClient.getUforegrad(oppfolgingstilfelleBit.personIdentNumber)
+                val ufor = uforegrad?.uforegrad == 100
                 database.connection.use { connection ->
                     orgnr?.let {
                         connection.setVirksomhetsnummerOppfolgingstilfelleBit(
@@ -43,6 +48,10 @@ class SykmeldingNyCronjob(
                             orgnr = it,
                         )
                     }
+                    connection.setUforOppfolgingstilfelleBit(
+                        uuid = oppfolgingstilfelleBit.uuid,
+                        ufor = ufor,
+                    )
                     connection.setReadyOppfolgingstilfelleBit(oppfolgingstilfelleBit.uuid)
                     connection.commit()
                 }
