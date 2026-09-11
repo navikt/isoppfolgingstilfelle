@@ -21,6 +21,7 @@ data class POppfolgingstilfelleBit(
     val ready: Boolean = true,
     val processed: Boolean = true,
     val korrigerer: String?,
+    val ufor: Boolean = false,
 )
 
 fun List<POppfolgingstilfelleBit>.toOppfolgingstilfelleBitList() = this.map { it.toOppfolgingstilfelleBit() }
@@ -38,4 +39,5 @@ fun POppfolgingstilfelleBit.toOppfolgingstilfelleBit() = OppfolgingstilfelleBit(
     ready = this.ready,
     processed = this.processed,
     korrigerer = this.korrigerer?.let { UUID.fromString(it) },
+    ufor = this.ufor,
 )

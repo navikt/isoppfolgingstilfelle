@@ -81,6 +81,7 @@ spec:
       external:
         - host: "pdl-api.dev-fss-pub.nais.io"
         - host: "aareg-services-q1.dev-fss-pub.nais.io"
+        - host: "pensjon-pen-q2.dev-fss-pub.nais.io"
       rules:
         - application: isnarmesteleder
         - application: istilgangskontroll
@@ -117,6 +118,10 @@ spec:
       value: "https://aareg-services-q1.dev-fss-pub.nais.io"
     - name: ARBEIDSFORHOLD_CLIENT_ID
       value: "dev-fss.arbeidsforhold.aareg-services-nais-q1"
+    - name: PENSJON_PEN_URL
+      value: "https://pensjon-pen-q2.dev-fss-pub.nais.io"
+    - name: PENSJON_PEN_CLIENT_ID
+      value: "dev-fss.pensjon-q2.pensjon-pen-q2"
     - name: OPPFOLGINGSTILFELLE_CRONJOB_INTERVAL_DELAY_MINUTES
       value: "2"
     - name: SYKMELDING_NY_CRONJOB_INITIAL_DELAY_MINUTES

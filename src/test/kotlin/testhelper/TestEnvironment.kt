@@ -61,6 +61,10 @@ fun testEnvironment() = Environment(
             baseUrl = "arbeidsforholdUrl",
             clientId = "aaregClientId",
         ),
+        pensjonPen = ClientEnvironment(
+            baseUrl = "pensjonPenUrl",
+            clientId = "pensjonPenClientId",
+        ),
     ),
     electorPath = "electorPath",
     valkeyConfig = ValkeyConfig(

@@ -14,6 +14,7 @@ import no.nav.syfo.application.OppfolgingstilfelleService
 import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
 import no.nav.syfo.infrastructure.client.narmesteleder.NarmesteLederClient
 import no.nav.syfo.infrastructure.client.pdl.PdlClient
+import no.nav.syfo.infrastructure.client.pensjonpen.PensjonPenClient
 import no.nav.syfo.infrastructure.client.tokendings.TokendingsClient
 import no.nav.syfo.infrastructure.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.infrastructure.client.wellknown.getWellKnown
@@ -74,6 +75,10 @@ fun main() {
     val pdlClient = PdlClient(
         azureAdClient = azureAdClient,
         clientEnvironment = environment.clients.pdl,
+    )
+    val pensjonPenClient = PensjonPenClient(
+        azureAdClient = azureAdClient,
+        clientEnvironment = environment.clients.pensjonPen,
     )
 
     val oppfolgingstilfellePersonProducer = OppfolgingstilfellePersonProducer(

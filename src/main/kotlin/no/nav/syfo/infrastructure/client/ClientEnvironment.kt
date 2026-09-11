@@ -5,6 +5,7 @@ data class ClientsEnvironment(
     val tilgangskontroll: ClientEnvironment,
     val narmesteLeder: ClientEnvironment,
     val arbeidsforhold: ClientEnvironment,
+    val pensjonPen: ClientEnvironment,
 )
 
 data class ClientEnvironment(

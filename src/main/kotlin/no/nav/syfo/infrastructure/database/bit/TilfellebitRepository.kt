@@ -32,6 +32,7 @@ class TilfellebitRepository(private val database: DatabaseInterface) {
                 it.setBoolean(10, oppfolgingstilfelleBit.ready)
                 it.setBoolean(11, oppfolgingstilfelleBit.processed)
                 it.setString(12, oppfolgingstilfelleBit.korrigerer?.toString())
+                it.setBoolean(13, oppfolgingstilfelleBit.ufor)
                 it.executeQuery().toList { getInt("id") }
             }
 
@@ -185,6 +186,7 @@ class TilfellebitRepository(private val database: DatabaseInterface) {
             it.setBoolean(10, oppfolgingstilfelleBit.ready)
             it.setBoolean(11, oppfolgingstilfelleBit.processed)
             it.setString(12, oppfolgingstilfelleBit.korrigerer?.toString())
+            it.setBoolean(13, oppfolgingstilfelleBit.ufor)
             it.executeQuery().toList { getInt("id") }
         }
 
@@ -225,8 +227,9 @@ class TilfellebitRepository(private val database: DatabaseInterface) {
                 tom,
                 ready,
                 processed,
-                korrigerer
-                ) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                korrigerer,
+                ufor
+                ) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 RETURNING id
             """
 
@@ -323,8 +326,9 @@ class TilfellebitRepository(private val database: DatabaseInterface) {
                     tom,
                     ready,
                     processed,
-                    korrigerer
-                ) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    korrigerer,
+                    ufor
+                ) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 RETURNING id
             """
 
@@ -352,4 +356,5 @@ fun ResultSet.toPOppfolgingstilfelleBit(): POppfolgingstilfelleBit =
         ready = getBoolean("ready"),
         processed = getBoolean("processed"),
         korrigerer = getString("korrigerer"),
+        ufor = getBoolean("ufor"),
     )
