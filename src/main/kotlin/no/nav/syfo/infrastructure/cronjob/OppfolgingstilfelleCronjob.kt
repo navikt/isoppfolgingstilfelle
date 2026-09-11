@@ -102,6 +102,12 @@ class OppfolgingstilfelleCronjob(
             // even though the incoming bit is BEKREFTET, so this check is not redundant.
             if (latestTilfelle.arbeidstakerAtTilfelleEnd) return
 
+            // Ignore if the newest SYKMELDING NY bit within tilfelle indicates the person is 100% ufor
+            val nyesteSykmeldingNyBit = oppfolgingstilfelleBitForPersonList.firstOrNull { bit ->
+                bit.isSykmeldingNy() && bit.isWithin(latestTilfelle)
+            }
+            if (nyesteSykmeldingNyBit?.ufor == true) return
+
             val aktorId = pdlClient.pdlIdenter(incomingBit.personIdentNumber)?.hentIdenter?.aktivAktorId ?: run {
                 log.warn("Fant ikke aktorId i PDL for BEKREFTET kandidat, hopper over")
                 return

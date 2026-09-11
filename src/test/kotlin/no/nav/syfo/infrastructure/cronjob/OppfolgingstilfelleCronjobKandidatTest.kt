@@ -29,6 +29,7 @@ import testhelper.insertKandidat
 import testhelper.insertKandidatFerdig
 import testhelper.mock.toHistoricalPersonIdentNumber
 import testhelper.setKandidatFerdig
+import testhelper.setUforForNewestBit
 import java.time.Duration
 import java.time.LocalDate
 
@@ -243,6 +244,31 @@ class OppfolgingstilfelleCronjobKandidatTest {
         )
         pollAndRun(listOf(bekreftetBit))
         assertEquals(1, database.countKandidater())
+    }
+
+    @Test
+    fun `does not store kandidat when newest SYKMELDING NY bit in tilfelle has ufor true`() {
+        // A SYKMELDING NY bit arrives first, extending the tilfelle a few days forward
+        val nyBit = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
+            personIdentNumber = personIdentDefault,
+            fom = LocalDate.now().plusDays(1),
+            tom = LocalDate.now().plusDays(5),
+        ).copy(tags = listOf(Tag.SYKMELDING, Tag.NY, Tag.PERIODE, Tag.INGEN_AKTIVITET).map { it.name })
+        pollAndRun(listOf(nyBit))
+
+        // Simulate SykmeldingNyCronjob marking the bit ready and 100% ufor, then let
+        // OppfolgingstilfelleCronjob process it so it becomes part of the tilfelle history
+        database.setUforForNewestBit(personIdentDefault, ufor = true)
+        runBlocking { oppfolgingstilfelleCronjob.runJob() }
+
+        // BEKREFTET bit ending today: the newest SYKMELDING NY bit in tilfelle has ufor=true → skip
+        val bekreftetBit = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
+            personIdentNumber = personIdentDefault,
+            fom = LocalDate.now().minusDays(30),
+            tom = LocalDate.now(),
+        )
+        pollAndRun(listOf(bekreftetBit))
+        assertEquals(0, database.countKandidater())
     }
 
     @Test

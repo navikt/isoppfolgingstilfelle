@@ -141,3 +141,16 @@ fun DatabaseInterface.getOppfolgingstilfelleBitForIdent(personIdent: PersonIdent
             }
         }
     }
+
+fun DatabaseInterface.setUforForNewestBit(personIdent: PersonIdentNumber, ufor: Boolean) {
+    val newestBit = this.getOppfolgingstilfelleBitForIdent(personIdent).maxByOrNull { it.inntruffet }
+        ?: throw RuntimeException("No tilfelle_bit found for personident")
+    this.connection.use { connection ->
+        connection.prepareStatement("UPDATE TILFELLE_BIT SET ufor = ?, ready = true WHERE uuid = ?").use {
+            it.setBoolean(1, ufor)
+            it.setString(2, newestBit.uuid.toString())
+            it.executeUpdate()
+        }
+        connection.commit()
+    }
+}
