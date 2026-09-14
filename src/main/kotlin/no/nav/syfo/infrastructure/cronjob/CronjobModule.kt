@@ -9,6 +9,7 @@ import no.nav.syfo.infrastructure.client.ArbeidsforholdClient
 import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
 import no.nav.syfo.infrastructure.client.leaderelection.LeaderPodClient
 import no.nav.syfo.infrastructure.client.pdl.PdlClient
+import no.nav.syfo.infrastructure.client.pensjonpen.PensjonPenClient
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.SykmeldtUtenArbeidsgiverKandidatRepository
 import no.nav.syfo.infrastructure.database.bit.TilfellebitRepository
@@ -41,6 +42,10 @@ fun launchCronjobModule(
         azureAdClient = azureAdClient,
         clientEnvironment = environment.clients.arbeidsforhold,
     )
+    val pensjonPenClient = PensjonPenClient(
+        azureAdClient = azureAdClient,
+        clientEnvironment = environment.clients.pensjonPen,
+    )
     val kandidatRepository = SykmeldtUtenArbeidsgiverKandidatRepository(database = database)
     val startOppfolgingProducer = StartOppfolgingProducer(
         producer = KafkaProducer(
@@ -70,6 +75,7 @@ fun launchCronjobModule(
     val modiaAOOversendingCronjob = ModiaAOOversendingCronjob(
         oppfolgingstilfelleService = OppfolgingstilfelleService(oppfolgingstilfellePersonService.oppfolgingstilfellePersonRepository),
         kandidatRepository = kandidatRepository,
+        pensjonPenClient = pensjonPenClient,
         startOppfolgingProducer = startOppfolgingProducer,
         initialDelayMinutes = environment.modiaAOOversendingCronjobInitialDelayMinutes,
         intervalDelayMinutes = environment.modiaAOOversendingCronjobIntervalDelayMinutes,

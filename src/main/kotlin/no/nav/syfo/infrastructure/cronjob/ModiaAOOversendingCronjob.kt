@@ -4,6 +4,7 @@ import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.application.OppfolgingstilfelleService
 import no.nav.syfo.domain.DAYS_AFTER_TILFELLE_START
 import no.nav.syfo.domain.toOppfolgingstilfellePersonDTO
+import no.nav.syfo.infrastructure.client.pensjonpen.PensjonPenClient
 import no.nav.syfo.infrastructure.database.SykmeldtUtenArbeidsgiverKandidatRepository
 import no.nav.syfo.infrastructure.kafka.StartOppfolgingProducer
 import org.slf4j.LoggerFactory
@@ -15,6 +16,7 @@ val MINIMUM_NUMBER_OF_DAYS_BETWEEN_TILFELLER = 16L
 class ModiaAOOversendingCronjob(
     private val oppfolgingstilfelleService: OppfolgingstilfelleService,
     private val kandidatRepository: SykmeldtUtenArbeidsgiverKandidatRepository,
+    private val pensjonPenClient: PensjonPenClient,
     private val startOppfolgingProducer: StartOppfolgingProducer,
     private val sendEnabled: Boolean = false,
     override val initialDelayMinutes: Long = 11,
@@ -29,7 +31,7 @@ class ModiaAOOversendingCronjob(
         )
     }
 
-    fun runJob() = CronjobResult().also { result ->
+    suspend fun runJob() = CronjobResult().also { result ->
         val kandidater = kandidatRepository.getKandidaterForProcessing()
         kandidater.forEach { kandidat ->
             try {
@@ -39,6 +41,7 @@ class ModiaAOOversendingCronjob(
                 val oppfolgingstilfellePersonDto = oppfolgingstilfellePerson?.toOppfolgingstilfellePersonDTO()
                 val oppfolgingstilfelleUuid = oppfolgingstilfellePerson?.uuid.toString()
                 val latestTilfelle = oppfolgingstilfellePersonDto?.oppfolgingstilfelleList?.firstOrNull()
+                val uforegrad = pensjonPenClient.getUforegrad(kandidat.personident)
 
                 val today = LocalDate.now(ZoneId.of("Europe/Oslo"))
 
@@ -46,6 +49,14 @@ class ModiaAOOversendingCronjob(
                     oppfolgingstilfellePersonDto == null || latestTilfelle == null ||
                         oppfolgingstilfellePersonDto.dodsdato != null ||
                         latestTilfelle.end.plusDays(MINIMUM_NUMBER_OF_DAYS_BETWEEN_TILFELLER).isBefore(today) -> {
+                        kandidatRepository.markerFerdig(kandidat.uuid)
+                    }
+
+                    uforegrad?.uforegrad == 100 -> {
+                        log.info(
+                            "Kandidat ferdigstilles uten oversending fordi personen har 100% uføregrad, {}",
+                            StructuredArguments.keyValue("kandidatUuid", kandidat.uuid),
+                        )
                         kandidatRepository.markerFerdig(kandidat.uuid)
                     }
 
