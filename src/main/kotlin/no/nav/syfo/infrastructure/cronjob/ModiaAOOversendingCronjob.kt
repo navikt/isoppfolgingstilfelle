@@ -41,6 +41,7 @@ class ModiaAOOversendingCronjob(
                 val oppfolgingstilfellePersonDto = oppfolgingstilfellePerson?.toOppfolgingstilfellePersonDTO()
                 val oppfolgingstilfelleUuid = oppfolgingstilfellePerson?.uuid.toString()
                 val latestTilfelle = oppfolgingstilfellePersonDto?.oppfolgingstilfelleList?.firstOrNull()
+                val uforegrad = pensjonPenClient.getUforegrad(kandidat.personident)
 
                 val today = LocalDate.now(ZoneId.of("Europe/Oslo"))
 
@@ -48,6 +49,14 @@ class ModiaAOOversendingCronjob(
                     oppfolgingstilfellePersonDto == null || latestTilfelle == null ||
                         oppfolgingstilfellePersonDto.dodsdato != null ||
                         latestTilfelle.end.plusDays(MINIMUM_NUMBER_OF_DAYS_BETWEEN_TILFELLER).isBefore(today) -> {
+                        kandidatRepository.markerFerdig(kandidat.uuid)
+                    }
+
+                    uforegrad?.uforegrad == 100 -> {
+                        log.info(
+                            "Kandidat ferdigstilles uten oversending fordi personen har 100% uføregrad, {}",
+                            StructuredArguments.keyValue("kandidatUuid", kandidat.uuid),
+                        )
                         kandidatRepository.markerFerdig(kandidat.uuid)
                     }
 
@@ -68,22 +77,12 @@ class ModiaAOOversendingCronjob(
                     }
 
                     !latestTilfelle.arbeidstakerAtTilfelleEnd -> {
-                        val uforegrad = pensjonPenClient.getUforegrad(kandidat.personident)
-
-                        if (uforegrad?.uforegrad == 100) {
-                            kandidatRepository.markerFerdig(kandidat.uuid)
-                            log.info(
-                                "Kandidat ferdigstilles uten oversending fordi personen har 100% uføregrad, {}",
-                                StructuredArguments.keyValue("kandidatUuid", kandidat.uuid),
+                        if (sendEnabled) {
+                            startOppfolgingProducer.sendSykmeldtUtenArbeidsgiverKandidat(
+                                personident = kandidat.personident,
                             )
-                        } else {
-                            if (sendEnabled) {
-                                startOppfolgingProducer.sendSykmeldtUtenArbeidsgiverKandidat(
-                                    personident = kandidat.personident,
-                                )
-                            }
-                            kandidatRepository.markerOversendt(kandidat.uuid)
                         }
+                        kandidatRepository.markerOversendt(kandidat.uuid)
                     }
 
                     else -> {
