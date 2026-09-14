@@ -166,7 +166,7 @@ class KafkaSyketilfelleBitConsumerTest {
             ),
             clientEnvironment = externalMockEnvironment.environment.clients.arbeidsforhold,
             httpClient = externalMockEnvironment.mockHttpClient,
-        )
+        ),
     )
     private val oppfolgingstilfelleCronjob = OppfolgingstilfelleCronjob(
         oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(

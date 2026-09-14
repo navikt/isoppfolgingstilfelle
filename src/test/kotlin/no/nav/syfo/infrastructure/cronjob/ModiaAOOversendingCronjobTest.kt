@@ -1,8 +1,14 @@
 package no.nav.syfo.infrastructure.cronjob
 
+import io.mockk.justRun
+import io.mockk.mockk
+import kotlinx.coroutines.runBlocking
 import no.nav.syfo.application.OppfolgingstilfelleService
 import no.nav.syfo.domain.KandidatStatus
+import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.domain.SykmeldtUtenArbeidsgiverKandidat
+import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
+import no.nav.syfo.infrastructure.client.pensjonpen.PensjonPenClient
 import no.nav.syfo.infrastructure.kafka.StartOppfolgingProducer
 import no.nav.syfo.util.toLocalDateOslo
 import org.junit.jupiter.api.Assertions.*
@@ -10,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import testhelper.ExternalMockEnvironment
 import testhelper.UserConstants.ARBEIDSTAKER_AKTOR_ID
+import testhelper.UserConstants.ARBEIDSTAKER_UFOR
 import testhelper.UserConstants.PERSONIDENTNUMBER_DEFAULT
 import testhelper.dropData
 import testhelper.generator.generateOppfolgingstilfelle
@@ -17,8 +24,6 @@ import testhelper.generator.generateOppfolgingstilfellePerson
 import testhelper.getKandidaterForPersonident
 import java.time.LocalDate
 import java.util.*
-import io.mockk.justRun
-import io.mockk.mockk
 
 class ModiaAOOversendingCronjobTest {
 
@@ -31,6 +36,15 @@ class ModiaAOOversendingCronjobTest {
     private val cronjob = ModiaAOOversendingCronjob(
         oppfolgingstilfelleService = OppfolgingstilfelleService(oppfolgingstilfellePersonRepository),
         kandidatRepository = kandidatRepository,
+        pensjonPenClient = PensjonPenClient(
+            azureAdClient = AzureAdClient(
+                azureEnviroment = externalMockEnvironment.environment.azure,
+                valkeyStore = externalMockEnvironment.valkeyStore,
+                httpClient = externalMockEnvironment.mockHttpClient,
+            ),
+            clientEnvironment = externalMockEnvironment.environment.clients.pensjonPen,
+            httpClient = externalMockEnvironment.mockHttpClient,
+        ),
         startOppfolgingProducer = startOppfolgingProducer,
         sendEnabled = true,
     )
@@ -43,9 +57,10 @@ class ModiaAOOversendingCronjobTest {
 
     private fun createKandidatForProcessing(
         tilfelleStart: LocalDate = LocalDate.now().minusDays(29),
+        personident: PersonIdentNumber = PERSONIDENTNUMBER_DEFAULT,
     ) {
         val kandidat = SykmeldtUtenArbeidsgiverKandidat.opprett(
-            personident = PERSONIDENTNUMBER_DEFAULT,
+            personident = personident,
             aktorId = ARBEIDSTAKER_AKTOR_ID,
             referanseId = UUID.randomUUID().toString(),
             tilfelleStart = tilfelleStart,
@@ -57,9 +72,10 @@ class ModiaAOOversendingCronjobTest {
         start: LocalDate,
         end: LocalDate,
         arbeidstakerAtTilfelleEnd: Boolean = false,
+        personident: PersonIdentNumber = PERSONIDENTNUMBER_DEFAULT,
     ) {
         val person = generateOppfolgingstilfellePerson(
-            personIdent = PERSONIDENTNUMBER_DEFAULT,
+            personIdent = personident,
             oppfolgingstilfelleList = listOf(
                 generateOppfolgingstilfelle(
                     start = start,
@@ -98,7 +114,7 @@ class ModiaAOOversendingCronjobTest {
     fun `sets FERDIG when no tilfelle exists for kandidat`() {
         createKandidatForProcessing()
 
-        cronjob.runJob()
+        runBlocking { cronjob.runJob() }
 
         val kandidat = database.getKandidaterForPersonident(PERSONIDENTNUMBER_DEFAULT).single()
         assertEquals(KandidatStatus.FERDIG, KandidatStatus.valueOf(kandidat.status))
@@ -113,7 +129,7 @@ class ModiaAOOversendingCronjobTest {
             end = LocalDate.now().minusDays(20),
         )
 
-        cronjob.runJob()
+        runBlocking { cronjob.runJob() }
 
         val kandidat = database.getKandidaterForPersonident(PERSONIDENTNUMBER_DEFAULT).single()
         assertEquals(KandidatStatus.FERDIG, KandidatStatus.valueOf(kandidat.status))
@@ -128,7 +144,7 @@ class ModiaAOOversendingCronjobTest {
             end = LocalDate.now().minusDays(5),
         )
 
-        cronjob.runJob()
+        runBlocking { cronjob.runJob() }
 
         val kandidat = database.getKandidaterForPersonident(PERSONIDENTNUMBER_DEFAULT).single()
         assertEquals(KandidatStatus.UTSATT, KandidatStatus.valueOf(kandidat.status))
@@ -150,7 +166,7 @@ class ModiaAOOversendingCronjobTest {
             hendelseId = UUID.randomUUID(),
         )
 
-        cronjob.runJob()
+        runBlocking { cronjob.runJob() }
 
         val kandidat = database.getKandidaterForPersonident(PERSONIDENTNUMBER_DEFAULT).single()
         assertEquals(KandidatStatus.FERDIG, KandidatStatus.valueOf(kandidat.status))
@@ -166,7 +182,7 @@ class ModiaAOOversendingCronjobTest {
             end = LocalDate.now(),
         )
 
-        cronjob.runJob()
+        runBlocking { cronjob.runJob() }
 
         val kandidat = database.getKandidaterForPersonident(PERSONIDENTNUMBER_DEFAULT).single()
         assertEquals(KandidatStatus.UTSATT, KandidatStatus.valueOf(kandidat.status))
@@ -183,11 +199,28 @@ class ModiaAOOversendingCronjobTest {
             arbeidstakerAtTilfelleEnd = false,
         )
 
-        cronjob.runJob()
+        runBlocking { cronjob.runJob() }
 
         val kandidat = database.getKandidaterForPersonident(PERSONIDENTNUMBER_DEFAULT).single()
         assertEquals(KandidatStatus.FERDIG, KandidatStatus.valueOf(kandidat.status))
         assertNotNull(kandidat.oversendtAt)
+    }
+
+    @Test
+    fun `sets FERDIG without sending when kandidat has 100 percent uforegrad`() {
+        createKandidatForProcessing(personident = ARBEIDSTAKER_UFOR)
+        createTilfelle(
+            start = LocalDate.now().minusDays(30),
+            end = LocalDate.now(),
+            arbeidstakerAtTilfelleEnd = false,
+            personident = ARBEIDSTAKER_UFOR,
+        )
+
+        runBlocking { cronjob.runJob() }
+
+        val kandidat = database.getKandidaterForPersonident(ARBEIDSTAKER_UFOR).single()
+        assertEquals(KandidatStatus.FERDIG, KandidatStatus.valueOf(kandidat.status))
+        assertNull(kandidat.oversendtAt)
     }
 
     @Test
@@ -199,7 +232,7 @@ class ModiaAOOversendingCronjobTest {
             arbeidstakerAtTilfelleEnd = false,
         )
 
-        cronjob.runJob()
+        runBlocking { cronjob.runJob() }
 
         val kandidat = database.getKandidaterForPersonident(PERSONIDENTNUMBER_DEFAULT).single()
         assertEquals(KandidatStatus.FERDIG, KandidatStatus.valueOf(kandidat.status))
@@ -215,7 +248,7 @@ class ModiaAOOversendingCronjobTest {
             arbeidstakerAtTilfelleEnd = true,
         )
 
-        cronjob.runJob()
+        runBlocking { cronjob.runJob() }
 
         val kandidat = database.getKandidaterForPersonident(PERSONIDENTNUMBER_DEFAULT).single()
         assertEquals(KandidatStatus.FERDIG, KandidatStatus.valueOf(kandidat.status))
@@ -226,7 +259,7 @@ class ModiaAOOversendingCronjobTest {
     fun `does not process kandidat when nextProcessingAt is in the future`() {
         createKandidatForProcessing(tilfelleStart = LocalDate.now())
 
-        cronjob.runJob()
+        runBlocking { cronjob.runJob() }
 
         val kandidat = database.getKandidaterForPersonident(PERSONIDENTNUMBER_DEFAULT).single()
         assertEquals(KandidatStatus.NY, KandidatStatus.valueOf(kandidat.status))

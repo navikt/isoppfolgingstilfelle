@@ -71,6 +71,10 @@ data class Environment(
             baseUrl = getEnvVar("ARBEIDSFORHOLD_URL"),
             clientId = getEnvVar("ARBEIDSFORHOLD_CLIENT_ID"),
         ),
+        pensjonPen = ClientEnvironment(
+            baseUrl = getEnvVar("PENSJON_PEN_URL"),
+            clientId = getEnvVar("PENSJON_PEN_CLIENT_ID"),
+        ),
     ),
 
     val electorPath: String = getEnvVar("ELECTOR_PATH"),
