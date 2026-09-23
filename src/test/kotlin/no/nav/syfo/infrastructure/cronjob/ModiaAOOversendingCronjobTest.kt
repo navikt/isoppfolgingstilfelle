@@ -174,7 +174,7 @@ class ModiaAOOversendingCronjobTest {
     }
 
     @Test
-    fun `sets UTSATT when latest tilfelle is less than 28 days old`() {
+    fun `sets UTSATT when latest tilfelle is less than 29 days old`() {
         val tilfelleStart = LocalDate.now().minusDays(10)
         createKandidatForProcessing()
         createTilfelle(
@@ -187,11 +187,11 @@ class ModiaAOOversendingCronjobTest {
         val kandidat = database.getKandidaterForPersonident(PERSONIDENTNUMBER_DEFAULT).single()
         assertEquals(KandidatStatus.UTSATT, KandidatStatus.valueOf(kandidat.status))
         assertNull(kandidat.oversendtAt)
-        assertEquals(tilfelleStart.plusDays(28), kandidat.nextProcessingAt.toLocalDateOslo())
+        assertEquals(tilfelleStart.plusDays(29), kandidat.nextProcessingAt.toLocalDateOslo())
     }
 
     @Test
-    fun `sets FERDIG and oversendt_at when latest tilfelle is more than 28 days old and kandidat does not have arbeidsgiver`() {
+    fun `sets FERDIG and oversendt_at when latest tilfelle is more than 29 days old and kandidat does not have arbeidsgiver`() {
         createKandidatForProcessing()
         createTilfelle(
             start = LocalDate.now().minusDays(30),
@@ -224,7 +224,7 @@ class ModiaAOOversendingCronjobTest {
     }
 
     @Test
-    fun `sets FERDIG and oversendt_at when latest tilfelle is more than 28 days old and kandidat does not have arbeidsgiver and old tilfelle exists`() {
+    fun `sets FERDIG and oversendt_at when latest tilfelle is more than 29 days old and kandidat does not have arbeidsgiver and old tilfelle exists`() {
         createKandidatForProcessing()
         createTilfelleWithOldTilfelle(
             start = LocalDate.now().minusDays(30),
@@ -240,7 +240,7 @@ class ModiaAOOversendingCronjobTest {
     }
 
     @Test
-    fun `sets FERDIG when latest tilfelle is more than 28 days old and kandidat has arbeidsgiver`() {
+    fun `sets FERDIG when latest tilfelle is more than 29 days old and kandidat has arbeidsgiver`() {
         createKandidatForProcessing()
         createTilfelle(
             start = LocalDate.now().minusDays(30),

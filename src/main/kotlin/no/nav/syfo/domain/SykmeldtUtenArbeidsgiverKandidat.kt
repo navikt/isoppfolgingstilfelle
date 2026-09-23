@@ -12,7 +12,10 @@ enum class KandidatStatus {
     FERDIG,
 }
 
-const val DAYS_AFTER_TILFELLE_START = 28L
+/*
+ * 4 uker og én dag
+ */
+const val DAYS_AFTER_TILFELLE_START = 29L
 
 data class SykmeldtUtenArbeidsgiverKandidat(
     val uuid: UUID,
