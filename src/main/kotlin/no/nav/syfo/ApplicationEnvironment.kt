@@ -84,6 +84,7 @@ data class Environment(
     private val amtDeltakerApplicationName: String = "amt-deltaker",
     private val mulighetsrommetApiName: String = "mulighetsrommet-api",
     private val ismeroppfolgingApplicationName: String = "ismeroppfolging",
+    private val veilarboppfolgingApplicationName: String = "veilarboppfolging",
 
     val oppfolgingstilfelleCronjobIntervalDelayMinutes: Long = getEnvVar("OPPFOLGINGSTILFELLE_CRONJOB_INTERVAL_DELAY_MINUTES").toLong(),
     val sykmeldingNyCronjobInitialDelayMinutes: Long = getEnvVar("SYKMELDING_NY_CRONJOB_INITIAL_DELAY_MINUTES").toLong(),
@@ -100,6 +101,7 @@ data class Environment(
         amtDeltakerApplicationName,
         mulighetsrommetApiName,
         ismeroppfolgingApplicationName,
+        veilarboppfolgingApplicationName,
     ),
 )
 

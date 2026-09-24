@@ -75,6 +75,8 @@ spec:
           namespace: team-esyfo
         - application: amt-deltaker
           namespace: amt
+        - application: veilarboppfolging
+          namespace: poao
         - application: mulighetsrommet-api
           namespace: team-mulighetsrommet
     outbound:
