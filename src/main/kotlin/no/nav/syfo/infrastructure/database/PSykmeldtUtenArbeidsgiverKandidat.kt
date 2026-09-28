@@ -1,5 +1,6 @@
 package no.nav.syfo.infrastructure.database
 
+import no.nav.syfo.domain.FregStatusSjekkResultat
 import no.nav.syfo.domain.KandidatStatus
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.domain.SykmeldtUtenArbeidsgiverKandidat
@@ -21,6 +22,8 @@ data class PSykmeldtUtenArbeidsgiverKandidat(
     val nextProcessingAt: OffsetDateTime,
     val oversendtAt: OffsetDateTime?,
     val hasSykepengesoknad: Boolean,
+    val isUnder18: Boolean?,
+    val fregStatusSjekk: String?,
 )
 
 fun ResultSet.toPSykmeldtUtenArbeidsgiverKandidat() = PSykmeldtUtenArbeidsgiverKandidat(
@@ -35,6 +38,8 @@ fun ResultSet.toPSykmeldtUtenArbeidsgiverKandidat() = PSykmeldtUtenArbeidsgiverK
     nextProcessingAt = getTimestamp("next_processing_at").toOffsetDateTimeUTC(),
     oversendtAt = getTimestamp("oversendt_at")?.toOffsetDateTimeUTC(),
     hasSykepengesoknad = getBoolean("has_sykepengesoknad"),
+    isUnder18 = getObject("is_under_18") as Boolean?,
+    fregStatusSjekk = getString("freg_status_sjekk"),
 )
 
 fun PSykmeldtUtenArbeidsgiverKandidat.toKandidat() = SykmeldtUtenArbeidsgiverKandidat(
@@ -48,4 +53,6 @@ fun PSykmeldtUtenArbeidsgiverKandidat.toKandidat() = SykmeldtUtenArbeidsgiverKan
     nextProcessingAt = nextProcessingAt,
     oversendtAt = oversendtAt,
     hasSykepengesoknad = hasSykepengesoknad,
+    isUnder18 = isUnder18,
+    fregStatusSjekk = fregStatusSjekk?.let { FregStatusSjekkResultat.valueOf(it) },
 )

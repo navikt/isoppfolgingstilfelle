@@ -111,12 +111,19 @@ class OppfolgingstilfelleCronjob(
                 bit.isSykepengesoknad() && bit.isWithin(latestTilfelle)
             }
 
+            val pdlPerson = pdlClient.hentPerson(incomingBit.personIdentNumber)
+            if (pdlPerson == null) {
+                log.warn("Fant ikke person i PDL for BEKREFTET kandidat, lagrer kandidat uten personstatus")
+            }
+
             val kandidat = SykmeldtUtenArbeidsgiverKandidat.opprett(
                 personident = incomingBit.personIdentNumber,
                 aktorId = aktorId,
                 referanseId = incomingBit.ressursId,
                 tilfelleStart = latestTilfelle.start,
                 hasSykepengesoknad = hasSykepengesoknad,
+                isUnder18 = pdlPerson?.isUnder18(),
+                fregStatusSjekk = pdlPerson?.fregStatusSjekk(),
             )
             kandidatRepository.createIfMissing(kandidat, tilfelleEnd = latestTilfelle.end)
         } catch (exc: Exception) {

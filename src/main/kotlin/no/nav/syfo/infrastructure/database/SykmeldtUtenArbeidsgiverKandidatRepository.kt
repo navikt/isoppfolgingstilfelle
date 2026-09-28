@@ -1,5 +1,6 @@
 package no.nav.syfo.infrastructure.database
 
+import no.nav.syfo.domain.FregStatusSjekkResultat
 import no.nav.syfo.domain.KandidatStatus
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.domain.SykmeldtUtenArbeidsgiverKandidat
@@ -7,6 +8,7 @@ import no.nav.syfo.infrastructure.cronjob.MINIMUM_NUMBER_OF_DAYS_BETWEEN_TILFELL
 import no.nav.syfo.util.toOffsetDateTimeUTC
 import java.sql.ResultSet
 import java.sql.Timestamp
+import java.sql.Types
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.*
@@ -36,7 +38,9 @@ class SykmeldtUtenArbeidsgiverKandidatRepository(private val database: DatabaseI
                         it.setObject(1, kandidat.tilfelleStart)
                         it.setString(2, kandidat.referanseId)
                         it.setBoolean(3, kandidat.hasSykepengesoknad)
-                        it.setString(4, overlappingKandidatUuid)
+                        it.setObject(4, kandidat.isUnder18, Types.BOOLEAN)
+                        it.setString(5, kandidat.fregStatusSjekk?.name)
+                        it.setString(6, overlappingKandidatUuid)
                         it.executeUpdate()
                     }
                 } else {
@@ -50,6 +54,8 @@ class SykmeldtUtenArbeidsgiverKandidatRepository(private val database: DatabaseI
                         it.setString(7, kandidat.status.name)
                         it.setTimestamp(8, Timestamp.from(kandidat.nextProcessingAt.toInstant()))
                         it.setBoolean(9, kandidat.hasSykepengesoknad)
+                        it.setObject(10, kandidat.isUnder18, Types.BOOLEAN)
+                        it.setString(11, kandidat.fregStatusSjekk?.name)
                         it.executeUpdate()
                     }
                 }
@@ -71,6 +77,18 @@ class SykmeldtUtenArbeidsgiverKandidatRepository(private val database: DatabaseI
             connection.prepareStatement(QUERY_UPDATE_HAS_SYKEPENGESOKNAD).use {
                 it.setString(1, personident.value)
                 it.setObject(2, tilfelleStart)
+                it.executeUpdate()
+            }
+            connection.commit()
+        }
+    }
+
+    fun oppdaterPersonstatus(uuid: UUID, isUnder18: Boolean, fregStatusSjekk: FregStatusSjekkResultat) {
+        database.connection.use { connection ->
+            connection.prepareStatement(QUERY_UPDATE_PERSONSTATUS).use {
+                it.setBoolean(1, isUnder18)
+                it.setString(2, fregStatusSjekk.name)
+                it.setString(3, uuid.toString())
                 it.executeUpdate()
             }
             connection.commit()
@@ -140,15 +158,17 @@ class SykmeldtUtenArbeidsgiverKandidatRepository(private val database: DatabaseI
         private const val QUERY_UPDATE_OVERLAPPING_KANDIDAT =
             """
             UPDATE KANDIDAT_UTEN_ARBEIDSGIVER
-            SET tilfelle_start = ?, referanse_id = ?, has_sykepengesoknad = ?
+            SET tilfelle_start = ?, referanse_id = ?, has_sykepengesoknad = ?,
+                is_under_18 = COALESCE(?, is_under_18), freg_status_sjekk = COALESCE(?, freg_status_sjekk)
             WHERE uuid = ?
             """
 
         private const val QUERY_INSERT_KANDIDAT =
             """
             INSERT INTO KANDIDAT_UTEN_ARBEIDSGIVER (
-                uuid, created_at, personident, aktor_id, referanse_id, tilfelle_start, status, next_processing_at, has_sykepengesoknad
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                uuid, created_at, personident, aktor_id, referanse_id, tilfelle_start, status, next_processing_at, has_sykepengesoknad,
+                is_under_18, freg_status_sjekk
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """
 
         private const val QUERY_EXISTS_FOR_PERSONIDENT =
@@ -167,9 +187,17 @@ class SykmeldtUtenArbeidsgiverKandidatRepository(private val database: DatabaseI
             AND NOT has_sykepengesoknad
             """
 
+        private const val QUERY_UPDATE_PERSONSTATUS =
+            """
+            UPDATE KANDIDAT_UTEN_ARBEIDSGIVER
+            SET is_under_18 = ?, freg_status_sjekk = ?
+            WHERE uuid = ?
+            """
+
         private const val QUERY_GET_KANDIDATER_FOR_PROCESSING =
             """
-            SELECT uuid, created_at, personident, aktor_id, referanse_id, status, tilfelle_start, next_processing_at, oversendt_at, has_sykepengesoknad
+            SELECT uuid, created_at, personident, aktor_id, referanse_id, status, tilfelle_start, next_processing_at, oversendt_at, has_sykepengesoknad,
+                is_under_18, freg_status_sjekk
             FROM KANDIDAT_UTEN_ARBEIDSGIVER
             WHERE status IN ('NY', 'UTSATT')
             AND oversendt_at IS NULL
@@ -211,4 +239,6 @@ private fun ResultSet.toSykmeldtUtenArbeidsgiverKandidat() = SykmeldtUtenArbeids
     nextProcessingAt = getTimestamp("next_processing_at").toOffsetDateTimeUTC(),
     oversendtAt = getTimestamp("oversendt_at")?.toOffsetDateTimeUTC(),
     hasSykepengesoknad = getBoolean("has_sykepengesoknad"),
+    isUnder18 = getObject("is_under_18") as Boolean?,
+    fregStatusSjekk = getString("freg_status_sjekk")?.let { FregStatusSjekkResultat.valueOf(it) },
 )

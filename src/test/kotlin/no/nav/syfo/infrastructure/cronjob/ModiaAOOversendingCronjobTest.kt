@@ -1,9 +1,12 @@
 package no.nav.syfo.infrastructure.cronjob
 
+import io.mockk.clearMocks
 import io.mockk.justRun
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.application.OppfolgingstilfelleService
+import no.nav.syfo.domain.FregStatusSjekkResultat
 import no.nav.syfo.domain.KandidatStatus
 import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.domain.SykmeldtUtenArbeidsgiverKandidat
@@ -16,7 +19,10 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import testhelper.ExternalMockEnvironment
 import testhelper.UserConstants.ARBEIDSTAKER_AKTOR_ID
+import testhelper.UserConstants.ARBEIDSTAKER_IKKE_BOSATT
 import testhelper.UserConstants.ARBEIDSTAKER_UFOR
+import testhelper.UserConstants.ARBEIDSTAKER_UNDER_18
+import testhelper.UserConstants.ARBEIDSTAKER_WITH_ERROR
 import testhelper.UserConstants.PERSONIDENTNUMBER_DEFAULT
 import testhelper.dropData
 import testhelper.generator.generateOppfolgingstilfelle
@@ -45,6 +51,7 @@ class ModiaAOOversendingCronjobTest {
             clientEnvironment = externalMockEnvironment.environment.clients.pensjonPen,
             httpClient = externalMockEnvironment.mockHttpClient,
         ),
+        pdlClient = externalMockEnvironment.pdlClient,
         startOppfolgingProducer = startOppfolgingProducer,
         sendEnabled = true,
     )
@@ -52,6 +59,7 @@ class ModiaAOOversendingCronjobTest {
     @BeforeEach
     fun beforeEach() {
         database.dropData()
+        clearMocks(startOppfolgingProducer)
         justRun { startOppfolgingProducer.sendSykmeldtUtenArbeidsgiverKandidat(any()) }
     }
 
@@ -204,6 +212,70 @@ class ModiaAOOversendingCronjobTest {
         val kandidat = database.getKandidaterForPersonident(PERSONIDENTNUMBER_DEFAULT).single()
         assertEquals(KandidatStatus.FERDIG, KandidatStatus.valueOf(kandidat.status))
         assertNotNull(kandidat.oversendtAt)
+        assertEquals(false, kandidat.isUnder18)
+        assertEquals(FregStatusSjekkResultat.FREG_STATUS_OK.name, kandidat.fregStatusSjekk)
+        verify(exactly = 1) { startOppfolgingProducer.sendSykmeldtUtenArbeidsgiverKandidat(PERSONIDENTNUMBER_DEFAULT) }
+    }
+
+    @Test
+    fun `sets FERDIG without sending when person is under 18`() {
+        createKandidatForProcessing(personident = ARBEIDSTAKER_UNDER_18)
+        createTilfelle(
+            start = LocalDate.now().minusDays(30),
+            end = LocalDate.now(),
+            personident = ARBEIDSTAKER_UNDER_18,
+        )
+
+        runBlocking { cronjob.runJob() }
+
+        val kandidat = database.getKandidaterForPersonident(ARBEIDSTAKER_UNDER_18).single()
+        assertEquals(KandidatStatus.FERDIG, KandidatStatus.valueOf(kandidat.status))
+        assertNull(kandidat.oversendtAt)
+        assertEquals(true, kandidat.isUnder18)
+        assertEquals(FregStatusSjekkResultat.FREG_STATUS_OK.name, kandidat.fregStatusSjekk)
+        verify(exactly = 0) { startOppfolgingProducer.sendSykmeldtUtenArbeidsgiverKandidat(any()) }
+    }
+
+    @Test
+    fun `sets FERDIG without sending when person is not bosatt in Norway`() {
+        createKandidatForProcessing(personident = ARBEIDSTAKER_IKKE_BOSATT)
+        createTilfelle(
+            start = LocalDate.now().minusDays(30),
+            end = LocalDate.now(),
+            personident = ARBEIDSTAKER_IKKE_BOSATT,
+        )
+
+        runBlocking { cronjob.runJob() }
+
+        val kandidat = database.getKandidaterForPersonident(ARBEIDSTAKER_IKKE_BOSATT).single()
+        assertEquals(KandidatStatus.FERDIG, KandidatStatus.valueOf(kandidat.status))
+        assertNull(kandidat.oversendtAt)
+        assertEquals(false, kandidat.isUnder18)
+        assertEquals(
+            FregStatusSjekkResultat.FREG_STATUS_KREVER_MANUELL_GODKJENNING_PGA_IKKE_BOSATT.name,
+            kandidat.fregStatusSjekk,
+        )
+        verify(exactly = 0) { startOppfolgingProducer.sendSykmeldtUtenArbeidsgiverKandidat(any()) }
+    }
+
+    @Test
+    fun `does not send and keeps kandidat for retry when PDL lookup fails`() {
+        createKandidatForProcessing(personident = ARBEIDSTAKER_WITH_ERROR)
+        createTilfelle(
+            start = LocalDate.now().minusDays(30),
+            end = LocalDate.now(),
+            personident = ARBEIDSTAKER_WITH_ERROR,
+        )
+
+        val result = runBlocking { cronjob.runJob() }
+
+        assertEquals(1, result.failed)
+        val kandidat = database.getKandidaterForPersonident(ARBEIDSTAKER_WITH_ERROR).single()
+        assertEquals(KandidatStatus.NY, KandidatStatus.valueOf(kandidat.status))
+        assertNull(kandidat.oversendtAt)
+        assertNull(kandidat.isUnder18)
+        assertNull(kandidat.fregStatusSjekk)
+        verify(exactly = 0) { startOppfolgingProducer.sendSykmeldtUtenArbeidsgiverKandidat(any()) }
     }
 
     @Test

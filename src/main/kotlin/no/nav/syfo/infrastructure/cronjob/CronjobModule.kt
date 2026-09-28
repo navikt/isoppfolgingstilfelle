@@ -76,6 +76,7 @@ fun launchCronjobModule(
         oppfolgingstilfelleService = OppfolgingstilfelleService(oppfolgingstilfellePersonService.oppfolgingstilfellePersonRepository),
         kandidatRepository = kandidatRepository,
         pensjonPenClient = pensjonPenClient,
+        pdlClient = pdlClient,
         startOppfolgingProducer = startOppfolgingProducer,
         initialDelayMinutes = environment.modiaAOOversendingCronjobInitialDelayMinutes,
         intervalDelayMinutes = environment.modiaAOOversendingCronjobIntervalDelayMinutes,
