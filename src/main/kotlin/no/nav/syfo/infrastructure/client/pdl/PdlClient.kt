@@ -123,6 +123,47 @@ class PdlClient(
         }
     }
 
+    suspend fun hentPerson(
+        personIdentNumber: PersonIdentNumber,
+        callId: String? = null,
+    ): PdlPerson? {
+        val token = azureAdClient.getSystemToken(clientEnvironment.clientId)
+            ?: throw RuntimeException("Failed to send PdlHentPersonRequest to PDL: No token was found")
+
+        val request = PdlHentPersonRequest(
+            query = getPdlQuery(queryFilePath = "/pdl/hentPerson.graphql"),
+            variables = PdlHentPersonRequestVariables(ident = personIdentNumber.value),
+        )
+        val response: HttpResponse = httpClient.post(clientEnvironment.baseUrl) {
+            header(HttpHeaders.Authorization, bearerHeader(token.accessToken))
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            header(BEHANDLINGSNUMMER_HEADER_KEY, BEHANDLINGSNUMMER_HEADER_VALUE)
+            header(NAV_CALL_ID_HEADER, callId)
+            setBody(request)
+        }
+        return when (response.status) {
+            HttpStatusCode.OK -> {
+                val pdlPersonResponse = response.body<PdlPersonResponse>()
+                if (!pdlPersonResponse.errors.isNullOrEmpty()) {
+                    COUNT_CALL_PDL_PERSON_FAIL.increment()
+                    pdlPersonResponse.errors.forEach { error ->
+                        if (error.isNotFound()) logger.warn("Error while requesting person from PersonDataLosningen: ${error.errorMessage()}")
+                        else logger.error("Error while requesting person from PersonDataLosningen: ${error.errorMessage()}")
+                    }
+                    null
+                } else {
+                    COUNT_CALL_PDL_PERSON_SUCCESS.increment()
+                    pdlPersonResponse.data?.hentPerson
+                }
+            }
+            else -> {
+                COUNT_CALL_PDL_PERSON_FAIL.increment()
+                logger.error("Request to get person from PDL failed with reponse code ${response.status.value}")
+                null
+            }
+        }
+    }
+
     private fun getPdlQuery(queryFilePath: String): String {
         return this::class.java.getResource(queryFilePath)!!
             .readText()

@@ -3,7 +3,10 @@ package no.nav.syfo.infrastructure.cronjob
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.application.OppfolgingstilfelleService
 import no.nav.syfo.domain.DAYS_AFTER_TILFELLE_START
+import no.nav.syfo.domain.FregStatusSjekkResultat
+import no.nav.syfo.domain.SykmeldtUtenArbeidsgiverKandidat
 import no.nav.syfo.domain.toOppfolgingstilfellePersonDTO
+import no.nav.syfo.infrastructure.client.pdl.PdlClient
 import no.nav.syfo.infrastructure.client.pensjonpen.PensjonPenClient
 import no.nav.syfo.infrastructure.database.SykmeldtUtenArbeidsgiverKandidatRepository
 import no.nav.syfo.infrastructure.kafka.StartOppfolgingProducer
@@ -17,6 +20,7 @@ class ModiaAOOversendingCronjob(
     private val oppfolgingstilfelleService: OppfolgingstilfelleService,
     private val kandidatRepository: SykmeldtUtenArbeidsgiverKandidatRepository,
     private val pensjonPenClient: PensjonPenClient,
+    private val pdlClient: PdlClient,
     private val startOppfolgingProducer: StartOppfolgingProducer,
     private val sendEnabled: Boolean = false,
     override val initialDelayMinutes: Long = 11,
@@ -76,16 +80,7 @@ class ModiaAOOversendingCronjob(
                         kandidatRepository.markerUtsatt(kandidat.uuid, nextProcessingAt)
                     }
 
-                    !latestTilfelle.arbeidstakerAtTilfelleEnd -> {
-                        if (sendEnabled) {
-                            startOppfolgingProducer.sendSykmeldtUtenArbeidsgiverKandidat(
-                                personident = kandidat.personident,
-                            )
-                        }
-                        kandidatRepository.markerOversendt(kandidat.uuid)
-                    }
-
-                    else -> {
+                    latestTilfelle.arbeidstakerAtTilfelleEnd -> {
                         kandidatRepository.markerFerdig(kandidat.uuid)
                         log.info(
                             "Kandidat ferdigstilles fordi siste oppfolgingstilfelle har arbeidsgiver, {}, {}",
@@ -93,11 +88,53 @@ class ModiaAOOversendingCronjob(
                             StructuredArguments.keyValue("oppfolgingstilfellePersonDtoUuid", oppfolgingstilfelleUuid),
                         )
                     }
+
+                    else -> sendHvisPersonKvalifiserer(kandidat = kandidat, today = today)
                 }
                 result.updated++
             } catch (exc: Exception) {
                 log.error("Feil ved behandling av kandidat ${kandidat.uuid}", exc)
                 result.failed++
+            }
+        }
+    }
+
+    private suspend fun sendHvisPersonKvalifiserer(kandidat: SykmeldtUtenArbeidsgiverKandidat, today: LocalDate) {
+        val pdlPerson = pdlClient.hentPerson(kandidat.personident)
+            ?: throw RuntimeException("Fant ikke person i PDL for kandidat ${kandidat.uuid}")
+        val isUnder18 = pdlPerson.isUnder18(today)
+        val fregStatusSjekk = pdlPerson.fregStatusSjekk()
+        kandidatRepository.oppdaterPersonstatus(
+            uuid = kandidat.uuid,
+            isUnder18 = isUnder18,
+            fregStatusSjekk = fregStatusSjekk,
+        )
+
+        when {
+            isUnder18 -> {
+                log.info(
+                    "Kandidat ferdigstilles uten oversending fordi personen er under 18 år, {}",
+                    StructuredArguments.keyValue("kandidatUuid", kandidat.uuid),
+                )
+                kandidatRepository.markerFerdig(kandidat.uuid)
+            }
+
+            fregStatusSjekk != FregStatusSjekkResultat.FREG_STATUS_OK -> {
+                log.info(
+                    "Kandidat ferdigstilles uten oversending pga. folkeregisterstatus, {}, {}",
+                    StructuredArguments.keyValue("kandidatUuid", kandidat.uuid),
+                    StructuredArguments.keyValue("fregStatusSjekk", fregStatusSjekk),
+                )
+                kandidatRepository.markerFerdig(kandidat.uuid)
+            }
+
+            else -> {
+                if (sendEnabled) {
+                    startOppfolgingProducer.sendSykmeldtUtenArbeidsgiverKandidat(
+                        personident = kandidat.personident,
+                    )
+                }
+                kandidatRepository.markerOversendt(kandidat.uuid)
             }
         }
     }

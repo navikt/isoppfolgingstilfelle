@@ -4,6 +4,7 @@ import io.mockk.*
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.application.OppfolgingstilfelleBitService
 import no.nav.syfo.application.OppfolgingstilfellePersonService
+import no.nav.syfo.domain.FregStatusSjekkResultat
 import no.nav.syfo.domain.KandidatStatus
 import no.nav.syfo.domain.Tag
 import no.nav.syfo.infrastructure.kafka.OppfolgingstilfellePersonProducer
@@ -18,6 +19,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import testhelper.ExternalMockEnvironment
+import testhelper.UserConstants.ARBEIDSTAKER_IKKE_BOSATT
+import testhelper.UserConstants.ARBEIDSTAKER_UNDER_18
 import testhelper.UserConstants.PERSONIDENTNUMBER_DEFAULT
 import testhelper.UserConstants.VIRKSOMHETSNUMMER_DEFAULT
 import testhelper.countKandidater
@@ -87,7 +90,39 @@ class OppfolgingstilfelleCronjobKandidatTest {
         )
         pollAndRun(listOf(bit))
         assertEquals(1, database.countKandidater())
-        assertEquals(false, database.getKandidaterForPersonident(personIdentDefault).single().hasSykepengesoknad)
+        val kandidat = database.getKandidaterForPersonident(personIdentDefault).single()
+        assertEquals(false, kandidat.hasSykepengesoknad)
+        assertEquals(false, kandidat.isUnder18)
+        assertEquals(FregStatusSjekkResultat.FREG_STATUS_OK.name, kandidat.fregStatusSjekk)
+    }
+
+    @Test
+    fun `stores kandidat with isUnder18 flag when person is under 18`() {
+        val bit = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
+            personIdentNumber = ARBEIDSTAKER_UNDER_18,
+            fom = LocalDate.now().minusDays(30),
+            tom = LocalDate.now(),
+        )
+        pollAndRun(listOf(bit))
+        val kandidat = database.getKandidaterForPersonident(ARBEIDSTAKER_UNDER_18).single()
+        assertEquals(true, kandidat.isUnder18)
+        assertEquals(FregStatusSjekkResultat.FREG_STATUS_OK.name, kandidat.fregStatusSjekk)
+    }
+
+    @Test
+    fun `stores kandidat with fregStatusSjekk when person is not bosatt`() {
+        val bit = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
+            personIdentNumber = ARBEIDSTAKER_IKKE_BOSATT,
+            fom = LocalDate.now().minusDays(30),
+            tom = LocalDate.now(),
+        )
+        pollAndRun(listOf(bit))
+        val kandidat = database.getKandidaterForPersonident(ARBEIDSTAKER_IKKE_BOSATT).single()
+        assertEquals(false, kandidat.isUnder18)
+        assertEquals(
+            FregStatusSjekkResultat.FREG_STATUS_KREVER_MANUELL_GODKJENNING_PGA_IKKE_BOSATT.name,
+            kandidat.fregStatusSjekk,
+        )
     }
 
     @Test

@@ -1,0 +1,13 @@
+query($ident: ID!){
+	hentPerson(ident: $ident) {
+		foedselsdato {
+			foedselsdato
+		}
+		folkeregisterpersonstatus(historikk: false) {
+			forenkletStatus
+		}
+		statsborgerskap(historikk: false) {
+			land
+		}
+	}
+}
