@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test
 import testhelper.ExternalMockEnvironment
 import testhelper.UserConstants.ARBEIDSTAKER_AKTOR_ID
 import testhelper.UserConstants.ARBEIDSTAKER_IKKE_BOSATT
+import testhelper.UserConstants.ARBEIDSTAKER_OVER_67
 import testhelper.UserConstants.ARBEIDSTAKER_UFOR
 import testhelper.UserConstants.ARBEIDSTAKER_UNDER_18
 import testhelper.UserConstants.ARBEIDSTAKER_WITH_ERROR
@@ -213,8 +214,29 @@ class ModiaAOOversendingCronjobTest {
         assertEquals(KandidatStatus.FERDIG, KandidatStatus.valueOf(kandidat.status))
         assertNotNull(kandidat.oversendtAt)
         assertEquals(false, kandidat.isUnder18)
+        assertEquals(false, kandidat.isOver67)
         assertEquals(FregStatusSjekkResultat.FREG_STATUS_OK.name, kandidat.fregStatusSjekk)
         verify(exactly = 1) { startOppfolgingProducer.sendSykmeldtUtenArbeidsgiverKandidat(PERSONIDENTNUMBER_DEFAULT) }
+    }
+
+    @Test
+    fun `sets FERDIG without sending when person is over 67`() {
+        createKandidatForProcessing(personident = ARBEIDSTAKER_OVER_67)
+        createTilfelle(
+            start = LocalDate.now().minusDays(30),
+            end = LocalDate.now(),
+            personident = ARBEIDSTAKER_OVER_67,
+        )
+
+        runBlocking { cronjob.runJob() }
+
+        val kandidat = database.getKandidaterForPersonident(ARBEIDSTAKER_OVER_67).single()
+        assertEquals(KandidatStatus.FERDIG, KandidatStatus.valueOf(kandidat.status))
+        assertNull(kandidat.oversendtAt)
+        assertEquals(false, kandidat.isUnder18)
+        assertEquals(true, kandidat.isOver67)
+        assertEquals(FregStatusSjekkResultat.FREG_STATUS_OK.name, kandidat.fregStatusSjekk)
+        verify(exactly = 0) { startOppfolgingProducer.sendSykmeldtUtenArbeidsgiverKandidat(any()) }
     }
 
     @Test

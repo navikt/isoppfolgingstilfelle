@@ -103,10 +103,12 @@ class ModiaAOOversendingCronjob(
         val pdlPerson = pdlClient.hentPerson(kandidat.personident)
             ?: throw RuntimeException("Fant ikke person i PDL for kandidat ${kandidat.uuid}")
         val isUnder18 = pdlPerson.isUnder18(today)
+        val isOver67 = pdlPerson.isOver67(today)
         val fregStatusSjekk = pdlPerson.fregStatusSjekk()
         kandidatRepository.oppdaterPersonstatus(
             uuid = kandidat.uuid,
             isUnder18 = isUnder18,
+            isOver67 = isOver67,
             fregStatusSjekk = fregStatusSjekk,
         )
 
@@ -114,6 +116,14 @@ class ModiaAOOversendingCronjob(
             isUnder18 -> {
                 log.info(
                     "Kandidat ferdigstilles uten oversending fordi personen er under 18 år, {}",
+                    StructuredArguments.keyValue("kandidatUuid", kandidat.uuid),
+                )
+                kandidatRepository.markerFerdig(kandidat.uuid)
+            }
+
+            isOver67 -> {
+                log.info(
+                    "Kandidat ferdigstilles uten oversending fordi personen er over 67 år, {}",
                     StructuredArguments.keyValue("kandidatUuid", kandidat.uuid),
                 )
                 kandidatRepository.markerFerdig(kandidat.uuid)

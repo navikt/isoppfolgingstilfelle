@@ -1,6 +1,7 @@
 package no.nav.syfo.infrastructure.client.pdl
 
 import no.nav.syfo.domain.FregStatusSjekkResultat
+import no.nav.syfo.util.isBeforeOrEqual
 import java.time.LocalDate
 
 data class PdlPersonResponse(
@@ -20,6 +21,10 @@ data class PdlPerson(
     // Samme vurdering som Modia AO (veilarboppfolging): manglende fødselsdato tolkes som ikke under 18 år
     fun isUnder18(today: LocalDate = LocalDate.now()): Boolean =
         foedselsdato.firstOrNull()?.foedselsdato?.isAfter(today.minusYears(18)) ?: false
+
+    // Manglende fødselsdato tolkes som ikke over 67 år
+    fun isOver67(today: LocalDate = LocalDate.now()): Boolean =
+        foedselsdato.firstOrNull()?.foedselsdato?.isBeforeOrEqual(today.minusYears(67)) ?: false
 
     // Samme vurdering som Modia AO (veilarboppfolging) gjør for å kunne starte oppfølging uten manuell godkjenning
     fun fregStatusSjekk(): FregStatusSjekkResultat {

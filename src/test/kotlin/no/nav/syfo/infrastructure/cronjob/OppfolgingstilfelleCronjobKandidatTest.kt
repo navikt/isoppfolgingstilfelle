@@ -20,6 +20,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import testhelper.ExternalMockEnvironment
 import testhelper.UserConstants.ARBEIDSTAKER_IKKE_BOSATT
+import testhelper.UserConstants.ARBEIDSTAKER_OVER_67
 import testhelper.UserConstants.ARBEIDSTAKER_UNDER_18
 import testhelper.UserConstants.PERSONIDENTNUMBER_DEFAULT
 import testhelper.UserConstants.VIRKSOMHETSNUMMER_DEFAULT
@@ -93,7 +94,21 @@ class OppfolgingstilfelleCronjobKandidatTest {
         val kandidat = database.getKandidaterForPersonident(personIdentDefault).single()
         assertEquals(false, kandidat.hasSykepengesoknad)
         assertEquals(false, kandidat.isUnder18)
+        assertEquals(false, kandidat.isOver67)
         assertEquals(FregStatusSjekkResultat.FREG_STATUS_OK.name, kandidat.fregStatusSjekk)
+    }
+
+    @Test
+    fun `stores kandidat with isOver67 flag when person is over 67`() {
+        val bit = generateKafkaSyketilfellebitRelevantSykmeldingBekreftet(
+            personIdentNumber = ARBEIDSTAKER_OVER_67,
+            fom = LocalDate.now().minusDays(30),
+            tom = LocalDate.now(),
+        )
+        pollAndRun(listOf(bit))
+        val kandidat = database.getKandidaterForPersonident(ARBEIDSTAKER_OVER_67).single()
+        assertEquals(false, kandidat.isUnder18)
+        assertEquals(true, kandidat.isOver67)
     }
 
     @Test

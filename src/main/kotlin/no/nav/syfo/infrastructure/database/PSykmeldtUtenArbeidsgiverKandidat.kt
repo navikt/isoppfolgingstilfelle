@@ -23,6 +23,7 @@ data class PSykmeldtUtenArbeidsgiverKandidat(
     val oversendtAt: OffsetDateTime?,
     val hasSykepengesoknad: Boolean,
     val isUnder18: Boolean?,
+    val isOver67: Boolean?,
     val fregStatusSjekk: String?,
 )
 
@@ -39,6 +40,7 @@ fun ResultSet.toPSykmeldtUtenArbeidsgiverKandidat() = PSykmeldtUtenArbeidsgiverK
     oversendtAt = getTimestamp("oversendt_at")?.toOffsetDateTimeUTC(),
     hasSykepengesoknad = getBoolean("has_sykepengesoknad"),
     isUnder18 = getObject("is_under_18") as Boolean?,
+    isOver67 = getObject("is_over_67") as Boolean?,
     fregStatusSjekk = getString("freg_status_sjekk"),
 )
 
@@ -54,5 +56,6 @@ fun PSykmeldtUtenArbeidsgiverKandidat.toKandidat() = SykmeldtUtenArbeidsgiverKan
     oversendtAt = oversendtAt,
     hasSykepengesoknad = hasSykepengesoknad,
     isUnder18 = isUnder18,
+    isOver67 = isOver67,
     fregStatusSjekk = fregStatusSjekk?.let { FregStatusSjekkResultat.valueOf(it) },
 )

@@ -99,6 +99,9 @@ private suspend fun MockRequestHandleScope.pdlHentPersonMockResponse(request: Ht
         UserConstants.ARBEIDSTAKER_UNDER_18 -> respondOk(
             generatePdlPersonResponse(foedselsdato = LocalDate.now().minusYears(18).plusDays(1))
         )
+        UserConstants.ARBEIDSTAKER_OVER_67 -> respondOk(
+            generatePdlPersonResponse(foedselsdato = LocalDate.now().minusYears(67))
+        )
         UserConstants.ARBEIDSTAKER_IKKE_BOSATT -> respondOk(
             generatePdlPersonResponse(forenkletStatus = ForenkletFolkeregisterStatus.ikkeBosatt.name)
         )

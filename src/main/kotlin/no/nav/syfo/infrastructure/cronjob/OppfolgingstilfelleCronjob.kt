@@ -123,6 +123,7 @@ class OppfolgingstilfelleCronjob(
                 tilfelleStart = latestTilfelle.start,
                 hasSykepengesoknad = hasSykepengesoknad,
                 isUnder18 = pdlPerson?.isUnder18(),
+                isOver67 = pdlPerson?.isOver67(),
                 fregStatusSjekk = pdlPerson?.fregStatusSjekk(),
             )
             kandidatRepository.createIfMissing(kandidat, tilfelleEnd = latestTilfelle.end)
