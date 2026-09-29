@@ -39,6 +39,19 @@ class PdlPersonTest {
     }
 
     @Test
+    fun `isOver67 is true from 67th birthday`() {
+        assertFalse(person(foedselsdato = today.minusYears(67).plusDays(1)).isOver67(today))
+        assertTrue(person(foedselsdato = today.minusYears(67)).isOver67(today))
+        assertTrue(person(foedselsdato = today.minusYears(80)).isOver67(today))
+    }
+
+    @Test
+    fun `isOver67 is false when foedselsdato is missing`() {
+        assertFalse(PdlPerson().isOver67(today))
+        assertFalse(person(foedselsdato = null).isOver67(today))
+    }
+
+    @Test
     fun `fregStatusSjekk is OK when bosatt etter folkeregisterloven`() {
         assertEquals(FregStatusSjekkResultat.FREG_STATUS_OK, person().fregStatusSjekk())
     }

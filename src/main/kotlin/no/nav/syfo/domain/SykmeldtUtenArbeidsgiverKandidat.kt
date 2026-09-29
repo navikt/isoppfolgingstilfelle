@@ -29,6 +29,7 @@ data class SykmeldtUtenArbeidsgiverKandidat(
     val oversendtAt: OffsetDateTime?,
     val hasSykepengesoknad: Boolean,
     val isUnder18: Boolean?,
+    val isOver67: Boolean?,
     val fregStatusSjekk: FregStatusSjekkResultat?,
 ) {
     companion object {
@@ -39,6 +40,7 @@ data class SykmeldtUtenArbeidsgiverKandidat(
             tilfelleStart: LocalDate,
             hasSykepengesoknad: Boolean = false,
             isUnder18: Boolean? = null,
+            isOver67: Boolean? = null,
             fregStatusSjekk: FregStatusSjekkResultat? = null,
         ) =
             SykmeldtUtenArbeidsgiverKandidat(
@@ -53,6 +55,7 @@ data class SykmeldtUtenArbeidsgiverKandidat(
                 oversendtAt = null,
                 hasSykepengesoknad = hasSykepengesoknad,
                 isUnder18 = isUnder18,
+                isOver67 = isOver67,
                 fregStatusSjekk = fregStatusSjekk,
             )
     }
