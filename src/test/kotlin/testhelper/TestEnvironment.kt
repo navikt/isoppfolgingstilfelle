@@ -79,7 +79,6 @@ fun testEnvironment() = Environment(
     sykmeldingNyCronjobIntervalDelayMinutes = 2,
     modiaAOOversendingCronjobInitialDelayMinutes = 3,
     modiaAOOversendingCronjobIntervalDelayMinutes = 2,
-    modiaAOSendEnabled = false,
 )
 
 fun testAppState() = ApplicationState(

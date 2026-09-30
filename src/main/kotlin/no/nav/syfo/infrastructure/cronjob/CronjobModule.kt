@@ -80,7 +80,6 @@ fun launchCronjobModule(
         startOppfolgingProducer = startOppfolgingProducer,
         initialDelayMinutes = environment.modiaAOOversendingCronjobInitialDelayMinutes,
         intervalDelayMinutes = environment.modiaAOOversendingCronjobIntervalDelayMinutes,
-        sendEnabled = environment.modiaAOSendEnabled,
     )
     val aktoridCronjob = AktoridCronjob(
         database = database,

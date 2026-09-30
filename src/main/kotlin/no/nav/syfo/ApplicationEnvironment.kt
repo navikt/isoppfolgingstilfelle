@@ -92,7 +92,6 @@ data class Environment(
 
     val modiaAOOversendingCronjobInitialDelayMinutes: Long = getEnvVar("MODIA_AO_OVERSENDING_CRONJOB_INITIAL_DELAY_MINUTES").toLong(),
     val modiaAOOversendingCronjobIntervalDelayMinutes: Long = getEnvVar("MODIA_AO_OVERSENDING_CRONJOB_INTERVAL_DELAY_MINUTES").toLong(),
-    val modiaAOSendEnabled: Boolean = getEnvVar("MODIA_AO_SEND_ENABLED", "false").toBoolean(),
 
     val systemAPIAuthorizedConsumerApplicationNames: List<String> = listOf(
         isbehandlerdialogApplicationName,

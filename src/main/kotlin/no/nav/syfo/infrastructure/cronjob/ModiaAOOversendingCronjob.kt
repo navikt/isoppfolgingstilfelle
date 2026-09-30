@@ -22,7 +22,6 @@ class ModiaAOOversendingCronjob(
     private val pensjonPenClient: PensjonPenClient,
     private val pdlClient: PdlClient,
     private val startOppfolgingProducer: StartOppfolgingProducer,
-    private val sendEnabled: Boolean = false,
     override val initialDelayMinutes: Long = 11,
     override val intervalDelayMinutes: Long = 60,
 ) : Cronjob {
@@ -139,11 +138,10 @@ class ModiaAOOversendingCronjob(
             }
 
             else -> {
-                if (sendEnabled) {
-                    startOppfolgingProducer.sendSykmeldtUtenArbeidsgiverKandidat(
-                        personident = kandidat.personident,
-                    )
-                }
+                startOppfolgingProducer.sendSykmeldtUtenArbeidsgiverKandidat(
+                    personident = kandidat.personident,
+                )
+
                 kandidatRepository.markerOversendt(kandidat.uuid)
             }
         }
