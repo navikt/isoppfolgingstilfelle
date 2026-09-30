@@ -54,7 +54,6 @@ class ModiaAOOversendingCronjobTest {
         ),
         pdlClient = externalMockEnvironment.pdlClient,
         startOppfolgingProducer = startOppfolgingProducer,
-        sendEnabled = true,
     )
 
     @BeforeEach
