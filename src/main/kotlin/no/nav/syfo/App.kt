@@ -12,6 +12,7 @@ import no.nav.syfo.application.OppfolgingstilfelleBitService
 import no.nav.syfo.application.OppfolgingstilfellePersonService
 import no.nav.syfo.application.OppfolgingstilfelleService
 import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
+import no.nav.syfo.infrastructure.client.httpClientProxy
 import no.nav.syfo.infrastructure.client.narmesteleder.NarmesteLederClient
 import no.nav.syfo.infrastructure.client.pdl.PdlClient
 import no.nav.syfo.infrastructure.client.tokendings.TokendingsClient
@@ -43,11 +44,14 @@ const val applicationPort = 8080
 fun main() {
     val applicationState = ApplicationState()
     val environment = Environment()
+    val proxyHttpClient = httpClientProxy()
     val wellKnownInternalAzureAD = getWellKnown(
         wellKnownUrl = environment.azure.appWellKnownUrl,
+        httpClient = proxyHttpClient,
     )
     val wellKnownSelvbetjening = getWellKnown(
-        wellKnownUrl = environment.tokenx.wellKnownUrl
+        wellKnownUrl = environment.tokenx.wellKnownUrl,
+        httpClient = proxyHttpClient,
     )
     val valkeyConfig = environment.valkeyConfig
     val valkeyStore = ValkeyStore(
@@ -65,11 +69,13 @@ fun main() {
     val azureAdClient = AzureAdClient(
         azureEnviroment = environment.azure,
         valkeyStore = valkeyStore,
+        httpClient = proxyHttpClient,
     )
     val tokendingsClient = TokendingsClient(
         tokenxClientId = environment.tokenx.clientId,
         tokenxEndpoint = environment.tokenx.endpoint,
         tokenxPrivateJWK = environment.tokenx.privateJWK,
+        httpClient = proxyHttpClient,
     )
     val pdlClient = PdlClient(
         azureAdClient = azureAdClient,
