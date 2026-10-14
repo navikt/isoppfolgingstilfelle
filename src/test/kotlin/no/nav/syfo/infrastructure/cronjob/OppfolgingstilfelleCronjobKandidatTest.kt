@@ -51,6 +51,7 @@ class OppfolgingstilfelleCronjobKandidatTest {
 
     private val kafkaSyketilfellebitService = SyketilfellebitConsumer(
         oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(tilfellebitRepository),
+        pdlClient = externalMockEnvironment.pdlClient,
     )
     private val oppfolgingstilfelleCronjob = OppfolgingstilfelleCronjob(
         oppfolgingstilfellePersonService = OppfolgingstilfellePersonService(

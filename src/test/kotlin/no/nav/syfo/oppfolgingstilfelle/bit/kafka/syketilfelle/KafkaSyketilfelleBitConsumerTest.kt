@@ -4,6 +4,7 @@ import io.mockk.*
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.application.OppfolgingstilfelleBitService
 import no.nav.syfo.application.OppfolgingstilfellePersonService
+import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.domain.Tag
 import no.nav.syfo.infrastructure.client.ArbeidsforholdClient
 import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
@@ -42,6 +43,7 @@ class KafkaSyketilfelleBitConsumerTest {
     private val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(tilfellebitRepository)
     private val kafkaSyketilfellebitService = SyketilfellebitConsumer(
         oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
+        pdlClient = externalMockEnvironment.pdlClient,
     )
     private val tilfellebitDeleteCronjob = TilfellebitDeleteCronjob(
         tilfellebitRepository = tilfellebitRepository,
@@ -231,6 +233,27 @@ class KafkaSyketilfelleBitConsumerTest {
         assertEquals(UserConstants.VIRKSOMHETSNUMMER_HAS_NARMESTELEDER, oppfolgingstilfelle.virksomhetsnummerList[0])
         assertEquals(kafkaSyketilfellebitSykmeldingNy.fom, oppfolgingstilfelle.start)
         assertEquals(kafkaSyketilfellebitSykmeldingNy.tom, oppfolgingstilfelle.end)
+    }
+
+    @Test
+    fun `should replace historical ident with aktiv ident from PDL`() {
+        val historicalIdent = UserConstants.ARBEIDSTAKER_3_FNR
+        val aktivIdent = PersonIdentNumber("11111111111")
+        val kafkaSyketilfellebit = generateKafkaSyketilfellebitRelevantVirksomhet(personIdent = historicalIdent)
+        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+            mapOf(
+                syketilfellebitTopicPartition to listOf(
+                    ConsumerRecord(SYKETILFELLEBIT_TOPIC, partition, 1, kafkaSyketilfellebit.id, kafkaSyketilfellebit),
+                )
+            )
+        )
+
+        kafkaSyketilfellebitService.pollAndProcessRecords(consumer = mockKafkaConsumerSyketilfelleBit)
+
+        assertTrue(database.getOppfolgingstilfelleBitForIdent(historicalIdent).isEmpty())
+        val tilfellebitList = database.getOppfolgingstilfelleBitForIdent(aktivIdent)
+        assertEquals(1, tilfellebitList.size)
+        assertEquals(kafkaSyketilfellebit.id, tilfellebitList.first().uuid.toString())
     }
 
     @Test
