@@ -12,6 +12,7 @@ import java.util.*
 class OutdatedIdentCronjob(
     private val tilfellebitRepository: TilfellebitRepository,
     private val identhendelseService: IdenthendelseService,
+    private val uuids : List<UUID> = OUTDATED_IDENT_TILFELLEBIT_UUIDS,
     override val initialDelayMinutes: Long = 5,
     override val intervalDelayMinutes: Long = 60 * 24,
 ) : Cronjob {
@@ -26,7 +27,7 @@ class OutdatedIdentCronjob(
     }
 
     fun runJob() = CronjobResult().also { result ->
-        val identer = OUTDATED_IDENT_TILFELLEBIT_UUIDS.mapNotNull { uuid ->
+        val identer = uuids.mapNotNull { uuid ->
             val tilfellebit = tilfellebitRepository.getOppfolgingstilfelleBit(uuid)
             if (tilfellebit == null) {
                 log.warn("Fant ikke tilfellebit med uuid $uuid")

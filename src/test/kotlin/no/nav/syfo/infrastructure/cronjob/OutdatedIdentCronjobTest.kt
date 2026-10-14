@@ -124,7 +124,7 @@ class OutdatedIdentCronjobTest {
     private fun createCronjob(uuids: List<UUID>) = OutdatedIdentCronjob(
         tilfellebitRepository = tilfellebitRepository,
         identhendelseService = identhendelseService,
-        tilfellebitUuids = uuids,
+        uuids = uuids,
     )
 
     private fun createOppfolgingstilfellePerson(tilfellebit: OppfolgingstilfelleBit) =
