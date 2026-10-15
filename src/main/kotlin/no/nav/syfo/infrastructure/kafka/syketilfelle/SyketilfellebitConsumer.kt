@@ -9,7 +9,9 @@ import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.util.*
 
-class SyketilfellebitConsumer(val oppfolgingstilfelleBitService: OppfolgingstilfelleBitService) {
+class SyketilfellebitConsumer(
+    val oppfolgingstilfelleBitService: OppfolgingstilfelleBitService,
+) {
     fun pollAndProcessRecords(
         consumer: KafkaConsumer<String, KafkaSyketilfellebit>,
     ) {

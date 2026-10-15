@@ -234,6 +234,26 @@ class KafkaSyketilfelleBitConsumerTest {
     }
 
     @Test
+    fun `should store personident from Kafka without resolving aktiv ident from PDL`() {
+        val personIdent = UserConstants.ARBEIDSTAKER_3_FNR
+        val kafkaSyketilfellebit = generateKafkaSyketilfellebitRelevantVirksomhet(personIdent = personIdent)
+        every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
+            mapOf(
+                syketilfellebitTopicPartition to listOf(
+                    ConsumerRecord(SYKETILFELLEBIT_TOPIC, partition, 1, kafkaSyketilfellebit.id, kafkaSyketilfellebit),
+                )
+            )
+        )
+
+        kafkaSyketilfellebitService.pollAndProcessRecords(consumer = mockKafkaConsumerSyketilfelleBit)
+
+        val tilfellebitList = database.getOppfolgingstilfelleBitForIdent(personIdent)
+        assertEquals(1, tilfellebitList.size)
+        assertEquals(kafkaSyketilfellebit.id, tilfellebitList.first().uuid.toString())
+        verify(exactly = 1) { mockKafkaConsumerSyketilfelleBit.commitSync() }
+    }
+
+    @Test
     fun `tilfelleBit should be ignored if avbrutt`() {
         every { mockKafkaConsumerSyketilfelleBit.poll(any<Duration>()) } returns ConsumerRecords(
             mapOf(

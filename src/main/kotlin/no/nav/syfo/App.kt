@@ -191,6 +191,7 @@ fun main() {
                     tilfellebitRepository = tilfellebitRepository,
                     valkeyStore = valkeyStore,
                     pdlClient = pdlClient,
+                    identhendelseService = identhendelseService,
                 )
             }
         }
