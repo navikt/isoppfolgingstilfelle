@@ -1,10 +1,7 @@
 package no.nav.syfo.infrastructure.kafka.syketilfelle
 
-import kotlinx.coroutines.runBlocking
 import no.nav.syfo.application.OppfolgingstilfelleBitService
-import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.domain.toOppfolgingstilfelleBit
-import no.nav.syfo.infrastructure.client.pdl.PdlClient
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -14,7 +11,6 @@ import java.util.*
 
 class SyketilfellebitConsumer(
     val oppfolgingstilfelleBitService: OppfolgingstilfelleBitService,
-    private val pdlClient: PdlClient,
 ) {
     fun pollAndProcessRecords(
         consumer: KafkaConsumer<String, KafkaSyketilfellebit>,
@@ -66,34 +62,12 @@ class SyketilfellebitConsumer(
     private fun processRelevantRecordList(
         relevantRecordList: List<ConsumerRecord<String, KafkaSyketilfellebit>>,
     ) {
-        val aktivIdentMap = relevantRecordList
-            .map { it.value().fnr }
-            .distinct()
-            .associateWith { fnr -> findAktivIdent(fnr) }
-
         val relevantOppfolgingstilfelleBitList = relevantRecordList.map {
-            val kafkaSyketilfellebit = it.value()
-            val aktivIdent = aktivIdentMap[kafkaSyketilfellebit.fnr] ?: kafkaSyketilfellebit.fnr
-            kafkaSyketilfellebit.copy(fnr = aktivIdent).toOppfolgingstilfelleBit()
+            it.value().toOppfolgingstilfelleBit()
         }
         oppfolgingstilfelleBitService.createOppfolgingstilfelleBitList(
             oppfolgingstilfelleBitList = relevantOppfolgingstilfelleBitList,
         )
-    }
-
-    private fun findAktivIdent(fnr: String): String {
-        val aktivIdent = runBlocking {
-            pdlClient.pdlIdenter(personIdentNumber = PersonIdentNumber(fnr))
-        }?.hentIdenter?.aktivIdent
-        if (aktivIdent == null) {
-            log.warn("Could not find aktiv ident in PDL for syketilfellebit, using ident from record")
-            return fnr
-        }
-        if (aktivIdent != fnr) {
-            log.info("Received syketilfellebit with historical ident, replacing with aktiv ident from PDL")
-            COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_HISTORICAL_IDENT.increment()
-        }
-        return aktivIdent
     }
 
     companion object {

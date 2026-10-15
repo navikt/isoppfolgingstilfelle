@@ -45,7 +45,6 @@ class OppfolgingstilfelleSystemApiTest {
 
     private val syketilfellebitConsumer = SyketilfellebitConsumer(
         oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
-        pdlClient = externalMockEnvironment.pdlClient,
     )
     private val personIdentDefault = PERSONIDENTNUMBER_DEFAULT.toHistoricalPersonIdentNumber()
 

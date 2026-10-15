@@ -147,7 +147,6 @@ fun main() {
                 application.environment.log.info("Application is ready, running Java VM ${Runtime.version()}")
                 val syketilfellebitConsumer = SyketilfellebitConsumer(
                     oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(tilfellebitRepository),
-                    pdlClient = pdlClient,
                 )
 
                 launchKafkaTaskSyketilfelleBit(

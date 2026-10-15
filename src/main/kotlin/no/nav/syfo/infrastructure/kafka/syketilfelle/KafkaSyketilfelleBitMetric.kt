@@ -34,10 +34,3 @@ val COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_NOT_RELEVANT: Counter = Counter.builder
 val COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_TOMBSTONE: Counter = Counter.builder(KAFKA_CONSUMER_SYKETILFELLEBIT_TOMBSTONE)
     .description("Counts the number of tombstones received from topic - syketilfellebit")
     .register(METRICS_REGISTRY)
-
-const val KAFKA_CONSUMER_SYKETILFELLEBIT_HISTORICAL_IDENT = "${KAFKA_CONSUMER_SYKETILFELLEBIT_BASE}_historical_ident"
-val COUNT_KAFKA_CONSUMER_SYKETILFELLEBIT_HISTORICAL_IDENT: Counter = Counter.builder(
-    KAFKA_CONSUMER_SYKETILFELLEBIT_HISTORICAL_IDENT
-)
-    .description("Counts the number of records with historical ident replaced by aktiv ident from PDL - syketilfellebit")
-    .register(METRICS_REGISTRY)
