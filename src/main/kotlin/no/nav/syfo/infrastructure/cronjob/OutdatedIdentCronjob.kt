@@ -51,7 +51,7 @@ class OutdatedIdentCronjob(
         // Tilfellebiter med utdatert ident: personident som skal håndteres hentes fra denne
         // (trenger bare en tilfellebit per ident som skal håndteres)
         private val OUTDATED_IDENT_TILFELLEBIT_UUIDS: List<UUID> = listOf<String>(
-            "2ff59c11-a3d5-485f-a36d-33d8975381e7",
+            // "2ff59c11-a3d5-485f-a36d-33d8975381e7", processed 2026-10-19
         ).map { UUID.fromString(it) }
 
         private val log = LoggerFactory.getLogger(OutdatedIdentCronjob::class.java)
