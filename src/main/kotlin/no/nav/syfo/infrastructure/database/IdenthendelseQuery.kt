@@ -96,11 +96,11 @@ const val queryUpdatePersonidentOnTilfellebit =
         WHERE personident = ?
     """
 
-fun Connection.moveTilfelleBit(
+fun Connection.updatePersonidentOnTilfelleBit(
     nyPersonident: PersonIdentNumber,
     inactiveIdent: PersonIdentNumber,
 ): Int = this.updateIdent(
-    query = queryMoveTilfelleBit,
+    query = queryUpdatePersonidentOnTilfellebit,
     nyPersonident = nyPersonident,
     inactiveIdenter = listOf(inactiveIdent),
 )

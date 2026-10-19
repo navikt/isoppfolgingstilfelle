@@ -5,7 +5,7 @@ import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.infrastructure.client.pdl.PdlClient
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.getIdentCount
-import no.nav.syfo.infrastructure.database.moveTilfelleBit
+import no.nav.syfo.infrastructure.database.updatePersonidentOnTilfelleBit
 import no.nav.syfo.infrastructure.database.setNewestProcessedTilfelleBitUnprocessed
 import no.nav.syfo.infrastructure.database.updateOppfolgingstilfellePerson
 import no.nav.syfo.infrastructure.database.updateTilfelleBit
@@ -75,7 +75,7 @@ class IdenthendelseService(
 
         var numberOfUpdatedIdenter = 0
         database.connection.use { connection ->
-            numberOfUpdatedIdenter += connection.moveTilfelleBit(aktivIdent, ident)
+            numberOfUpdatedIdenter += connection.updatePersonidentOnTilfelleBit(aktivIdent, ident)
             numberOfUpdatedIdenter += connection.updateOppfolgingstilfellePerson(aktivIdent, listOf(ident))
             connection.setNewestProcessedTilfelleBitUnprocessed(aktivIdent)
             connection.commit()
