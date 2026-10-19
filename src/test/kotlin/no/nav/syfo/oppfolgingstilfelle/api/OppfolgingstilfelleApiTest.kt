@@ -48,7 +48,9 @@ class OppfolgingstilfelleApiTest {
     private val oppfolgingstilfelleBitService = OppfolgingstilfelleBitService(tilfellebitRepository)
 
     private val syketilfellebitConsumer =
-        SyketilfellebitConsumer(oppfolgingstilfelleBitService = oppfolgingstilfelleBitService)
+        SyketilfellebitConsumer(
+            oppfolgingstilfelleBitService = oppfolgingstilfelleBitService,
+        )
     private val personIdentDefault = PERSONIDENTNUMBER_DEFAULT.toHistoricalPersonIdentNumber()
 
     private val partition = 0

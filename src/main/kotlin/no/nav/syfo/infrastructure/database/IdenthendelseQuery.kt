@@ -88,3 +88,38 @@ fun DatabaseInterface.getIdentCount(
             return count
         }
     }
+
+const val queryUpdatePersonidentOnTilfellebit =
+    """
+        UPDATE TILFELLE_BIT
+        SET personident = ?
+        WHERE personident = ?
+    """
+
+fun Connection.updatePersonidentOnTilfelleBit(
+    nyPersonident: PersonIdentNumber,
+    inactiveIdent: PersonIdentNumber,
+): Int = this.updateIdent(
+    query = queryUpdatePersonidentOnTilfellebit,
+    nyPersonident = nyPersonident,
+    inactiveIdenter = listOf(inactiveIdent),
+)
+
+const val querySetNewestProcessedTilfelleBitUnprocessed =
+    """
+        UPDATE TILFELLE_BIT
+        SET processed = FALSE
+        WHERE id = (
+            SELECT id FROM TILFELLE_BIT
+            WHERE personident = ? AND processed
+            ORDER BY inntruffet DESC, id DESC
+            LIMIT 1
+        )
+    """
+
+fun Connection.setNewestProcessedTilfelleBitUnprocessed(
+    personident: PersonIdentNumber,
+): Int = this.prepareStatement(querySetNewestProcessedTilfelleBitUnprocessed).use {
+    it.setString(1, personident.value)
+    it.executeUpdate()
+}

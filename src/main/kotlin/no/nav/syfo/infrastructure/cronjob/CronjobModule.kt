@@ -3,6 +3,7 @@ package no.nav.syfo.infrastructure.cronjob
 import no.nav.syfo.ApplicationState
 import no.nav.syfo.Environment
 import no.nav.syfo.api.cache.IValkeyStore
+import no.nav.syfo.application.IdenthendelseService
 import no.nav.syfo.application.OppfolgingstilfellePersonService
 import no.nav.syfo.application.OppfolgingstilfelleService
 import no.nav.syfo.infrastructure.client.ArbeidsforholdClient
@@ -26,6 +27,7 @@ fun launchCronjobModule(
     tilfellebitRepository: TilfellebitRepository,
     valkeyStore: IValkeyStore,
     pdlClient: PdlClient,
+    identhendelseService: IdenthendelseService,
 ) {
     val leaderPodClient = LeaderPodClient(
         electorPath = environment.electorPath
@@ -85,12 +87,17 @@ fun launchCronjobModule(
         database = database,
         pdlClient = pdlClient,
     )
+    val outdatedIdentCronjob = OutdatedIdentCronjob(
+        tilfellebitRepository = tilfellebitRepository,
+        identhendelseService = identhendelseService,
+    )
     listOf(
         sykmeldingNyCronjob,
         oppfolgingstilfelleCronjob,
         modiaAOOversendingCronjob,
         aktoridCronjob,
         tilfellebitDeleteCronjob,
+        outdatedIdentCronjob,
     ).forEach {
         launchBackgroundTask(
             applicationState = applicationState,

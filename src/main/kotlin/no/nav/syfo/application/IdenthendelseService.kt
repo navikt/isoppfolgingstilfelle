@@ -5,6 +5,8 @@ import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.infrastructure.client.pdl.PdlClient
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.getIdentCount
+import no.nav.syfo.infrastructure.database.updatePersonidentOnTilfelleBit
+import no.nav.syfo.infrastructure.database.setNewestProcessedTilfelleBitUnprocessed
 import no.nav.syfo.infrastructure.database.updateOppfolgingstilfellePerson
 import no.nav.syfo.infrastructure.database.updateTilfelleBit
 import no.nav.syfo.infrastructure.kafka.identhendelse.COUNT_KAFKA_CONSUMER_PDL_AKTOR_UPDATES
@@ -48,6 +50,37 @@ class IdenthendelseService(
             }
         }
 
+        return numberOfUpdatedIdenter
+    }
+
+    /**
+     * Rydder opp i data lagret på en utdatert ident, også når det allerede finnes tilfellebiter og
+     * oppfolgingstilfellePerson på gjeldende ident. Tilfellebitene flyttes uten å reprosesseres hver for seg;
+     * i stedet settes nyeste prosesserte tilfellebit for gjeldende ident til uprosessert, slik at
+     * OppfolgingstilfelleCronjob beregner et nytt oppfolgingstilfellePerson basert på alle tilfellebitene.
+     */
+    fun handleOutdatedIdent(ident: PersonIdentNumber): Int {
+        val aktivIdent = runBlocking { pdlClient.pdlIdenter(ident) }?.hentIdenter?.aktivIdent
+            ?.let { PersonIdentNumber(it) }
+            ?: throw RuntimeException("Fant ingen aktiv ident fra PDL")
+        if (aktivIdent == ident) {
+            log.info("Ident er allerede aktiv ident i PDL, ingenting å oppdatere")
+            return 0
+        }
+        if (database.getIdentCount(listOf(ident)) == 0) {
+            log.info("Fant ingen forekomster av utdatert ident, ingenting å oppdatere")
+            return 0
+        }
+        checkThatPdlIsUpdated(aktivIdent)
+
+        var numberOfUpdatedIdenter = 0
+        database.connection.use { connection ->
+            numberOfUpdatedIdenter += connection.updatePersonidentOnTilfelleBit(aktivIdent, ident)
+            numberOfUpdatedIdenter += connection.updateOppfolgingstilfellePerson(aktivIdent, listOf(ident))
+            connection.setNewestProcessedTilfelleBitUnprocessed(aktivIdent)
+            connection.commit()
+        }
+        log.info("Utdatert ident: Updated $numberOfUpdatedIdenter rows")
         return numberOfUpdatedIdenter
     }
 
