@@ -89,7 +89,7 @@ fun DatabaseInterface.getIdentCount(
         }
     }
 
-const val queryMoveTilfelleBit =
+const val queryUpdatePersonidentOnTilfellebit =
     """
         UPDATE TILFELLE_BIT
         SET personident = ?
