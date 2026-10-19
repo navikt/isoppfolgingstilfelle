@@ -77,6 +77,8 @@ spec:
           namespace: amt
         - application: veilarboppfolging
           namespace: poao
+        - application: veilarbportefolje
+          namespace: obo
         - application: mulighetsrommet-api
           namespace: team-mulighetsrommet
     outbound:

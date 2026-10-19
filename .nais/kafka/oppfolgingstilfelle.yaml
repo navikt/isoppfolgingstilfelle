@@ -37,6 +37,9 @@ spec:
     - team: teamsykefravr
       application: ismeroppfolging
       access: read
+    - team: obo
+      application: veilarbportefolje
+      access: read
     - team: disykefravar
       application: dvh-sykefravar-airflow-kafka
       access: read
