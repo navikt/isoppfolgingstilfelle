@@ -81,6 +81,8 @@ spec:
           namespace: obo
         - application: mulighetsrommet-api
           namespace: team-mulighetsrommet
+        - application: azure-token-generator
+          namespace: nais
     outbound:
       external:
         - host: "pdl-api.dev-fss-pub.nais.io"
