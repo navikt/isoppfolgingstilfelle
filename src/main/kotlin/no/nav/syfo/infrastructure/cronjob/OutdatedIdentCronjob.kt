@@ -52,6 +52,7 @@ class OutdatedIdentCronjob(
         // (trenger bare en tilfellebit per ident som skal håndteres)
         private val OUTDATED_IDENT_TILFELLEBIT_UUIDS: List<UUID> = listOf<String>(
             // "2ff59c11-a3d5-485f-a36d-33d8975381e7", processed 2026-10-19
+            "a2b1a0b3-7496-4261-a760-862ed3fde758",
         ).map { UUID.fromString(it) }
 
         private val log = LoggerFactory.getLogger(OutdatedIdentCronjob::class.java)
