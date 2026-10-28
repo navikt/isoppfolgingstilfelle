@@ -92,6 +92,7 @@ class OppfolgingstilfelleApiTest {
         ),
         tilfellebitRepository = tilfellebitRepository,
         pdlClient = externalMockEnvironment.pdlClient,
+        identhendelseService = externalMockEnvironment.identhendelseService,
         kandidatRepository = externalMockEnvironment.kandidatRepository,
     )
     private val oppfolgingstilfelleApiV1Path = "/api/internad/v1/oppfolgingstilfelle"

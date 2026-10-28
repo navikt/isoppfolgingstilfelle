@@ -59,6 +59,7 @@ class OppfolgingstilfelleCronjobKandidatTest {
         ),
         tilfellebitRepository = tilfellebitRepository,
         pdlClient = externalMockEnvironment.pdlClient,
+        identhendelseService = externalMockEnvironment.identhendelseService,
         kandidatRepository = kandidatRepository,
     )
 

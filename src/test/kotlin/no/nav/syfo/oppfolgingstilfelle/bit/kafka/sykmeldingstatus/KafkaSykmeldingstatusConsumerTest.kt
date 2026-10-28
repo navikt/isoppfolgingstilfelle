@@ -108,6 +108,7 @@ class KafkaSykmeldingstatusConsumerTest {
         ),
         tilfellebitRepository = tilfellebitRepository,
         pdlClient = externalMockEnvironment.pdlClient,
+        identhendelseService = externalMockEnvironment.identhendelseService,
         kandidatRepository = externalMockEnvironment.kandidatRepository,
     )
 

@@ -67,6 +67,7 @@ fun launchCronjobModule(
         oppfolgingstilfellePersonService = oppfolgingstilfellePersonService,
         tilfellebitRepository = tilfellebitRepository,
         pdlClient = pdlClient,
+        identhendelseService = identhendelseService,
         kandidatRepository = kandidatRepository,
         intervalDelayMinutes = environment.oppfolgingstilfelleCronjobIntervalDelayMinutes,
     )

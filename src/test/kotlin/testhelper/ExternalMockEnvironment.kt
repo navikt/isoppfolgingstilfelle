@@ -1,6 +1,7 @@
 package testhelper
 
 import no.nav.syfo.ApplicationState
+import no.nav.syfo.application.IdenthendelseService
 import no.nav.syfo.application.OppfolgingstilfelleService
 import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
 import no.nav.syfo.infrastructure.client.pdl.PdlClient
@@ -36,6 +37,10 @@ class ExternalMockEnvironment private constructor() {
         httpClient = mockHttpClient,
     )
     val kandidatRepository = SykmeldtUtenArbeidsgiverKandidatRepository(database = database)
+    val identhendelseService = IdenthendelseService(
+        database = database,
+        pdlClient = pdlClient,
+    )
 
     companion object {
         val instance: ExternalMockEnvironment by lazy {
