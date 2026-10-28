@@ -62,7 +62,6 @@ class IdenthendelseService(
      */
     fun handleOutdatedIdent(ident: PersonIdentNumber): Int {
         if (database.getIdentCount(listOf(ident)) == 0) {
-            log.info("Fant ingen forekomster av utdatert ident, ingenting å oppdatere")
             return 0
         }
         val aktivIdent = runBlocking { pdlClient.pdlIdenter(ident) }?.hentIdenter?.aktivIdent
