@@ -14,6 +14,7 @@ object UserConstants {
     val ARBEIDSTAKER_FNR = PersonIdentNumber("12345678912")
     val ARBEIDSTAKER_2_FNR = PersonIdentNumber("12345678911")
     val ARBEIDSTAKER_3_FNR = PersonIdentNumber("12345678913")
+    val ARBEIDSTAKER_3_AKTIV_FNR = PersonIdentNumber("11111111111")
     val ARBEIDSTAKER_4_FNR = PersonIdentNumber("12345678919")
     val ARBEIDSTAKER_WITH_ERROR = PersonIdentNumber("12345678666")
 

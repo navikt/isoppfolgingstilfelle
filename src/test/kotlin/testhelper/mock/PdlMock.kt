@@ -19,6 +19,7 @@ fun PersonIdentNumber.toHistoricalPersonIdentNumber(): PersonIdentNumber {
 
 fun generatePdlIdenterResponse(
     personIdentNumber: PersonIdentNumber,
+    historiskIdent: PersonIdentNumber = personIdentNumber.toHistoricalPersonIdentNumber(),
 ) = PdlIdenterResponse(
     data = PdlHentIdenter(
         hentIdenter = PdlIdenter(
@@ -29,7 +30,7 @@ fun generatePdlIdenterResponse(
                     gruppe = IdentType.FOLKEREGISTERIDENT.name,
                 ),
                 PdlIdent(
-                    ident = personIdentNumber.toHistoricalPersonIdentNumber().value,
+                    ident = historiskIdent.value,
                     historisk = true,
                     gruppe = IdentType.FOLKEREGISTERIDENT.name,
                 ),
@@ -82,7 +83,15 @@ suspend fun MockRequestHandleScope.pdlMockResponse(request: HttpRequestData): Ht
     val pdlRequest = request.receiveBody<PdlHentIdenterRequest>()
     return when (val personIdentNumber = PersonIdentNumber(pdlRequest.variables.ident)) {
         UserConstants.ARBEIDSTAKER_3_FNR -> {
-            respondOk(generatePdlIdenterResponse(PersonIdentNumber("11111111111")))
+            respondOk(generatePdlIdenterResponse(UserConstants.ARBEIDSTAKER_3_AKTIV_FNR))
+        }
+        UserConstants.ARBEIDSTAKER_3_AKTIV_FNR -> {
+            respondOk(
+                generatePdlIdenterResponse(
+                    personIdentNumber = UserConstants.ARBEIDSTAKER_3_AKTIV_FNR,
+                    historiskIdent = UserConstants.ARBEIDSTAKER_3_FNR,
+                )
+            )
         }
         UserConstants.ARBEIDSTAKER_WITH_ERROR -> {
             respondOk(generatePdlIdenterResponse(personIdentNumber).copy(errors = generatePdlError(code = "not_found")))

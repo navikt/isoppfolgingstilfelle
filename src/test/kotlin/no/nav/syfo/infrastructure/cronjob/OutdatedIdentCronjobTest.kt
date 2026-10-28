@@ -47,9 +47,9 @@ class OutdatedIdentCronjobTest {
         kandidatRepository = externalMockEnvironment.kandidatRepository,
     )
 
-    // PDL-mocken returnerer 11111111111 som aktiv ident for ARBEIDSTAKER_3_FNR
+    // PDL-mocken returnerer ARBEIDSTAKER_3_AKTIV_FNR som aktiv ident for ARBEIDSTAKER_3_FNR
     private val oldIdent = UserConstants.ARBEIDSTAKER_3_FNR
-    private val newIdent = PersonIdentNumber("11111111111")
+    private val newIdent = UserConstants.ARBEIDSTAKER_3_AKTIV_FNR
 
     private val oldTilfellebit = generateTilfellebit(
         personIdent = oldIdent,
@@ -143,11 +143,45 @@ class OutdatedIdentCronjobTest {
         assertEquals(0, database.getIdentCount(listOf(oldIdent)))
         assertEquals(3, database.getIdentCount(listOf(newIdent)))
         assertFalse(tilfellebitRepository.getOppfolgingstilfelleBit(unprocessedTilfellebit.uuid)!!.processed)
+        assertTrue(tilfellebitRepository.getOppfolgingstilfelleBit(oldTilfellebit.uuid)!!.processed)
 
         runBlocking {
             val result = oppfolgingstilfelleCronjob.runJob()
             assertEquals(0, result.failed)
-            assertTrue(result.updated > 0)
+            assertEquals(1, result.updated)
+        }
+
+        assertTrue(tilfellebitRepository.getOppfolgingstilfelleBit(unprocessedTilfellebit.uuid)!!.processed)
+        assertNull(oppfolgingstilfellePersonRepository.getOppfolgingstilfellePerson(oldIdent))
+        val oppfolgingstilfellePerson = oppfolgingstilfellePersonRepository.getOppfolgingstilfellePerson(newIdent)!!
+        assertEquals(unprocessedTilfellebit.uuid, oppfolgingstilfellePerson.referanseTilfelleBitUUID)
+        assertEquals(1, oppfolgingstilfellePerson.oppfolgingstilfeller.size)
+        assertEquals(oldTilfellebit.fom, oppfolgingstilfellePerson.oppfolgingstilfeller.first().start)
+        assertEquals(unprocessedTilfellebit.tom, oppfolgingstilfellePerson.oppfolgingstilfeller.first().end)
+    }
+
+    @Test
+    fun `oppfolgingstilfelleCronjob moves data on outdated ident when tilfellebit is on aktiv ident`() {
+        tilfellebitRepository.createOppfolgingstilfelleBit(oldTilfellebit)
+        createOppfolgingstilfellePerson(oldTilfellebit)
+        val unprocessedTilfellebit = newTilfellebit.copy(processed = false)
+        tilfellebitRepository.createOppfolgingstilfelleBit(unprocessedTilfellebit)
+
+        runBlocking {
+            val result = oppfolgingstilfelleCronjob.runJob()
+            assertEquals(0, result.updated)
+            assertEquals(0, result.failed)
+        }
+
+        assertEquals(0, database.getIdentCount(listOf(oldIdent)))
+        assertEquals(3, database.getIdentCount(listOf(newIdent)))
+        assertFalse(tilfellebitRepository.getOppfolgingstilfelleBit(unprocessedTilfellebit.uuid)!!.processed)
+        assertTrue(tilfellebitRepository.getOppfolgingstilfelleBit(oldTilfellebit.uuid)!!.processed)
+
+        runBlocking {
+            val result = oppfolgingstilfelleCronjob.runJob()
+            assertEquals(0, result.failed)
+            assertEquals(1, result.updated)
         }
 
         assertTrue(tilfellebitRepository.getOppfolgingstilfelleBit(unprocessedTilfellebit.uuid)!!.processed)

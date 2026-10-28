@@ -15,6 +15,7 @@ import no.nav.syfo.domain.isSykmeldingNy
 import no.nav.syfo.domain.isSykepengesoknad
 import no.nav.syfo.domain.isWithin
 import no.nav.syfo.infrastructure.client.pdl.PdlClient
+import no.nav.syfo.infrastructure.client.pdl.toPersonIdentNumberList
 import no.nav.syfo.infrastructure.database.SykmeldtUtenArbeidsgiverKandidatRepository
 import no.nav.syfo.infrastructure.database.bit.TilfellebitRepository
 import no.nav.syfo.infrastructure.database.bit.toOppfolgingstilfelleBitList
@@ -42,20 +43,13 @@ class OppfolgingstilfelleCronjob(
 
     suspend fun runJob() = CronjobResult().also { result ->
         val unprocessed = tilfellebitRepository.getUnprocessedOppfolgingstilfelleBitList().toOppfolgingstilfelleBitList()
-        val aktivIdentCache = mutableMapOf<PersonIdentNumber, PersonIdentNumber>()
+        val deferredIdentCache = mutableMapOf<PersonIdentNumber, Boolean>()
         unprocessed.forEach { oppfolgingstilfelleBit ->
             try {
                 val personIdent = oppfolgingstilfelleBit.personIdentNumber
-                val isFirstForIdent = personIdent !in aktivIdentCache
-                val aktivIdent = aktivIdentCache.getOrPut(personIdent) { getAktivIdent(personIdent) }
-                if (aktivIdent != personIdent) {
-                    // Moves all data on the outdated ident to aktiv ident. The tilfellebit is still unprocessed
-                    // and will be processed on aktiv ident in the next run.
-                    if (isFirstForIdent) {
-                        log.info("Found tilfellebit with outdated personident, moving data to aktiv personident: ${oppfolgingstilfelleBit.uuid}")
-                        identhendelseService.handleOutdatedIdent(personIdent)
-                        COUNT_CRONJOB_OPPFOLGINGSTILFELLE_OUTDATED_IDENT.increment()
-                    }
+                val isDeferred = deferredIdentCache.getOrPut(personIdent) { moveDataOnOutdatedIdenter(personIdent) }
+                if (isDeferred) {
+                    // The tilfellebit is still unprocessed and will be processed on aktiv ident in the next run
                     return@forEach
                 }
 
@@ -95,12 +89,31 @@ class OppfolgingstilfelleCronjob(
         }
     }
 
-    private suspend fun getAktivIdent(personIdent: PersonIdentNumber): PersonIdentNumber =
-        pdlClient.pdlIdenter(personIdent)?.hentIdenter?.aktivIdent
-            ?.let { PersonIdentNumber(it) }
-            ?: personIdent.also {
-                log.warn("Found no aktiv ident in PDL when processing tilfellebit, using stored personident")
+    // Moves tilfellebiter and oppfolgingstilfellePerson stored on any of the person's outdated identer to aktiv ident.
+    // Returns true if processing of tilfellebiter on personIdent should be deferred to the next run, i.e. if
+    // personIdent is outdated or if data was moved. Falls back to processing on the stored personident if PDL
+    // doesn't return an aktiv ident (e.g. person not found), so that the tilfellebit doesn't get stuck as unprocessed.
+    private suspend fun moveDataOnOutdatedIdenter(personIdent: PersonIdentNumber): Boolean {
+        val pdlIdenter = pdlClient.pdlIdenter(personIdent)?.hentIdenter
+        val aktivIdent = pdlIdenter?.aktivIdent?.let { PersonIdentNumber(it) }
+        if (aktivIdent == null) {
+            log.warn("Found no aktiv ident in PDL when processing tilfellebit, using stored personident")
+            return false
+        }
+        val outdatedIdenter = (pdlIdenter.toPersonIdentNumberList() + personIdent).distinct() - aktivIdent
+        var updatedRows = 0
+        outdatedIdenter.forEach { outdatedIdent ->
+            val updatedRowsForIdent = identhendelseService.handleOutdatedIdent(outdatedIdent)
+            if (updatedRowsForIdent > 0) {
+                COUNT_CRONJOB_OPPFOLGINGSTILFELLE_OUTDATED_IDENT.increment()
+                updatedRows += updatedRowsForIdent
             }
+        }
+        if (updatedRows > 0) {
+            log.info("Moved $updatedRows rows from outdated personident(er) to aktiv personident when processing tilfellebit")
+        }
+        return personIdent != aktivIdent || updatedRows > 0
+    }
 
     private suspend fun lagreBekreftetKandidatHvisAktuell(
         incomingBit: OppfolgingstilfelleBit,
@@ -189,7 +202,7 @@ class OppfolgingstilfelleCronjob(
 
         private val COUNT_CRONJOB_OPPFOLGINGSTILFELLE_OUTDATED_IDENT: Counter = Counter
             .builder("${METRICS_NS}_cronjob_oppfolgingstilfelle_outdated_ident")
-            .description("Counts the number of outdated personidenter moved to aktiv personident when processing tilfellebiter")
+            .description("Counts the number of outdated personidenter with data moved to aktiv personident when processing tilfellebiter")
             .register(METRICS_REGISTRY)
     }
 }
