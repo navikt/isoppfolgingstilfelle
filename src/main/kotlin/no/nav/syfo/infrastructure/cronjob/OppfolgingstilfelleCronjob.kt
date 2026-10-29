@@ -15,6 +15,7 @@ import no.nav.syfo.domain.isSykmeldingNy
 import no.nav.syfo.domain.isSykepengesoknad
 import no.nav.syfo.domain.isWithin
 import no.nav.syfo.infrastructure.client.pdl.PdlClient
+import no.nav.syfo.infrastructure.client.pdl.PdlIdenter
 import no.nav.syfo.infrastructure.client.pdl.toPersonIdentNumberList
 import no.nav.syfo.infrastructure.database.SykmeldtUtenArbeidsgiverKandidatRepository
 import no.nav.syfo.infrastructure.database.bit.TilfellebitRepository
@@ -41,13 +42,24 @@ class OppfolgingstilfelleCronjob(
         )
     }
 
-    suspend fun runJob() = CronjobResult().also { result ->
+    suspend fun runJob(): CronjobResult {
+        val result = CronjobResult()
         val unprocessed = tilfellebitRepository.getUnprocessedOppfolgingstilfelleBitList().toOppfolgingstilfelleBitList()
+        if (unprocessed.isEmpty()) return result
+        val pdlIdenterMap = try {
+            pdlClient.hentIdenterBolk(unprocessed.map { it.personIdentNumber })
+        } catch (exc: Exception) {
+            log.error("Failed to get identer from PDL, skipping processing of tilfellebiter in this run", exc)
+            result.failed += unprocessed.size
+            return result
+        }
         val deferredIdentCache = mutableMapOf<PersonIdentNumber, Boolean>()
         unprocessed.forEach { oppfolgingstilfelleBit ->
             try {
                 val personIdent = oppfolgingstilfelleBit.personIdentNumber
-                val isDeferred = deferredIdentCache.getOrPut(personIdent) { moveDataOnOutdatedIdenter(personIdent) }
+                val isDeferred = deferredIdentCache.getOrPut(personIdent) {
+                    moveDataOnOutdatedIdenter(personIdent = personIdent, pdlIdenter = pdlIdenterMap[personIdent])
+                }
                 if (isDeferred) {
                     // The tilfellebit is still unprocessed and will be processed on aktiv ident in the next run
                     return@forEach
@@ -87,14 +99,14 @@ class OppfolgingstilfelleCronjob(
                 result.failed++
             }
         }
+        return result
     }
 
     // Moves tilfellebiter and oppfolgingstilfellePerson stored on any of the person's outdated identer to aktiv ident.
     // Returns true if processing of tilfellebiter on personIdent should be deferred to the next run, i.e. if
     // personIdent is outdated or if data was moved. Falls back to processing on the stored personident if PDL
     // doesn't return an aktiv ident (e.g. person not found), so that the tilfellebit doesn't get stuck as unprocessed.
-    private suspend fun moveDataOnOutdatedIdenter(personIdent: PersonIdentNumber): Boolean {
-        val pdlIdenter = pdlClient.pdlIdenter(personIdent)?.hentIdenter
+    private fun moveDataOnOutdatedIdenter(personIdent: PersonIdentNumber, pdlIdenter: PdlIdenter?): Boolean {
         val aktivIdent = pdlIdenter?.aktivIdent?.let { PersonIdentNumber(it) }
         if (aktivIdent == null) {
             log.warn("Found no aktiv ident in PDL when processing tilfellebit, using stored personident")

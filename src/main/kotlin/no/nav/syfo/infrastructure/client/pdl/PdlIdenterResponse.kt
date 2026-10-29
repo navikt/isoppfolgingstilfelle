@@ -11,6 +11,23 @@ data class PdlHentIdenter(
     val hentIdenter: PdlIdenter?,
 )
 
+data class PdlIdenterBolkResponse(
+    val data: PdlHentIdenterBolk?,
+    val errors: List<PdlError>?,
+)
+
+data class PdlHentIdenterBolk(
+    val hentIdenterBolk: List<PdlIdenterBolkResult>,
+)
+
+data class PdlIdenterBolkResult(
+    val ident: String,
+    val identer: List<PdlIdent>?,
+    val code: String,
+) {
+    fun isOk(): Boolean = code == "ok" && identer != null
+}
+
 data class PdlIdenter(
     val identer: List<PdlIdent>,
 ) {

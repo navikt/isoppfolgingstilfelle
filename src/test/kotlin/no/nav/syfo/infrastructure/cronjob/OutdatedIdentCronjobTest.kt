@@ -208,6 +208,27 @@ class OutdatedIdentCronjobTest {
         assertNotNull(oppfolgingstilfellePersonRepository.getOppfolgingstilfellePerson(newIdent))
     }
 
+    @Test
+    fun `oppfolgingstilfelleCronjob processes tilfellebit on stored ident when ident is not found in PDL`() {
+        val personIdent = UserConstants.ARBEIDSTAKER_WITH_ERROR
+        val unprocessedTilfellebit = generateTilfellebit(
+            personIdent = personIdent,
+            fom = LocalDate.now().minusDays(19),
+            tom = LocalDate.now().minusDays(5),
+            inntruffetDaysAgo = 5,
+        ).copy(processed = false)
+        tilfellebitRepository.createOppfolgingstilfelleBit(unprocessedTilfellebit)
+
+        runBlocking {
+            val result = oppfolgingstilfelleCronjob.runJob()
+            assertEquals(1, result.updated)
+            assertEquals(0, result.failed)
+        }
+
+        assertTrue(tilfellebitRepository.getOppfolgingstilfelleBit(unprocessedTilfellebit.uuid)!!.processed)
+        assertNotNull(oppfolgingstilfellePersonRepository.getOppfolgingstilfellePerson(personIdent))
+    }
+
     private fun createCronjob(uuids: List<UUID>) = OutdatedIdentCronjob(
         tilfellebitRepository = tilfellebitRepository,
         identhendelseService = identhendelseService,
