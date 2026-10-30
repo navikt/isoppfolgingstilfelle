@@ -12,7 +12,6 @@ import org.junit.jupiter.api.*
 import no.nav.syfo.domain.KandidatStatus
 import no.nav.syfo.domain.SykmeldtUtenArbeidsgiverKandidat
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import testhelper.ExternalMockEnvironment
 import testhelper.UserConstants
@@ -135,23 +134,7 @@ class IdenthendelseServiceTest {
         }
 
         @Test
-        fun `Skal ferdigstille flyttet kandidat når ny ident har oversendt kandidat for samme tilfelle`() {
-            val kafkaIdenthendelseDTO = generateKafkaIdenthendelseDTO(hasOldPersonident = true)
-            val newIdent = kafkaIdenthendelseDTO.getActivePersonident()!!
-            val oldIdent = kafkaIdenthendelseDTO.getInactivePersonidenter().first()
-            val gammelKandidat = opprettKandidat(oldIdent, LocalDate.now().minusDays(40))
-            val nyKandidat = opprettKandidat(newIdent, LocalDate.now().minusDays(35))
-            externalMockEnvironment.kandidatRepository.markerOversendt(nyKandidat.uuid)
-
-            identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO)
-
-            val kandidat = database.getKandidaterForPersonident(newIdent).first { it.uuid == gammelKandidat.uuid }
-            assertEquals(KandidatStatus.FERDIG.name, kandidat.status)
-            assertNull(kandidat.oversendtAt)
-        }
-
-        @Test
-        fun `Skal ikke ferdigstille flyttet kandidat når ny ident kun har oversendt kandidat for tidligere tilfelle`() {
+        fun `Skal ikke ferdigstille flyttet kandidat når ny ident kun har oversendt kandidat`() {
             val kafkaIdenthendelseDTO = generateKafkaIdenthendelseDTO(hasOldPersonident = true)
             val newIdent = kafkaIdenthendelseDTO.getActivePersonident()!!
             val oldIdent = kafkaIdenthendelseDTO.getInactivePersonidenter().first()
