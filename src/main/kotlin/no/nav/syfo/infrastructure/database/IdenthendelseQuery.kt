@@ -44,6 +44,51 @@ fun Connection.updateOppfolgingstilfellePerson(
     )
 }
 
+const val queryUpdateKandidatUtenArbeidsgiver =
+    """
+        UPDATE KANDIDAT_UTEN_ARBEIDSGIVER
+        SET personident = ?
+        WHERE personident = ?
+    """
+
+/**
+ * Ferdigstiller aktive kandidater på utdatert ident dersom ny ident allerede har en aktiv kandidat.
+ * Uten dette ville flyttingen gitt flere aktive kandidater på samme person, og personen kunne blitt
+ * sendt til Modia AO flere ganger.
+ */
+const val queryFerdigstillDuplikatKandidatUtenArbeidsgiver =
+    """
+        UPDATE KANDIDAT_UTEN_ARBEIDSGIVER gammel
+        SET status = 'FERDIG'
+        WHERE gammel.personident = ?
+        AND gammel.status IN ('NY', 'UTSATT')
+        AND gammel.oversendt_at IS NULL
+        AND EXISTS (
+            SELECT 1 FROM KANDIDAT_UTEN_ARBEIDSGIVER ny
+            WHERE ny.personident = ?
+            AND ny.status IN ('NY', 'UTSATT')
+            AND ny.oversendt_at IS NULL
+        )
+    """
+
+fun Connection.updateKandidatUtenArbeidsgiver(
+    nyPersonident: PersonIdentNumber,
+    inactiveIdenter: List<PersonIdentNumber>,
+): Int {
+    this.prepareStatement(queryFerdigstillDuplikatKandidatUtenArbeidsgiver).use {
+        inactiveIdenter.forEach { inactiveIdent ->
+            it.setString(1, inactiveIdent.value)
+            it.setString(2, nyPersonident.value)
+            it.executeUpdate()
+        }
+    }
+    return this.updateIdent(
+        query = queryUpdateKandidatUtenArbeidsgiver,
+        nyPersonident = nyPersonident,
+        inactiveIdenter = inactiveIdenter,
+    )
+}
+
 fun Connection.updateIdent(
     query: String,
     nyPersonident: PersonIdentNumber,
@@ -71,6 +116,8 @@ const val queryGetIdentCount =
             SELECT personident FROM TILFELLE_BIT
             UNION ALL
             SELECT personident FROM OPPFOLGINGSTILFELLE_PERSON
+            UNION ALL
+            SELECT personident FROM KANDIDAT_UTEN_ARBEIDSGIVER
         ) identer
         WHERE personident = ?
     """
