@@ -143,12 +143,12 @@ class OutdatedIdentCronjobTest {
         assertEquals(0, database.getIdentCount(listOf(oldIdent)))
         assertEquals(3, database.getIdentCount(listOf(newIdent)))
         assertFalse(tilfellebitRepository.getOppfolgingstilfelleBit(unprocessedTilfellebit.uuid)!!.processed)
-        assertTrue(tilfellebitRepository.getOppfolgingstilfelleBit(oldTilfellebit.uuid)!!.processed)
+        assertFalse(tilfellebitRepository.getOppfolgingstilfelleBit(oldTilfellebit.uuid)!!.processed)
 
         runBlocking {
             val result = oppfolgingstilfelleCronjob.runJob()
             assertEquals(0, result.failed)
-            assertEquals(1, result.updated)
+            assertEquals(2, result.updated)
         }
 
         assertTrue(tilfellebitRepository.getOppfolgingstilfelleBit(unprocessedTilfellebit.uuid)!!.processed)
@@ -176,12 +176,12 @@ class OutdatedIdentCronjobTest {
         assertEquals(0, database.getIdentCount(listOf(oldIdent)))
         assertEquals(3, database.getIdentCount(listOf(newIdent)))
         assertFalse(tilfellebitRepository.getOppfolgingstilfelleBit(unprocessedTilfellebit.uuid)!!.processed)
-        assertTrue(tilfellebitRepository.getOppfolgingstilfelleBit(oldTilfellebit.uuid)!!.processed)
+        assertFalse(tilfellebitRepository.getOppfolgingstilfelleBit(oldTilfellebit.uuid)!!.processed)
 
         runBlocking {
             val result = oppfolgingstilfelleCronjob.runJob()
             assertEquals(0, result.failed)
-            assertEquals(1, result.updated)
+            assertEquals(2, result.updated)
         }
 
         assertTrue(tilfellebitRepository.getOppfolgingstilfelleBit(unprocessedTilfellebit.uuid)!!.processed)
@@ -191,6 +191,36 @@ class OutdatedIdentCronjobTest {
         assertEquals(1, oppfolgingstilfellePerson.oppfolgingstilfeller.size)
         assertEquals(oldTilfellebit.fom, oppfolgingstilfellePerson.oppfolgingstilfeller.first().start)
         assertEquals(unprocessedTilfellebit.tom, oppfolgingstilfellePerson.oppfolgingstilfeller.first().end)
+    }
+
+    @Test
+    fun `oppfolgingstilfelleCronjob recalculates newest oppfolgingstilfellePerson when moved tilfellebit is older than newest tilfellebit on aktiv ident`() {
+        tilfellebitRepository.createOppfolgingstilfelleBit(newTilfellebit)
+        createOppfolgingstilfellePerson(newTilfellebit)
+        val unprocessedTilfellebit = oldTilfellebit.copy(processed = false)
+        tilfellebitRepository.createOppfolgingstilfelleBit(unprocessedTilfellebit)
+
+        runBlocking {
+            val result = oppfolgingstilfelleCronjob.runJob()
+            assertEquals(0, result.updated)
+            assertEquals(0, result.failed)
+        }
+
+        assertEquals(0, database.getIdentCount(listOf(oldIdent)))
+        assertFalse(tilfellebitRepository.getOppfolgingstilfelleBit(unprocessedTilfellebit.uuid)!!.processed)
+        assertFalse(tilfellebitRepository.getOppfolgingstilfelleBit(newTilfellebit.uuid)!!.processed)
+
+        runBlocking {
+            val result = oppfolgingstilfelleCronjob.runJob()
+            assertEquals(0, result.failed)
+            assertEquals(2, result.updated)
+        }
+
+        val oppfolgingstilfellePerson = oppfolgingstilfellePersonRepository.getOppfolgingstilfellePerson(newIdent)!!
+        assertEquals(newTilfellebit.uuid, oppfolgingstilfellePerson.referanseTilfelleBitUUID)
+        assertEquals(1, oppfolgingstilfellePerson.oppfolgingstilfeller.size)
+        assertEquals(oldTilfellebit.fom, oppfolgingstilfellePerson.oppfolgingstilfeller.first().start)
+        assertEquals(newTilfellebit.tom, oppfolgingstilfellePerson.oppfolgingstilfeller.first().end)
     }
 
     @Test

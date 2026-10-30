@@ -115,17 +115,11 @@ const val querySetNewestProcessedTilfelleBitUnprocessed =
             ORDER BY inntruffet DESC, id DESC
             LIMIT 1
         )
-        AND NOT EXISTS (
-            SELECT 1 FROM TILFELLE_BIT
-            WHERE personident = ? AND ready AND NOT processed
-        )
     """
 
-// Not needed if there already is a tilfellebit for the personident that will be picked up by OppfolgingstilfelleCronjob
 fun Connection.setNewestProcessedTilfelleBitUnprocessed(
     personident: PersonIdentNumber,
 ): Int = this.prepareStatement(querySetNewestProcessedTilfelleBitUnprocessed).use {
     it.setString(1, personident.value)
-    it.setString(2, personident.value)
     it.executeUpdate()
 }
