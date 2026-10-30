@@ -8,6 +8,7 @@ import no.nav.syfo.infrastructure.database.getIdentCount
 import no.nav.syfo.infrastructure.database.updatePersonidentOnTilfelleBit
 import no.nav.syfo.infrastructure.database.setNewestProcessedTilfelleBitUnprocessed
 import no.nav.syfo.infrastructure.database.updateOppfolgingstilfellePerson
+import no.nav.syfo.infrastructure.database.updateKandidatUtenArbeidsgiver
 import no.nav.syfo.infrastructure.database.updateTilfelleBit
 import no.nav.syfo.infrastructure.kafka.identhendelse.COUNT_KAFKA_CONSUMER_PDL_AKTOR_UPDATES
 import no.nav.syfo.infrastructure.kafka.identhendelse.KafkaIdenthendelseDTO
@@ -46,6 +47,7 @@ class IdenthendelseService(
             database.connection.use { connection ->
                 numberOfUpdatedIdenter += connection.updateTilfelleBit(activeIdent, inactiveIdenter)
                 numberOfUpdatedIdenter += connection.updateOppfolgingstilfellePerson(activeIdent, inactiveIdenter)
+                numberOfUpdatedIdenter += connection.updateKandidatUtenArbeidsgiver(activeIdent, inactiveIdenter)
                 connection.commit()
             }
         }
@@ -76,6 +78,7 @@ class IdenthendelseService(
         database.connection.use { connection ->
             numberOfUpdatedIdenter += connection.updatePersonidentOnTilfelleBit(aktivIdent, ident)
             numberOfUpdatedIdenter += connection.updateOppfolgingstilfellePerson(aktivIdent, listOf(ident))
+            numberOfUpdatedIdenter += connection.updateKandidatUtenArbeidsgiver(aktivIdent, listOf(ident))
             connection.setNewestProcessedTilfelleBitUnprocessed(aktivIdent)
             connection.commit()
         }

@@ -1,6 +1,7 @@
 package no.nav.syfo.infrastructure.database
 
 import no.nav.syfo.domain.PersonIdentNumber
+import no.nav.syfo.infrastructure.cronjob.MINIMUM_NUMBER_OF_DAYS_BETWEEN_TILFELLER
 import java.sql.Connection
 import java.sql.PreparedStatement
 
@@ -44,6 +45,54 @@ fun Connection.updateOppfolgingstilfellePerson(
     )
 }
 
+const val queryUpdateKandidatUtenArbeidsgiver =
+    """
+        UPDATE KANDIDAT_UTEN_ARBEIDSGIVER
+        SET personident = ?
+        WHERE personident = ?
+    """
+
+/**
+ * Ferdigstiller aktive kandidater på utdatert ident dersom ny ident allerede har en aktiv kandidat, eller en
+ * oversendt kandidat for samme eller et senere oppfolgingstilfelle. Uten dette ville flyttingen gitt flere aktive
+ * kandidater på samme person, og personen kunne blitt sendt til Modia AO flere ganger.
+ */
+const val queryFerdigstillDuplikatKandidatUtenArbeidsgiver =
+    """
+        UPDATE KANDIDAT_UTEN_ARBEIDSGIVER gammel
+        SET status = 'FERDIG'
+        WHERE gammel.personident = ?
+        AND gammel.status IN ('NY', 'UTSATT')
+        AND gammel.oversendt_at IS NULL
+        AND EXISTS (
+            SELECT 1 FROM KANDIDAT_UTEN_ARBEIDSGIVER ny
+            WHERE ny.personident = ?
+            AND (
+                (ny.status IN ('NY', 'UTSATT') AND ny.oversendt_at IS NULL)
+                OR (ny.oversendt_at IS NOT NULL AND ny.tilfelle_start >= gammel.tilfelle_start - CAST(? AS INTEGER))
+            )
+        )
+    """
+
+fun Connection.updateKandidatUtenArbeidsgiver(
+    nyPersonident: PersonIdentNumber,
+    inactiveIdenter: List<PersonIdentNumber>,
+): Int {
+    this.prepareStatement(queryFerdigstillDuplikatKandidatUtenArbeidsgiver).use {
+        inactiveIdenter.forEach { inactiveIdent ->
+            it.setString(1, inactiveIdent.value)
+            it.setString(2, nyPersonident.value)
+            it.setInt(3, MINIMUM_NUMBER_OF_DAYS_BETWEEN_TILFELLER.toInt())
+            it.executeUpdate()
+        }
+    }
+    return this.updateIdent(
+        query = queryUpdateKandidatUtenArbeidsgiver,
+        nyPersonident = nyPersonident,
+        inactiveIdenter = inactiveIdenter,
+    )
+}
+
 fun Connection.updateIdent(
     query: String,
     nyPersonident: PersonIdentNumber,
@@ -71,6 +120,8 @@ const val queryGetIdentCount =
             SELECT personident FROM TILFELLE_BIT
             UNION ALL
             SELECT personident FROM OPPFOLGINGSTILFELLE_PERSON
+            UNION ALL
+            SELECT personident FROM KANDIDAT_UTEN_ARBEIDSGIVER
         ) identer
         WHERE personident = ?
     """
