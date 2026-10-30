@@ -60,15 +60,14 @@ class IdenthendelseService(
      * OppfolgingstilfelleCronjob beregner et nytt oppfolgingstilfellePerson basert på alle tilfellebitene.
      */
     fun handleOutdatedIdent(ident: PersonIdentNumber): Int {
+        if (database.getIdentCount(listOf(ident)) == 0) {
+            return 0
+        }
         val aktivIdent = runBlocking { pdlClient.pdlIdenter(ident) }?.hentIdenter?.aktivIdent
             ?.let { PersonIdentNumber(it) }
             ?: throw RuntimeException("Fant ingen aktiv ident fra PDL")
         if (aktivIdent == ident) {
             log.info("Ident er allerede aktiv ident i PDL, ingenting å oppdatere")
-            return 0
-        }
-        if (database.getIdentCount(listOf(ident)) == 0) {
-            log.info("Fant ingen forekomster av utdatert ident, ingenting å oppdatere")
             return 0
         }
         checkThatPdlIsUpdated(aktivIdent)

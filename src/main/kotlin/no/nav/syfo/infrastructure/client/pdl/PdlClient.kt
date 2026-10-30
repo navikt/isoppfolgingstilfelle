@@ -123,6 +123,60 @@ class PdlClient(
         }
     }
 
+    /**
+     * Henter identer for flere personer, med maks [IDENTER_BOLK_MAX_SIZE] identer per kall til PDL.
+     * Identer som PDL ikke finner (eller avviser) er ikke med i resultatet.
+     * Kaster exception hvis et kall til PDL feiler i sin helhet.
+     */
+    suspend fun hentIdenterBolk(
+        identer: List<PersonIdentNumber>,
+        callId: String? = null,
+    ): Map<PersonIdentNumber, PdlIdenter> {
+        if (identer.isEmpty()) return emptyMap()
+        val token = azureAdClient.getSystemToken(clientEnvironment.clientId)
+            ?: throw RuntimeException("Failed to send PdlHentIdenterBolkRequest to PDL: No token was found")
+        val query = getPdlQuery(queryFilePath = "/pdl/hentIdenterBolk.graphql")
+
+        return identer.distinct().chunked(IDENTER_BOLK_MAX_SIZE).flatMap { chunk ->
+            val request = PdlHentIdenterBolkRequest(
+                query = query,
+                variables = PdlHentIdenterBolkRequestVariables(
+                    identer = chunk.map { it.value },
+                    historikk = true,
+                    grupper = listOf(IdentType.FOLKEREGISTERIDENT.name, IdentType.AKTORID.name),
+                ),
+            )
+            val response: HttpResponse = httpClient.post(clientEnvironment.baseUrl) {
+                header(HttpHeaders.Authorization, bearerHeader(token.accessToken))
+                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                header(BEHANDLINGSNUMMER_HEADER_KEY, BEHANDLINGSNUMMER_HEADER_VALUE)
+                header(NAV_CALL_ID_HEADER, callId)
+                header(IDENTER_HEADER, IDENTER_HEADER)
+                setBody(request)
+            }
+            if (response.status != HttpStatusCode.OK) {
+                COUNT_CALL_PDL_IDENTER_BOLK_FAIL.increment()
+                throw RuntimeException("Request to PDL hentIdenterBolk failed with response code ${response.status.value}")
+            }
+            val pdlIdenterBolkResponse = response.body<PdlIdenterBolkResponse>()
+            if (!pdlIdenterBolkResponse.errors.isNullOrEmpty() || pdlIdenterBolkResponse.data == null) {
+                COUNT_CALL_PDL_IDENTER_BOLK_FAIL.increment()
+                val errorMessages = pdlIdenterBolkResponse.errors?.joinToString { it.errorMessage() }
+                throw RuntimeException("Error from PDL hentIdenterBolk: $errorMessages")
+            }
+            COUNT_CALL_PDL_IDENTER_BOLK_SUCCESS.increment()
+
+            val (okResults, notOkResults) = pdlIdenterBolkResponse.data.hentIdenterBolk.partition { it.isOk() }
+            if (notOkResults.isNotEmpty()) {
+                logger.warn(
+                    "PDL hentIdenterBolk returned no identer for ${notOkResults.size} of ${chunk.size} identer, codes: " +
+                        notOkResults.groupingBy { it.code }.eachCount()
+                )
+            }
+            okResults.map { PersonIdentNumber(it.ident) to PdlIdenter(identer = it.identer!!) }
+        }.toMap()
+    }
+
     suspend fun hentPerson(
         personIdentNumber: PersonIdentNumber,
         callId: String? = null,
@@ -172,6 +226,7 @@ class PdlClient(
 
     companion object {
         const val IDENTER_HEADER = "identer"
+        const val IDENTER_BOLK_MAX_SIZE = 1000
 
         // Se behandlingskatalog https://behandlingskatalog.intern.nav.no/process/purpose/SYFO/60868e2d-b151-47a3-a1a6-1d896fc3a88d
         private const val BEHANDLINGSNUMMER_HEADER_KEY = "behandlingsnummer"
