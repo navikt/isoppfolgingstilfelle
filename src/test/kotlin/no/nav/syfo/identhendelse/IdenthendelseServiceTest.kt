@@ -9,10 +9,15 @@ import no.nav.syfo.infrastructure.client.pdl.PdlClient
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.getIdentCount
 import org.junit.jupiter.api.*
+import no.nav.syfo.domain.KandidatStatus
+import no.nav.syfo.domain.SykmeldtUtenArbeidsgiverKandidat
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import testhelper.ExternalMockEnvironment
 import testhelper.UserConstants
 import testhelper.dropData
+import testhelper.getKandidaterForPersonident
+import java.time.LocalDate
 import testhelper.generator.generateKafkaIdenthendelseDTO
 import testhelper.generator.generateKafkaSyketilfellebitSykmeldingNy
 import testhelper.generator.generateOppfolgingstilfellePerson
@@ -77,6 +82,70 @@ class IdenthendelseServiceTest {
 
             val newIdentOccurrences = database.getIdentCount(listOf(newIdent))
             assertEquals(2, newIdentOccurrences)
+        }
+
+        @Test
+        fun `Skal flytte kandidat for oversending til Modia AO når person har fått ny ident`() {
+            val kafkaIdenthendelseDTO = generateKafkaIdenthendelseDTO(hasOldPersonident = true)
+            val newIdent = kafkaIdenthendelseDTO.getActivePersonident()!!
+            val oldIdent = kafkaIdenthendelseDTO.getInactivePersonidenter().first()
+
+            externalMockEnvironment.kandidatRepository.createIfMissing(
+                kandidat = SykmeldtUtenArbeidsgiverKandidat.opprett(
+                    personident = oldIdent,
+                    aktorId = "1234567890123",
+                    referanseId = null,
+                    tilfelleStart = LocalDate.now().minusDays(10),
+                ),
+                tilfelleEnd = LocalDate.now(),
+            )
+
+            identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO)
+
+            assertTrue(database.getKandidaterForPersonident(oldIdent).isEmpty())
+            assertEquals(1, database.getKandidaterForPersonident(newIdent).size)
+        }
+
+        private fun opprettKandidat(personident: PersonIdentNumber, tilfelleStart: LocalDate): SykmeldtUtenArbeidsgiverKandidat {
+            val kandidat = SykmeldtUtenArbeidsgiverKandidat.opprett(
+                personident = personident,
+                aktorId = "1234567890123",
+                referanseId = null,
+                tilfelleStart = tilfelleStart,
+            )
+            externalMockEnvironment.kandidatRepository.createIfMissing(kandidat = kandidat, tilfelleEnd = tilfelleStart)
+            return kandidat
+        }
+
+        @Test
+        fun `Skal ferdigstille flyttet kandidat når ny ident allerede har aktiv kandidat`() {
+            val kafkaIdenthendelseDTO = generateKafkaIdenthendelseDTO(hasOldPersonident = true)
+            val newIdent = kafkaIdenthendelseDTO.getActivePersonident()!!
+            val oldIdent = kafkaIdenthendelseDTO.getInactivePersonidenter().first()
+            val gammelKandidat = opprettKandidat(oldIdent, LocalDate.now().minusDays(40))
+            val nyKandidat = opprettKandidat(newIdent, LocalDate.now().minusDays(10))
+
+            identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO)
+
+            val kandidater = database.getKandidaterForPersonident(newIdent).associateBy { it.uuid }
+            assertEquals(2, kandidater.size)
+            assertEquals(KandidatStatus.FERDIG.name, kandidater[gammelKandidat.uuid]!!.status)
+            assertEquals(KandidatStatus.NY.name, kandidater[nyKandidat.uuid]!!.status)
+        }
+
+        @Test
+        fun `Skal ikke ferdigstille flyttet kandidat når ny ident kun har oversendt kandidat`() {
+            val kafkaIdenthendelseDTO = generateKafkaIdenthendelseDTO(hasOldPersonident = true)
+            val newIdent = kafkaIdenthendelseDTO.getActivePersonident()!!
+            val oldIdent = kafkaIdenthendelseDTO.getInactivePersonidenter().first()
+            val gammelKandidat = opprettKandidat(oldIdent, LocalDate.now().minusDays(10))
+            val nyKandidat = opprettKandidat(newIdent, LocalDate.now().minusDays(200))
+            externalMockEnvironment.kandidatRepository.markerOversendt(nyKandidat.uuid)
+
+            identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO)
+
+            val kandidat = database.getKandidaterForPersonident(newIdent).first { it.uuid == gammelKandidat.uuid }
+            assertEquals(KandidatStatus.NY.name, kandidat.status)
         }
     }
 
