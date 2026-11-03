@@ -2,7 +2,16 @@ package no.nav.syfo.infrastructure.database
 
 import no.nav.syfo.domain.PersonIdentNumber
 import java.sql.Connection
+import org.slf4j.LoggerFactory
 import java.sql.PreparedStatement
+
+private val log = LoggerFactory.getLogger("no.nav.syfo.infrastructure.database.IdenthendelseQuery")
+
+const val queryGetOversendteKandidatUuids =
+    """
+        SELECT uuid FROM KANDIDAT_UTEN_ARBEIDSGIVER
+        WHERE personident = ? AND oversendt_at IS NOT NULL
+    """
 
 const val queryUpdateTilfelleBit =
     """
@@ -75,6 +84,16 @@ fun Connection.updateKandidatUtenArbeidsgiver(
     nyPersonident: PersonIdentNumber,
     inactiveIdenter: List<PersonIdentNumber>,
 ): Int {
+    this.prepareStatement(queryGetOversendteKandidatUuids).use {
+        inactiveIdenter.forEach { inactiveIdent ->
+            it.setString(1, inactiveIdent.value)
+            it.executeQuery().use { rs ->
+                while (rs.next()) {
+                    log.info("Oppdaterer personident på oversendt KandidatUtenArbeidsgiver ${rs.getString("uuid")}")
+                }
+            }
+        }
+    }
     this.prepareStatement(queryFerdigstillDuplikatKandidatUtenArbeidsgiver).use {
         inactiveIdenter.forEach { inactiveIdent ->
             it.setString(1, inactiveIdent.value)
