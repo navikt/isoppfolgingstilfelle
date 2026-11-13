@@ -160,12 +160,17 @@ fun OppfolgingstilfelleDag.isInntektsmelding() = priorityOppfolgingstilfelleBit?
 
 fun OppfolgingstilfelleDag.isSykmeldingNy() = priorityOppfolgingstilfelleBit?.isSykmeldingNy() ?: false
 
-fun OppfolgingstilfelleDag.isArbeidsdag(): Boolean =
-    if (priorityOppfolgingstilfelleBitPerVirksomhet.any { entry -> entry.value != null }) {
-        priorityOppfolgingstilfelleBitPerVirksomhet.all { entry -> entry.value?.isArbeidsdag() ?: true }
+fun OppfolgingstilfelleDag.isArbeidsdag(): Boolean {
+    val globalIsArbeidsdag = priorityOppfolgingstilfelleBit?.isArbeidsdag() ?: true
+    return if (priorityOppfolgingstilfelleBitPerVirksomhet.any { entry -> entry.value != null }) {
+        // Prioritetsbiter uten virksomhetsnummer (f.eks. BEKREFTET) finnes ikke per virksomhet, så den globale
+        // prioritetsbiten må også være arbeidsdag
+        globalIsArbeidsdag &&
+            priorityOppfolgingstilfelleBitPerVirksomhet.all { entry -> entry.value?.isArbeidsdag() ?: true }
     } else {
-        priorityOppfolgingstilfelleBit?.isArbeidsdag() ?: true
+        globalIsArbeidsdag
     }
+}
 
 fun OppfolgingstilfelleDag.isFeriedag() =
     priorityOppfolgingstilfelleBit
