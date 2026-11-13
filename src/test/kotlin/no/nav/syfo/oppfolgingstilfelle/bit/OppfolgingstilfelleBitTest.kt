@@ -608,6 +608,33 @@ class OppfolgingstilfelleBitTest {
     }
 
     @Test
+    fun `returns Dag with priorityOppfolgingstilfelleBit with bekreftet sykmelding even if behandlingsdager bit has later inntruffet`() {
+        val oppfolgingstilfelleBitList = listOf(
+            defaultBit.copy(
+                createdAt = nowUTC(),
+                inntruffet = nowUTC(),
+                tagList = listOf(SYKMELDING, SENDT, PERIODE, BEHANDLINGSDAGER),
+                fom = LocalDate.now().minusDays(16),
+                tom = LocalDate.now(),
+            ),
+            defaultBit.copy(
+                createdAt = nowUTC(),
+                inntruffet = nowUTC().minusDays(1),
+                tagList = listOf(SYKMELDING, BEKREFTET, PERIODE, GRADERT_AKTIVITET),
+                fom = LocalDate.now().minusDays(16),
+                tom = LocalDate.now(),
+            ),
+        )
+
+        val lastDayInTilfelle = oppfolgingstilfelleBitList.pickOppfolgingstilfelleDag(LocalDate.now())
+
+        val priorityTags = lastDayInTilfelle.priorityOppfolgingstilfelleBit!!.tagList
+        assertTrue(priorityTags.contains(BEKREFTET))
+        assertTrue(priorityTags.contains(GRADERT_AKTIVITET))
+        assertFalse(priorityTags.contains(BEHANDLINGSDAGER))
+    }
+
+    @Test
     fun `returns Oppfolgingstilfelle with gradertAtTilfelleEnd=true if biter from different virksomheter and all biter gradert at tilfelle end`() {
         val oppfolgingstilfelleBitList = listOf(
             defaultBit.copy(
