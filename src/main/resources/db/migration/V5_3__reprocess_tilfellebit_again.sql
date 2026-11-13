@@ -1,0 +1,1 @@
+UPDATE TILFELLE_BIT SET processed=false WHERE uuid='32ed0784-96b9-49aa-91c5-1ef048959d9d';
