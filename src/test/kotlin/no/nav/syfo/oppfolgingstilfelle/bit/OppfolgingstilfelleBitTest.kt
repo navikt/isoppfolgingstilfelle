@@ -635,6 +635,30 @@ class OppfolgingstilfelleBitTest {
     }
 
     @Test
+    fun `counts bekreftet ingen aktivitet without virksomhetsnummer as sykedager when overlapping sendt behandlingsdager with virksomhetsnummer`() {
+        val oppfolgingstilfelleBitList = listOf(
+            defaultBit.copy(
+                inntruffet = nowUTC().minusDays(2),
+                tagList = listOf(SYKMELDING, SENDT, PERIODE, BEHANDLINGSDAGER),
+                fom = LocalDate.now().minusDays(40),
+                tom = LocalDate.now().minusDays(10),
+            ),
+            defaultBit.copy(
+                inntruffet = nowUTC().minusDays(1),
+                virksomhetsnummer = null,
+                tagList = listOf(SYKMELDING, BEKREFTET, PERIODE, INGEN_AKTIVITET),
+                fom = LocalDate.now().minusDays(40),
+                tom = LocalDate.now().minusDays(10),
+            ),
+        )
+
+        val result = oppfolgingstilfelleBitList.generateOppfolgingstilfelleList()
+
+        assertEquals(1, result.size)
+        assertEquals(31, result.first().antallSykedager)
+    }
+
+    @Test
     fun `returns Oppfolgingstilfelle with gradertAtTilfelleEnd=true if biter from different virksomheter and all biter gradert at tilfelle end`() {
         val oppfolgingstilfelleBitList = listOf(
             defaultBit.copy(
