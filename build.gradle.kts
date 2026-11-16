@@ -4,7 +4,7 @@ import org.jlleitschuh.gradle.ktlint.tasks.KtLintCheckTask
 group = "no.nav.syfo"
 version = "1.0.0"
 
-val confluent = "8.3.0"
+val confluent = "8.4.0"
 val flyway = "13.12.2"
 val hikari = "7.1.0"
 val jackson = "2.23.0"
@@ -22,7 +22,7 @@ val postgresEmbedded = "2.2.2"
 val postgresRuntimeVersion = "17.9.0"
 
 plugins {
-    kotlin("jvm") version "2.4.10"
+    kotlin("jvm") version "2.4.21"
     id("com.gradleup.shadow") version "8.3.8"
     id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
     id("com.github.davidmc24.gradle.plugin.avro") version "1.9.1"
@@ -84,31 +84,17 @@ dependencies {
     // Kafka
     implementation("io.confluent:kafka-avro-serializer:$confluent")
     constraints {
-        implementation("org.apache.avro:avro") {
-            because("io.confluent:kafka-avro-serializer:$confluent -> https://www.cve.org/CVERecord?id=CVE-2023-39410")
+        implementation("com.google.guava:guava") {
             version {
-                require("1.12.0")
-            }
-        }
-        implementation("org.apache.commons:commons-compress") {
-            because("org.apache.commons:commons-compress:1.22 -> https://www.cve.org/CVERecord?id=CVE-2012-2098")
-            version {
-                require("1.28.0")
+                require("33.8.0-jre")
             }
         }
     }
     implementation("org.apache.kafka:kafka_2.13:$kafka")
     constraints {
-        implementation("org.bitbucket.b_c:jose4j") {
-            because("org.apache.kafka:kafka_2.13:$kafka -> https://github.com/advisories/GHSA-6qvw-249j-h44c")
+        implementation("at.yawk.lz4:lz4-java") {
             version {
-                require("0.9.6")
-            }
-        }
-        implementation("commons-beanutils:commons-beanutils") {
-            because("org.apache.kafka:kafka_2.13:$kafka -> https://www.cve.org/CVERecord?id=CVE-2025-48734")
-            version {
-                require("1.11.0")
+                require("1.11.4")
             }
         }
     }
