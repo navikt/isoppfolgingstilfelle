@@ -17,6 +17,7 @@ import no.nav.syfo.domain.PersonIdentNumber
 import no.nav.syfo.util.*
 import java.time.Duration
 import java.util.*
+import java.util.concurrent.CancellationException
 
 fun Application.installMetrics() {
     install(MicrometerMetrics) {
@@ -53,6 +54,11 @@ fun ApplicationCall.personIdent(): PersonIdentNumber? {
 
 fun Application.installStatusPages() {
     install(StatusPages) {
+        // Client disconnected before the response was sent; rethrow so cancellation propagates
+        exception<CancellationException> { call, cause ->
+            call.application.log.debug("Request cancelled: ${cause.message}")
+            throw cause
+        }
         exception<Throwable> { call, cause ->
             val callId = call.getCallId()
             val consumerClientId = call.getConsumerClientId()
